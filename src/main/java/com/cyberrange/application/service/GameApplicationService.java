@@ -17,10 +17,10 @@ import com.cyberrange.domain.exception.GameNotJoinableException;
 import com.cyberrange.domain.model.ActionIntent;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameId;
+import com.cyberrange.domain.model.GameSettings;
 import com.cyberrange.domain.model.JoinCode;
 import com.cyberrange.domain.model.Participant;
 import com.cyberrange.domain.model.ParticipantSession;
-import com.cyberrange.domain.model.Role;
 import com.cyberrange.domain.model.TeamId;
 import com.cyberrange.domain.rules.RoundResolution;
 import com.cyberrange.domain.rules.RuleEngine;
@@ -58,9 +58,9 @@ public final class GameApplicationService implements
     }
 
     @Override
-    public GameAccess createGame() {
+    public GameAccess createGame(GameSettings settings) {
         Participant instructor = Participant.instructor();
-        Game game = Game.create(uniqueJoinCode(), instructor);
+        Game game = Game.create(uniqueJoinCode(), instructor, settings);
         gameRepository.save(game);
         return accessFor(game, instructor);
     }
@@ -82,7 +82,7 @@ public final class GameApplicationService implements
     public void startGame(GameId gameId, ParticipantSession session) {
         Game game = requireGame(gameId);
         requireInstructor(game, session);
-        game.beginFirstRound();
+        game.startMatch();
         gameRepository.save(game);
         broadcaster.broadcastState(game.id(), game);
     }
@@ -94,35 +94,37 @@ public final class GameApplicationService implements
         if (participant.isInstructor()) {
             throw new AccessDeniedException("El instructor arbitra, no encola acciones");
         }
-        Role side = game.sideOf(participant.team());
-        game.enqueue(new ActionIntent(
+        ActionIntent action = new ActionIntent(
                 UUID.randomUUID(),
-                side,
+                game.sideOf(participant.team()),
                 command.actionType(),
                 command.parameters(),
-                command.noisy()));
+                command.noisy());
+        game.enqueue(action, ruleEngine.costOf(action));
         gameRepository.save(game);
         // Los turnos son simultaneos a ciegas: encolar no difunde nada, o el
         // rival veria lo que le viene encima antes de resolver la ronda.
     }
 
     @Override
-    public RoundResolution resolveCurrentRound(GameId gameId, ParticipantSession session) {
+    public Game resolveCurrentRound(GameId gameId, ParticipantSession session) {
         Game game = requireGame(gameId);
         requireInstructor(game, session);
         game.requireInProgress();
+
         RoundResolution resolution = ruleEngine.resolveRound(game, game.currentRound());
-        game.applyResolvedState(resolution.resultingState());
-        resolution.generatedEvents().forEach(game.currentRound()::recordEvent);
-        if (resolution.gameOver()) {
-            game.finish();
-        } else {
-            game.advanceRound();
+        game.applyRoundResolution(
+                resolution.resultingState(),
+                resolution.generatedEvents(),
+                resolution.takedown());
+        if (game.isOver()) {
+            game.recordResult(ruleEngine.scoreMatch(game));
         }
+
         gameRepository.save(game);
         broadcaster.broadcastState(game.id(), game);
         broadcaster.broadcastEvents(game.id(), resolution.generatedEvents());
-        return resolution;
+        return game;
     }
 
     @Override

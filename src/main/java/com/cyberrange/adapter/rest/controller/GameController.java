@@ -1,5 +1,6 @@
 package com.cyberrange.adapter.rest.controller;
 
+import com.cyberrange.adapter.rest.dto.CreateGameRequest;
 import com.cyberrange.adapter.rest.dto.CreateGameResponse;
 import com.cyberrange.adapter.rest.dto.EnqueueActionRequest;
 import com.cyberrange.adapter.rest.dto.GameStateResponse;
@@ -17,10 +18,8 @@ import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameId;
 import com.cyberrange.domain.model.JoinCode;
 import com.cyberrange.domain.model.ParticipantSession;
-import com.cyberrange.domain.rules.RoundResolution;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -60,9 +59,14 @@ public class GameController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CreateGameResponse createGame(HttpServletRequest request) {
+    public CreateGameResponse createGame(
+            HttpServletRequest request,
+            @RequestBody(required = false) CreateGameRequest settingsRequest) {
         instructorAccessGuard.requireInstructorAccess(request);
-        return CreateGameResponse.from(createGameUseCase.createGame());
+        CreateGameRequest settings = settingsRequest == null
+                ? new CreateGameRequest(null, null, null, null)
+                : settingsRequest;
+        return CreateGameResponse.from(createGameUseCase.createGame(settings.toSettings()));
     }
 
     @PostMapping("/join")
@@ -96,8 +100,8 @@ public class GameController {
     }
 
     @PostMapping("/{gameId}/rounds/resolve")
-    public ResponseEntity<Void> resolveRound(@PathVariable String gameId, ParticipantSession session) {
-        RoundResolution resolution = resolveRoundUseCase.resolveCurrentRound(GameId.of(gameId), session);
-        return resolution.gameOver() ? ResponseEntity.ok().build() : ResponseEntity.accepted().build();
+    public GameStateResponse resolveRound(@PathVariable String gameId, ParticipantSession session) {
+        Game game = resolveRoundUseCase.resolveCurrentRound(GameId.of(gameId), session);
+        return GameStateResponse.from(game, session.participant());
     }
 }

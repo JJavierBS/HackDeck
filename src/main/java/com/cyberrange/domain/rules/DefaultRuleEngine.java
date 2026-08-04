@@ -5,8 +5,12 @@ import com.cyberrange.domain.model.CiaPillar;
 import com.cyberrange.domain.model.CiaState;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameEvent;
+import com.cyberrange.domain.model.Half;
+import com.cyberrange.domain.model.MatchOutcome;
+import com.cyberrange.domain.model.MatchResult;
 import com.cyberrange.domain.model.Role;
 import com.cyberrange.domain.model.Round;
+import com.cyberrange.domain.model.TeamId;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -35,6 +39,9 @@ public final class DefaultRuleEngine implements RuleEngine {
     /** Pilar al que apunta una accion que no dice a cual. */
     static final CiaPillar DEFAULT_PILLAR = CiaPillar.AVAILABILITY;
 
+    /** Coste plano mientras el catalogo externo no diga lo que vale cada accion. */
+    static final int ACTION_COST = 5;
+
     private static final String PILLAR_PARAMETER = "pillar";
 
     @Override
@@ -59,12 +66,58 @@ public final class DefaultRuleEngine implements RuleEngine {
             events.add(attackEvent(round, action, pillar, damage));
         }
 
-        CiaPillar downedPillar = firstDownedPillar(state);
-        return new RoundResolution(
-                state,
-                events,
-                downedPillar != null,
-                downedPillar == null ? null : Role.ATTACKER);
+        return new RoundResolution(state, events, firstDownedPillar(state) != null);
+    }
+
+    @Override
+    public int costOf(ActionIntent action) {
+        return ACTION_COST;
+    }
+
+    /**
+     * Marcador del match. Derribar un pilar manda sobre cualquier otra
+     * consideracion; si los dos lo consiguen gana quien tardo menos rondas,
+     * y si nadie derriba gana quien mejor defendio su triada.
+     */
+    @Override
+    public MatchResult scoreMatch(Game game) {
+        Map<TeamId, Integer> defendedCia = new EnumMap<>(TeamId.class);
+        Map<TeamId, Integer> takedownRound = new EnumMap<>(TeamId.class);
+        for (Half half : game.halves()) {
+            defendedCia.put(half.defendingTeam(), half.defendedCia());
+            if (half.takedownRound() != null) {
+                takedownRound.put(half.attackingTeam(), half.takedownRound());
+            }
+        }
+
+        Integer takedownA = takedownRound.get(TeamId.A);
+        Integer takedownB = takedownRound.get(TeamId.B);
+
+        if (takedownA != null && takedownB != null) {
+            if (!takedownA.equals(takedownB)) {
+                TeamId faster = takedownA < takedownB ? TeamId.A : TeamId.B;
+                return new MatchResult(faster, MatchOutcome.TAKEDOWN_FASTER, defendedCia, takedownRound);
+            }
+            // Derribo en la misma ronda: se cae al criterio de puntos.
+            return byDefendedCia(defendedCia, takedownRound);
+        }
+        if (takedownA != null) {
+            return new MatchResult(TeamId.A, MatchOutcome.TAKEDOWN, defendedCia, takedownRound);
+        }
+        if (takedownB != null) {
+            return new MatchResult(TeamId.B, MatchOutcome.TAKEDOWN, defendedCia, takedownRound);
+        }
+        return byDefendedCia(defendedCia, takedownRound);
+    }
+
+    private static MatchResult byDefendedCia(Map<TeamId, Integer> defendedCia, Map<TeamId, Integer> takedownRound) {
+        int defendedByA = defendedCia.getOrDefault(TeamId.A, 0);
+        int defendedByB = defendedCia.getOrDefault(TeamId.B, 0);
+        if (defendedByA == defendedByB) {
+            return new MatchResult(null, MatchOutcome.DRAW, defendedCia, takedownRound);
+        }
+        TeamId winner = defendedByA > defendedByB ? TeamId.A : TeamId.B;
+        return new MatchResult(winner, MatchOutcome.POINTS, defendedCia, takedownRound);
     }
 
     private static int damageAfterShield(int shield) {
