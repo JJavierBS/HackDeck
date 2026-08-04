@@ -1,5 +1,6 @@
 import type { GameStateDto } from "../api/restClient";
 import type { GameSession } from "../api/session";
+import { MatchScoreboard } from "./MatchScoreboard";
 
 interface ViewProps {
   session: GameSession;
@@ -11,9 +12,11 @@ export function AttackerView({ session, state }: ViewProps) {
     <main>
       <h1>Atacante</h1>
       <p>
-        Equipo {session.team}. Fase: {state?.phase ?? "cargando"}
+        Equipo {session.team} — mitad {state?.halfNumber ?? "-"} de 2, ronda {state?.currentRoundNumber ?? 0} de{" "}
+        {state?.roundsPerHalf ?? "-"}
       </p>
-      <p>Ronda: {state?.currentRoundNumber ?? 0}</p>
+      <p>Presupuesto: {state?.yourBudget ?? 0}</p>
+      {state && <MatchScoreboard state={state} />}
     </main>
   );
 }

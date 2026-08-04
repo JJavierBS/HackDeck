@@ -16,15 +16,35 @@ export class ApiRequestError extends Error {
   }
 }
 
+export interface MatchResultDto {
+  winner: "A" | "B" | null;
+  outcome: "TAKEDOWN" | "TAKEDOWN_FASTER" | "POINTS" | "DRAW";
+  defendedCia: Record<string, number>;
+  takedownRound: Record<string, number>;
+}
+
 export interface GameStateDto {
   gameId: string;
   joinCode: string;
   phase: "PREPARATION" | "IN_PROGRESS" | "FINISHED";
   ciaLevels: Record<string, number>;
+  halfNumber: number | null;
   currentRoundNumber: number;
+  roundsPerHalf: number;
+  roundTimeoutSeconds: number;
   teams: Record<string, string>;
   yourTeam: "A" | "B" | null;
   yourSide: "ATTACKER" | "DEFENDER" | null;
+  yourBudget: number | null;
+  budgets: Record<string, number> | null;
+  result: MatchResultDto | null;
+}
+
+export interface GameSettingsDto {
+  roundsPerHalf?: number;
+  roundTimeoutSeconds?: number;
+  initialBudget?: number;
+  incomePerRound?: number;
 }
 
 export interface EnqueueActionDto {
@@ -34,12 +54,12 @@ export interface EnqueueActionDto {
 }
 
 export interface RestClient {
-  createGame(instructorKey?: string): Promise<GameSession>;
+  createGame(settings: GameSettingsDto, instructorKey?: string): Promise<GameSession>;
   joinGame(code: string, displayName: string): Promise<GameSession>;
   startGame(session: GameSession): Promise<void>;
   getGameState(session: GameSession): Promise<GameStateDto>;
   enqueueAction(session: GameSession, action: EnqueueActionDto): Promise<void>;
-  resolveRound(session: GameSession): Promise<void>;
+  resolveRound(session: GameSession): Promise<GameStateDto>;
 }
 
 /**
@@ -50,8 +70,9 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export function createRestClient(): RestClient {
   return {
-    createGame: (instructorKey) =>
+    createGame: (settings, instructorKey) =>
       request<GameSession>("POST", "/api/v1/games", {
+        body: settings,
         headers: instructorKey ? { "X-Instructor-Key": instructorKey } : undefined,
       }),
 
@@ -68,7 +89,7 @@ export function createRestClient(): RestClient {
       request<void>("POST", `/api/v1/games/${session.gameId}/actions`, { session, body: action }),
 
     resolveRound: (session) =>
-      request<void>("POST", `/api/v1/games/${session.gameId}/rounds/resolve`, { session }),
+      request<GameStateDto>("POST", `/api/v1/games/${session.gameId}/rounds/resolve`, { session }),
   };
 }
 
