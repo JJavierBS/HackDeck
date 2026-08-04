@@ -1,56 +1,177 @@
 package com.cyberrange.application.service;
 
+import com.cyberrange.application.exception.AccessDeniedException;
 import com.cyberrange.application.port.in.CreateGameUseCase;
+import com.cyberrange.application.port.in.EnqueueActionCommand;
 import com.cyberrange.application.port.in.EnqueueActionUseCase;
+import com.cyberrange.application.port.in.GameAccess;
 import com.cyberrange.application.port.in.GetGameStateUseCase;
+import com.cyberrange.application.port.in.JoinGameUseCase;
 import com.cyberrange.application.port.in.ResolveRoundUseCase;
+import com.cyberrange.application.port.in.StartGameUseCase;
+import com.cyberrange.application.port.out.AccessTokenPort;
 import com.cyberrange.application.port.out.GameRepository;
 import com.cyberrange.application.port.out.GameStateBroadcaster;
+import com.cyberrange.domain.exception.GameNotFoundException;
+import com.cyberrange.domain.exception.GameNotJoinableException;
 import com.cyberrange.domain.model.ActionIntent;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameId;
+import com.cyberrange.domain.model.JoinCode;
+import com.cyberrange.domain.model.Participant;
+import com.cyberrange.domain.model.ParticipantSession;
+import com.cyberrange.domain.model.Role;
+import com.cyberrange.domain.model.TeamId;
 import com.cyberrange.domain.rules.RoundResolution;
 import com.cyberrange.domain.rules.RuleEngine;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Orquesta los casos de uso apoyandose en el dominio y en los puertos de
  * salida. No contiene reglas de juego (eso vive en RuleEngine);
- * solo coordina persistencia, motor de reglas y difusion.
+ * solo coordina persistencia, motor de reglas, credenciales y difusion.
  */
 @Service
-public final class GameApplicationService
-        implements CreateGameUseCase, EnqueueActionUseCase, ResolveRoundUseCase, GetGameStateUseCase {
+public final class GameApplicationService implements
+        CreateGameUseCase, JoinGameUseCase, StartGameUseCase,
+        EnqueueActionUseCase, ResolveRoundUseCase, GetGameStateUseCase {
+
+    private static final int MAX_JOIN_CODE_ATTEMPTS = 100;
 
     private final GameRepository gameRepository;
     private final GameStateBroadcaster broadcaster;
     private final RuleEngine ruleEngine;
+    private final AccessTokenPort accessTokenPort;
 
-    public GameApplicationService(GameRepository gameRepository, GameStateBroadcaster broadcaster, RuleEngine ruleEngine) {
+    public GameApplicationService(
+            GameRepository gameRepository,
+            GameStateBroadcaster broadcaster,
+            RuleEngine ruleEngine,
+            AccessTokenPort accessTokenPort) {
         this.gameRepository = Objects.requireNonNull(gameRepository, "gameRepository");
         this.broadcaster = Objects.requireNonNull(broadcaster, "broadcaster");
         this.ruleEngine = Objects.requireNonNull(ruleEngine, "ruleEngine");
+        this.accessTokenPort = Objects.requireNonNull(accessTokenPort, "accessTokenPort");
     }
 
     @Override
-    public GameId createGame() {
-        throw new UnsupportedOperationException("TODO");
+    public GameAccess createGame() {
+        Participant instructor = Participant.instructor();
+        Game game = Game.create(uniqueJoinCode(), instructor);
+        gameRepository.save(game);
+        return accessFor(game, instructor);
     }
 
     @Override
-    public void enqueueAction(GameId gameId, ActionIntent action) {
-        throw new UnsupportedOperationException("TODO");
+    public GameAccess joinGame(JoinCode joinCode, String displayName) {
+        Game game = gameRepository.findByJoinCode(joinCode)
+                .orElseThrow(() -> new GameNotFoundException(joinCode.toString()));
+        TeamId team = game.firstFreeTeam()
+                .orElseThrow(() -> new GameNotJoinableException("La partida ya tiene los dos equipos"));
+        Participant player = Participant.player(team, displayName);
+        game.join(player);
+        gameRepository.save(game);
+        broadcaster.broadcastState(game.id(), game);
+        return accessFor(game, player);
     }
 
     @Override
-    public RoundResolution resolveCurrentRound(GameId gameId) {
-        throw new UnsupportedOperationException("TODO");
+    public void startGame(GameId gameId, ParticipantSession session) {
+        Game game = requireGame(gameId);
+        requireInstructor(game, session);
+        game.beginFirstRound();
+        gameRepository.save(game);
+        broadcaster.broadcastState(game.id(), game);
     }
 
     @Override
-    public Game getGameState(GameId gameId) {
-        throw new UnsupportedOperationException("TODO");
+    public void enqueueAction(GameId gameId, ParticipantSession session, EnqueueActionCommand command) {
+        Game game = requireGame(gameId);
+        Participant participant = requireParticipant(game, session);
+        if (participant.isInstructor()) {
+            throw new AccessDeniedException("El instructor arbitra, no encola acciones");
+        }
+        Role side = game.sideOf(participant.team());
+        game.currentRound().enqueue(new ActionIntent(
+                UUID.randomUUID(),
+                side,
+                command.actionType(),
+                command.parameters(),
+                command.noisy()));
+        gameRepository.save(game);
+        // Los turnos son simultaneos a ciegas: encolar no difunde nada, o el
+        // rival veria lo que le viene encima antes de resolver la ronda.
+    }
+
+    @Override
+    public RoundResolution resolveCurrentRound(GameId gameId, ParticipantSession session) {
+        Game game = requireGame(gameId);
+        requireInstructor(game, session);
+        RoundResolution resolution = ruleEngine.resolveRound(game, game.currentRound());
+        game.applyResolvedState(resolution.resultingState());
+        resolution.generatedEvents().forEach(game.currentRound()::recordEvent);
+        if (resolution.gameOver()) {
+            game.finish();
+        } else {
+            game.advanceRound();
+        }
+        gameRepository.save(game);
+        broadcaster.broadcastState(game.id(), game);
+        broadcaster.broadcastEvents(game.id(), resolution.generatedEvents());
+        return resolution;
+    }
+
+    @Override
+    public Game getGameState(GameId gameId, ParticipantSession session) {
+        Game game = requireGame(gameId);
+        requireParticipant(game, session);
+        return game;
+    }
+
+    private GameAccess accessFor(Game game, Participant participant) {
+        ParticipantSession session = new ParticipantSession(game.id(), participant);
+        return new GameAccess(game.id(), game.joinCode(), participant, accessTokenPort.issue(session));
+    }
+
+    private Game requireGame(GameId gameId) {
+        return gameRepository.findById(gameId)
+                .orElseThrow(() -> new GameNotFoundException(gameId.toString()));
+    }
+
+    /**
+     * Que el token sea valido no basta: tiene que ser de esta partida y ese
+     * participante debe seguir siendo quien dice ser dentro de ella.
+     */
+    private Participant requireParticipant(Game game, ParticipantSession session) {
+        if (!session.belongsTo(game.id())) {
+            throw new AccessDeniedException("El token pertenece a otra partida");
+        }
+        Participant claimed = session.participant();
+        Participant actual = claimed.isInstructor()
+                ? game.instructor()
+                : game.playerOf(claimed.team()).orElse(null);
+        if (actual == null || !actual.id().equals(claimed.id())) {
+            throw new AccessDeniedException("El participante ya no forma parte de la partida");
+        }
+        return actual;
+    }
+
+    private void requireInstructor(Game game, ParticipantSession session) {
+        if (!requireParticipant(game, session).isInstructor()) {
+            throw new AccessDeniedException("Solo el instructor puede hacer esto");
+        }
+    }
+
+    private JoinCode uniqueJoinCode() {
+        for (int attempt = 0; attempt < MAX_JOIN_CODE_ATTEMPTS; attempt++) {
+            JoinCode candidate = JoinCode.generate();
+            if (!gameRepository.existsByJoinCode(candidate)) {
+                return candidate;
+            }
+        }
+        throw new IllegalStateException("No se ha podido generar un codigo de partida libre");
     }
 }

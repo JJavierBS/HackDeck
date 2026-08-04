@@ -1,7 +1,7 @@
 package com.cyberrange.application.port.in;
 
-import com.cyberrange.domain.model.ActionIntent;
 import com.cyberrange.domain.model.GameId;
+import com.cyberrange.domain.model.ParticipantSession;
 
 /**
  * Puerto de entrada: un atacante o defensor encola una accion para la
@@ -9,5 +9,5 @@ import com.cyberrange.domain.model.GameId;
  */
 public interface EnqueueActionUseCase {
 
-    void enqueueAction(GameId gameId, ActionIntent action);
+    void enqueueAction(GameId gameId, ParticipantSession session, EnqueueActionCommand command);
 }

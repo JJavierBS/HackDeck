@@ -1,12 +1,10 @@
 package com.cyberrange.application.port.in;
 
-import com.cyberrange.domain.model.GameId;
-
 /**
  * Puerto de entrada: el instructor crea una nueva partida en fase de
- * preparacion.
+ * preparacion y recibe el codigo con el que se uniran los equipos.
  */
 public interface CreateGameUseCase {
 
-    GameId createGame();
+    GameAccess createGame();
 }

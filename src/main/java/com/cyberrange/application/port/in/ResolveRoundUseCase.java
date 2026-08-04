@@ -1,6 +1,7 @@
 package com.cyberrange.application.port.in;
 
 import com.cyberrange.domain.model.GameId;
+import com.cyberrange.domain.model.ParticipantSession;
 import com.cyberrange.domain.rules.RoundResolution;
 
 /**
@@ -9,5 +10,5 @@ import com.cyberrange.domain.rules.RoundResolution;
  */
 public interface ResolveRoundUseCase {
 
-    RoundResolution resolveCurrentRound(GameId gameId);
+    RoundResolution resolveCurrentRound(GameId gameId, ParticipantSession session);
 }
