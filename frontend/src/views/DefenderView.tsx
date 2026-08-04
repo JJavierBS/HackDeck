@@ -1,3 +1,26 @@
-export function DefenderView() {
-  return <p>Vista del defensor (placeholder).</p>;
+import type { GameStateDto } from "../api/restClient";
+import type { GameSession } from "../api/session";
+
+interface ViewProps {
+  session: GameSession;
+  state: GameStateDto | null;
+}
+
+export function DefenderView({ session, state }: ViewProps) {
+  return (
+    <main>
+      <h1>Defensor</h1>
+      <p>
+        Equipo {session.team}. Fase: {state?.phase ?? "cargando"}
+      </p>
+      <p>Ronda: {state?.currentRoundNumber ?? 0}</p>
+      <ul>
+        {Object.entries(state?.ciaLevels ?? {}).map(([pillar, level]) => (
+          <li key={pillar}>
+            {pillar}: {level}
+          </li>
+        ))}
+      </ul>
+    </main>
+  );
 }
