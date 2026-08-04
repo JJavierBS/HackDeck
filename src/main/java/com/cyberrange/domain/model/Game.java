@@ -112,6 +112,17 @@ public final class Game {
         return rounds.getLast();
     }
 
+    public void enqueue(ActionIntent action) {
+        requireInProgress();
+        currentRound().enqueue(action);
+    }
+
+    public void requireInProgress() {
+        if (phase != GamePhase.IN_PROGRESS) {
+            throw new IllegalStateException("La partida no esta en curso");
+        }
+    }
+
     /**
      * Cierra la fase de preparacion y arranca la primera ronda.
      */
@@ -127,9 +138,7 @@ public final class Game {
      * Avanza a la siguiente ronda tras resolver la actual.
      */
     public void advanceRound() {
-        if (phase != GamePhase.IN_PROGRESS) {
-            throw new IllegalStateException("La partida no esta en curso");
-        }
+        requireInProgress();
         rounds.add(new Round(currentRound().number() + 1));
     }
 

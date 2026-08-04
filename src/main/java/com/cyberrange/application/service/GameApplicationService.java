@@ -95,7 +95,7 @@ public final class GameApplicationService implements
             throw new AccessDeniedException("El instructor arbitra, no encola acciones");
         }
         Role side = game.sideOf(participant.team());
-        game.currentRound().enqueue(new ActionIntent(
+        game.enqueue(new ActionIntent(
                 UUID.randomUUID(),
                 side,
                 command.actionType(),
@@ -110,6 +110,7 @@ public final class GameApplicationService implements
     public RoundResolution resolveCurrentRound(GameId gameId, ParticipantSession session) {
         Game game = requireGame(gameId);
         requireInstructor(game, session);
+        game.requireInProgress();
         RoundResolution resolution = ruleEngine.resolveRound(game, game.currentRound());
         game.applyResolvedState(resolution.resultingState());
         resolution.generatedEvents().forEach(game.currentRound()::recordEvent);
