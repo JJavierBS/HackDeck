@@ -1,5 +1,6 @@
 package com.cyberrange.domain.model;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
@@ -11,6 +12,9 @@ import java.util.Objects;
  */
 public final class CiaState {
 
+    public static final int MIN_LEVEL = 0;
+    public static final int MAX_LEVEL = 100;
+
     private final Map<CiaPillar, Integer> levels;
 
     public CiaState(Map<CiaPillar, Integer> levels) {
@@ -18,18 +22,28 @@ public final class CiaState {
     }
 
     public static CiaState intact() {
-        throw new UnsupportedOperationException("TODO: estado inicial de la triada CIA");
+        Map<CiaPillar, Integer> levels = new EnumMap<>(CiaPillar.class);
+        for (CiaPillar pillar : CiaPillar.values()) {
+            levels.put(pillar, MAX_LEVEL);
+        }
+        return new CiaState(levels);
     }
 
     public int levelOf(CiaPillar pillar) {
-        throw new UnsupportedOperationException("TODO");
+        return levels.getOrDefault(pillar, MIN_LEVEL);
     }
 
     public boolean isPillarDown(CiaPillar pillar) {
-        throw new UnsupportedOperationException("TODO");
+        return levelOf(pillar) <= MIN_LEVEL;
     }
 
     public CiaState withImpact(CiaPillar pillar, int delta) {
-        throw new UnsupportedOperationException("TODO: aplicar impacto de una accion sobre un pilar");
+        Map<CiaPillar, Integer> updated = new EnumMap<>(levels);
+        updated.put(pillar, Math.clamp(levelOf(pillar) + delta, MIN_LEVEL, MAX_LEVEL));
+        return new CiaState(updated);
+    }
+
+    public Map<CiaPillar, Integer> levels() {
+        return Collections.unmodifiableMap(levels);
     }
 }

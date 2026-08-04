@@ -2,6 +2,7 @@ package com.cyberrange.domain.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Una ronda de la partida: acciones encoladas por ambos bandos y eventos
@@ -29,11 +30,16 @@ public final class Round {
         return List.copyOf(events);
     }
 
+    /**
+     * Solo guarda la accion: validar presupuesto y coste es regla de juego
+     * y lo hara el motor de reglas antes de llamar aqui.
+     */
+    // TODO: Fase 3 del roadmap, validacion de presupuesto en RuleEngine.
     public void enqueue(ActionIntent action) {
-        throw new UnsupportedOperationException("TODO: validar presupuesto y encolar accion");
+        queuedActions.add(Objects.requireNonNull(action, "action"));
     }
 
     public void recordEvent(GameEvent event) {
-        throw new UnsupportedOperationException("TODO");
+        events.add(Objects.requireNonNull(event, "event"));
     }
 }
