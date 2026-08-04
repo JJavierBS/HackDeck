@@ -1,6 +1,6 @@
 package com.cyberrange.adapter.websocket;
 
-import com.cyberrange.domain.model.GameId;
+import com.cyberrange.domain.model.ParticipantSession;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -8,7 +8,10 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 /**
  * Gestiona el ciclo de vida de las conexiones WebSocket de una partida.
- * Cada cliente se conecta a /ws/games/{gameId}
+ * Cada cliente se conecta a /ws/games/{gameId}?token=...
+ *
+ * El canal es de solo difusion: los comandos van por REST. Los mensajes
+ * entrantes se ignoran para no abrir una via alternativa sin autorizar.
  */
 public final class GameWebSocketHandler extends TextWebSocketHandler {
 
@@ -20,22 +23,23 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
-        sessionRegistry.register(gameIdFrom(session), session);
+        sessionRegistry.register(participantSession(session).gameId(), session);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        sessionRegistry.unregister(gameIdFrom(session), session);
+        sessionRegistry.unregister(participantSession(session).gameId(), session);
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
-        throw new UnsupportedOperationException("TODO: definir mensajes entrantes por WebSocket, si los hay");
     }
 
-    private GameId gameIdFrom(WebSocketSession session) {
-        String path = session.getUri() == null ? "" : session.getUri().getPath();
-        String rawId = path.substring(path.lastIndexOf('/') + 1);
-        return GameId.of(rawId);
+    private static ParticipantSession participantSession(WebSocketSession session) {
+        Object attribute = session.getAttributes().get(JwtHandshakeInterceptor.PARTICIPANT_SESSION_ATTRIBUTE);
+        if (attribute instanceof ParticipantSession participantSession) {
+            return participantSession;
+        }
+        throw new IllegalStateException("Conexion WebSocket sin sesion verificada");
     }
 }
