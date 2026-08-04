@@ -4,6 +4,7 @@ import com.cyberrange.application.port.out.GameStateBroadcaster;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameEvent;
 import com.cyberrange.domain.model.GameId;
+import com.cyberrange.domain.model.GamePhase;
 import com.cyberrange.domain.model.TeamId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,12 +47,15 @@ public final class GameStateWebSocketBroadcaster implements GameStateBroadcaster
         for (TeamId team : TeamId.values()) {
             game.playerOf(team).ifPresent(player -> teams.put(team.name(), player.displayName()));
         }
-        send(gameId, Map.of(
-                "type", "state",
-                "gameId", game.id().toString(),
-                "phase", game.phase().name(),
-                "currentRoundNumber", game.rounds().size(),
-                "teams", teams));
+        boolean started = game.phase() != GamePhase.PREPARATION;
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("type", "state");
+        payload.put("gameId", game.id().toString());
+        payload.put("phase", game.phase().name());
+        payload.put("halfNumber", started ? game.currentHalf().number() : null);
+        payload.put("currentRoundNumber", started ? game.currentHalf().currentRound().number() : 0);
+        payload.put("teams", teams);
+        send(gameId, payload);
     }
 
     @Override
