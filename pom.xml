@@ -72,6 +72,9 @@
         <version>${maven-compiler-plugin.version}</version>
         <configuration>
           <release>${java.version}</release>
+          <!-- Spring necesita los nombres de parametro para resolver
+               @PathVariable y @RequestParam sin repetirlos a mano. -->
+          <parameters>true</parameters>
         </configuration>
       </plugin>
       <plugin>
