@@ -6,6 +6,7 @@ import com.cyberrange.application.exception.AccessDeniedException;
 import com.cyberrange.domain.exception.GameNotFoundException;
 import com.cyberrange.domain.exception.GameNotJoinableException;
 import com.cyberrange.domain.exception.InsufficientBudgetException;
+import com.cyberrange.domain.exception.UnknownCardException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -37,6 +38,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(InsufficientBudgetException.class)
     public ResponseEntity<ApiErrorResponse> handleInsufficientBudget(InsufficientBudgetException e) {
         return build(HttpStatus.CONFLICT, "presupuesto_insuficiente", e.getMessage());
+    }
+
+    @ExceptionHandler(UnknownCardException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnknownCard(UnknownCardException e) {
+        return build(HttpStatus.BAD_REQUEST, "carta_desconocida", e.getMessage());
     }
 
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})

@@ -11,6 +11,7 @@ import com.cyberrange.application.port.in.EnqueueActionUseCase;
 import com.cyberrange.application.port.in.GameAccess;
 import com.cyberrange.application.port.in.GetGameStateUseCase;
 import com.cyberrange.application.port.in.JoinGameUseCase;
+import com.cyberrange.application.port.in.LaunchTwistUseCase;
 import com.cyberrange.application.port.in.ResolveRoundUseCase;
 import com.cyberrange.application.port.in.StartGameUseCase;
 import com.cyberrange.application.service.GameViewProjector;
@@ -40,6 +41,7 @@ public class GameController {
     private final ResolveRoundUseCase resolveRoundUseCase;
     private final GetGameStateUseCase getGameStateUseCase;
     private final InstructorAccessGuard instructorAccessGuard;
+    private final LaunchTwistUseCase launchTwistUseCase;
     private final GameViewProjector projector;
 
     public GameController(
@@ -50,6 +52,7 @@ public class GameController {
             ResolveRoundUseCase resolveRoundUseCase,
             GetGameStateUseCase getGameStateUseCase,
             InstructorAccessGuard instructorAccessGuard,
+            LaunchTwistUseCase launchTwistUseCase,
             GameViewProjector projector) {
         this.createGameUseCase = createGameUseCase;
         this.joinGameUseCase = joinGameUseCase;
@@ -58,6 +61,7 @@ public class GameController {
         this.resolveRoundUseCase = resolveRoundUseCase;
         this.getGameStateUseCase = getGameStateUseCase;
         this.instructorAccessGuard = instructorAccessGuard;
+        this.launchTwistUseCase = launchTwistUseCase;
         this.projector = projector;
     }
 
@@ -100,7 +104,16 @@ public class GameController {
         enqueueActionUseCase.enqueueAction(
                 GameId.of(gameId),
                 session,
-                new EnqueueActionCommand(request.actionType(), request.parameters(), request.noisy()));
+                new EnqueueActionCommand(request.cardId(), request.parameters()));
+    }
+
+    @PostMapping("/{gameId}/twists/{cardId}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void launchTwist(
+            @PathVariable String gameId,
+            @PathVariable String cardId,
+            ParticipantSession session) {
+        launchTwistUseCase.launchTwist(GameId.of(gameId), session, cardId);
     }
 
     @PostMapping("/{gameId}/rounds/resolve")

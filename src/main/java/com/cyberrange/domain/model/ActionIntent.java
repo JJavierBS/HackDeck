@@ -6,20 +6,19 @@ import java.util.UUID;
 
 /**
  * Intencion de accion encolada por un participante para la ronda actual.
- * "noisy" distingue acciones ruidosas (detectables por IDS/logs) de
- * silenciosas, base de la mecanica de deteccion.
+ * Solo dice que carta juega y con que parametros: el coste, el ruido y el
+ * efecto los pone el catalogo, no el cliente.
  */
 public record ActionIntent(
         UUID id,
         Role team,
-        String actionType,
-        Map<String, String> parameters,
-        boolean noisy) {
+        String cardId,
+        Map<String, String> parameters) {
 
     public ActionIntent {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(team, "team");
-        Objects.requireNonNull(actionType, "actionType");
+        Objects.requireNonNull(cardId, "cardId");
         parameters = parameters == null ? Map.of() : Map.copyOf(parameters);
     }
 }

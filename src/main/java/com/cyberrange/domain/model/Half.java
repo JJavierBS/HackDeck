@@ -1,13 +1,16 @@
 package com.cyberrange.domain.model;
 
+import com.cyberrange.domain.catalog.KillChainPhase;
 import com.cyberrange.domain.exception.InsufficientBudgetException;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Una mitad del match. Cada mitad arranca limpia (triada a 100 y
@@ -24,6 +27,9 @@ public final class Half {
     private final GameSettings settings;
     private final List<Round> rounds = new ArrayList<>();
     private final Map<TeamId, Integer> budgets = new EnumMap<>(TeamId.class);
+    private final List<ActiveCard> activeCards = new ArrayList<>();
+    /** El atacante empieza pudiendo hacer reconocimiento y nada mas. */
+    private final EnumSet<KillChainPhase> unlockedPhases = EnumSet.of(KillChainPhase.RECON);
     private CiaState ciaState = CiaState.intact();
     private Integer takedownRound;
     private boolean finished;
@@ -94,6 +100,42 @@ public final class Half {
         return total;
     }
 
+    public List<ActiveCard> activeCards() {
+        return List.copyOf(activeCards);
+    }
+
+    public List<ActiveCard> activeCardsOf(Role side) {
+        return activeCards.stream().filter(card -> card.side() == side).toList();
+    }
+
+    public boolean isActive(String cardId) {
+        return activeCards.stream().anyMatch(card -> card.cardId().equals(cardId));
+    }
+
+    public void activate(ActiveCard card) {
+        activeCards.add(card);
+    }
+
+    public void deactivate(String cardId) {
+        activeCards.removeIf(card -> card.cardId().equals(cardId));
+    }
+
+    public boolean isUnlocked(KillChainPhase phase) {
+        return unlockedPhases.contains(phase);
+    }
+
+    public void unlock(KillChainPhase phase) {
+        unlockedPhases.add(phase);
+    }
+
+    public Set<KillChainPhase> unlockedPhases() {
+        return Set.copyOf(unlockedPhases);
+    }
+
+    public void addBudget(TeamId team, int amount) {
+        budgets.merge(team, amount, Integer::sum);
+    }
+
     public void spend(TeamId team, int cost) {
         int available = budgetOf(team);
         if (cost > available) {
@@ -114,11 +156,26 @@ public final class Half {
         return currentRound().number() >= settings.roundsPerHalf();
     }
 
-    public void advanceRound() {
+    /**
+     * @param catchUpBonus presupuesto extra que el motor concede al bando que
+     *                     va perdiendo, ademas del ingreso normal.
+     */
+    public void advanceRound(Map<TeamId, Integer> catchUpBonus) {
         rounds.add(new Round(currentRound().number() + 1));
         // El presupuesto no gastado se acumula: ahorrar para una accion cara
         // es una decision valida.
         budgets.replaceAll((team, budget) -> budget + settings.incomePerRound());
+        catchUpBonus.forEach(this::addBudget);
+        expireCards();
+    }
+
+    private void expireCards() {
+        List<ActiveCard> survivors = activeCards.stream()
+                .map(ActiveCard::afterRound)
+                .filter(card -> !card.isExpired())
+                .toList();
+        activeCards.clear();
+        activeCards.addAll(survivors);
     }
 
     public void finish() {

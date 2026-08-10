@@ -7,6 +7,7 @@ import com.cyberrange.application.port.in.EnqueueActionUseCase;
 import com.cyberrange.application.port.in.GameAccess;
 import com.cyberrange.application.port.in.GetGameStateUseCase;
 import com.cyberrange.application.port.in.JoinGameUseCase;
+import com.cyberrange.application.port.in.LaunchTwistUseCase;
 import com.cyberrange.application.port.in.ResolveRoundUseCase;
 import com.cyberrange.application.port.in.StartGameUseCase;
 import com.cyberrange.application.port.out.AccessTokenPort;
@@ -14,6 +15,7 @@ import com.cyberrange.application.port.out.GameRepository;
 import com.cyberrange.application.port.out.GameStateBroadcaster;
 import com.cyberrange.domain.exception.GameNotFoundException;
 import com.cyberrange.domain.exception.GameNotJoinableException;
+import com.cyberrange.domain.catalog.ActionCard;
 import com.cyberrange.domain.model.ActionIntent;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameId;
@@ -21,6 +23,7 @@ import com.cyberrange.domain.model.GameSettings;
 import com.cyberrange.domain.model.JoinCode;
 import com.cyberrange.domain.model.Participant;
 import com.cyberrange.domain.model.ParticipantSession;
+import com.cyberrange.domain.model.Role;
 import com.cyberrange.domain.model.TeamId;
 import com.cyberrange.domain.rules.RoundResolution;
 import com.cyberrange.domain.rules.RuleEngine;
@@ -36,7 +39,7 @@ import java.util.UUID;
  */
 @Service
 public final class GameApplicationService implements
-        CreateGameUseCase, JoinGameUseCase, StartGameUseCase,
+        CreateGameUseCase, JoinGameUseCase, StartGameUseCase, LaunchTwistUseCase,
         EnqueueActionUseCase, ResolveRoundUseCase, GetGameStateUseCase {
 
     private static final int MAX_JOIN_CODE_ATTEMPTS = 100;
@@ -94,16 +97,24 @@ public final class GameApplicationService implements
         if (participant.isInstructor()) {
             throw new AccessDeniedException("El instructor arbitra, no encola acciones");
         }
-        ActionIntent action = new ActionIntent(
-                UUID.randomUUID(),
-                game.sideOf(participant.team()),
-                command.actionType(),
-                command.parameters(),
-                command.noisy());
-        game.enqueue(action, ruleEngine.costOf(action));
+        Role side = game.sideOf(participant.team());
+        ActionCard card = ruleEngine.cardFor(side, command.cardId());
+        ActionIntent action = new ActionIntent(UUID.randomUUID(), side, card.id(), command.parameters());
+        game.enqueue(action, ruleEngine.costOf(game, card));
         gameRepository.save(game);
         // Los turnos son simultaneos a ciegas: encolar no difunde nada, o el
         // rival veria lo que le viene encima antes de resolver la ronda.
+    }
+
+    @Override
+    public void launchTwist(GameId gameId, ParticipantSession session, String cardId) {
+        Game game = requireGame(gameId);
+        requireInstructor(game, session);
+        game.requireInProgress();
+        ActionCard twist = ruleEngine.twistFor(cardId);
+        game.launchTwist(twist.id(), twist.rounds(), ruleEngine.twistBudgetChange(game, twist));
+        gameRepository.save(game);
+        broadcaster.broadcastState(game.id(), game);
     }
 
     @Override
@@ -116,7 +127,8 @@ public final class GameApplicationService implements
         game.applyRoundResolution(
                 resolution.resultingState(),
                 resolution.generatedEvents(),
-                resolution.takedown());
+                resolution.takedown(),
+                resolution.catchUpBonus());
         if (game.isOver()) {
             game.recordResult(ruleEngine.scoreMatch(game));
         }

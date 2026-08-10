@@ -109,7 +109,7 @@ public final class GameViewProjector {
     }
 
     private static QueuedActionView toQueuedActionView(ActionIntent action) {
-        return new QueuedActionView(action.actionType(), action.parameters(), action.noisy());
+        return new QueuedActionView(action.cardId(), action.parameters());
     }
 
     private static EventView toEventView(GameEvent event) {

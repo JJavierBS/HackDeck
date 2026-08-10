@@ -146,7 +146,11 @@ public final class Game {
      * rondas tambien. Cerrar la primera mitad arranca la segunda con los
      * bandos cambiados; cerrar la segunda termina el match.
      */
-    public void applyRoundResolution(CiaState resolvedState, List<GameEvent> events, boolean takedown) {
+    public void applyRoundResolution(
+            CiaState resolvedState,
+            List<GameEvent> events,
+            boolean takedown,
+            Map<TeamId, Integer> catchUpBonus) {
         requireInProgress();
         Half half = currentHalf();
         half.applyResolvedState(resolvedState);
@@ -158,8 +162,19 @@ public final class Game {
         } else if (half.isLastRound()) {
             endHalf();
         } else {
-            half.advanceRound();
+            half.advanceRound(catchUpBonus);
         }
+    }
+
+    /**
+     * Los twists no los compra nadie: los pone el instructor sobre la mitad
+     * en curso y afectan a los dos bandos por igual.
+     */
+    public void launchTwist(String cardId, int rounds, Map<TeamId, Integer> budgetChange) {
+        requireInProgress();
+        Half half = currentHalf();
+        half.activate(new ActiveCard(cardId, null, rounds));
+        budgetChange.forEach(half::addBudget);
     }
 
     public void recordResult(MatchResult matchResult) {

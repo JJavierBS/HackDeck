@@ -1,21 +1,37 @@
 package com.cyberrange.domain.rules;
 
-import com.cyberrange.domain.model.ActionIntent;
+import com.cyberrange.domain.catalog.ActionCard;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.MatchResult;
+import com.cyberrange.domain.model.Role;
 import com.cyberrange.domain.model.Round;
+import com.cyberrange.domain.model.TeamId;
+
+import java.util.Map;
 
 /**
- * Motor de reglas: aplica las acciones encoladas de una ronda sobre el
- * estado de la partida (kill chain, deteccion, catch-up, etc.), decide lo
- * que cuesta cada accion y puntua el match. Es el unico lugar donde vive la
- * logica de juego.
+ * Motor de reglas: valida lo que se encola, aplica las acciones de una
+ * ronda sobre el estado de la partida (kill chain, counters, deteccion,
+ * catch-up) y puntua el match. Es el unico lugar donde vive la logica de
+ * juego.
  */
 public interface RuleEngine {
 
-    RoundResolution resolveRound(Game game, Round round);
+    /**
+     * Carta que ese bando puede jugar con ese id, o excepcion si no existe
+     * o no es suya.
+     */
+    ActionCard cardFor(Role side, String cardId);
 
-    int costOf(ActionIntent action);
+    int costOf(Game game, ActionCard card);
+
+    /** Carta de escenario que el instructor puede lanzar. */
+    ActionCard twistFor(String cardId);
+
+    /** Cambio de presupuesto que provoca el twist al lanzarlo, si lo provoca. */
+    Map<TeamId, Integer> twistBudgetChange(Game game, ActionCard twist);
+
+    RoundResolution resolveRound(Game game, Round round);
 
     MatchResult scoreMatch(Game game);
 }
