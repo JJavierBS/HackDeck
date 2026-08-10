@@ -135,6 +135,7 @@ public final class DefaultRuleEngine implements RuleEngine {
     private static GameEvent attackEvent(Round round, ActionIntent action, CiaPillar pillar, int damage) {
         return new GameEvent(
                 round.number(),
+                Role.ATTACKER,
                 "Ataque " + action.actionType() + " sobre " + pillar + " (-" + damage + ")",
                 action.noisy(),
                 Instant.now());
@@ -143,6 +144,7 @@ public final class DefaultRuleEngine implements RuleEngine {
     private static GameEvent defenseEvent(Round round, ActionIntent action, CiaPillar pillar) {
         return new GameEvent(
                 round.number(),
+                Role.DEFENDER,
                 "Defensa " + action.actionType() + " sobre " + pillar,
                 true,
                 Instant.now());
