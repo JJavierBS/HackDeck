@@ -138,10 +138,10 @@ public class YamlActionCatalogAdapter implements ActionCatalogPort {
                 impacts(raw, where),
                 intValue(raw, "mitigation", 0, where),
                 intValue(raw, "detection", 0, where),
-                strings(raw, "counters"),
+                weights(raw, "counters", where),
                 strings(raw, "requires"),
                 phases(raw, where),
-                bonuses(raw, where),
+                weights(raw, "bonus", where),
                 effects(raw, where));
     }
 
@@ -188,7 +188,7 @@ public class YamlActionCatalogAdapter implements ActionCatalogPort {
     private static void validateReferences(List<ActionCard> cards, Set<String> ids) {
         for (ActionCard card : cards) {
             String where = "la carta '" + card.id() + "'";
-            for (String reference : card.counters()) {
+            for (String reference : card.counters().keySet()) {
                 requireKnown(reference, ids, "counters", where);
             }
             for (String reference : card.requires()) {
@@ -232,15 +232,15 @@ public class YamlActionCatalogAdapter implements ActionCatalogPort {
         return effects;
     }
 
-    private Map<String, Double> bonuses(Map<String, Object> raw, String where) {
-        Map<String, Double> bonuses = new LinkedHashMap<>();
-        for (Map.Entry<String, Object> entry : asMap(raw.getOrDefault("bonus", Map.of()), "bonus").entrySet()) {
+    private Map<String, Double> weights(Map<String, Object> raw, String field, String where) {
+        Map<String, Double> weights = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : asMap(raw.getOrDefault(field, Map.of()), field).entrySet()) {
             if (!(entry.getValue() instanceof Number number)) {
-                throw new InvalidCatalogException("El bonus de " + where + " debe ser un numero");
+                throw new InvalidCatalogException("El campo " + field + " de " + where + " debe llevar numeros");
             }
-            bonuses.put(entry.getKey(), number.doubleValue());
+            weights.put(entry.getKey(), number.doubleValue());
         }
-        return bonuses;
+        return weights;
     }
 
     private static Map<String, String> requireTranslations(Map<String, Object> raw, String field, String where) {

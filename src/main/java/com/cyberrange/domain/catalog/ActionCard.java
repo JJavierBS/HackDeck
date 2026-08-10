@@ -19,7 +19,9 @@ import java.util.Set;
  * @param impact     delta por pilar; negativo hace dano y positivo repara.
  * @param mitigation reduccion generica de dano que aporta mientras dure.
  * @param detection  cuanto sube el nivel de deteccion del defensor.
- * @param counters   cartas rivales que esta carta neutraliza o penaliza.
+ * @param counters   carta rival -> multiplicador que le queda tras el contra.
+ *                   Contra una carta de IMPACT recorta el dano; contra el
+ *                   resto, la probabilidad de acierto.
  * @param requires   cartas propias que deben estar activas para poder jugarla.
  * @param unlocks    fases de kill chain que habilita al tener exito.
  * @param bonus      cuanto sube la probabilidad de acierto de otras cartas.
@@ -40,7 +42,7 @@ public record ActionCard(
         Map<CiaPillar, Integer> impact,
         int mitigation,
         int detection,
-        List<String> counters,
+        Map<String, Double> counters,
         List<String> requires,
         Set<KillChainPhase> unlocks,
         Map<String, Double> bonus,
@@ -54,7 +56,7 @@ public record ActionCard(
         name = Map.copyOf(name);
         description = description == null ? Map.of() : Map.copyOf(description);
         impact = impact == null ? Map.of() : Map.copyOf(impact);
-        counters = counters == null ? List.of() : List.copyOf(counters);
+        counters = counters == null ? Map.of() : Map.copyOf(counters);
         requires = requires == null ? List.of() : List.copyOf(requires);
         unlocks = unlocks == null ? Set.of() : Set.copyOf(unlocks);
         bonus = bonus == null ? Map.of() : Map.copyOf(bonus);

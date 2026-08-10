@@ -13,7 +13,10 @@
 #   noise     NONE | LOW | MEDIUM | HIGH
 #   duration  INSTANT | ROUNDS | PERMANENT   (con ROUNDS hay que poner "rounds")
 #   impact    CONFIDENTIALITY / INTEGRITY / AVAILABILITY con el delta (negativo = dano)
-#   counters  ids de cartas rivales que esta carta neutraliza o penaliza
+#   counters  id de carta rival -> cuanto le queda tras el contra (0.10 = casi
+#             la mata, 0.70 = solo la estorba). Lo declara la carta que
+#             contrarresta, no la que lo sufre. Contra una carta de IMPACT
+#             recorta el dano; contra el resto, la probabilidad de acierto.
 #   unlocks   fases de kill chain que esta carta habilita
 #   bonus     id de carta -> cuanto le sube la probabilidad de acierto
 #
@@ -116,7 +119,6 @@ cards:
     successRate: 0.55
     duration: INSTANT
     unlocks: [ESCALATION]
-    counters: [formacion-usuarios]
 
   - id: fuerza-bruta
     type: ACTION
@@ -131,7 +133,6 @@ cards:
     successRate: 0.45
     duration: INSTANT
     unlocks: [ESCALATION]
-    counters: [mfa]
 
   - id: explotar-vulnerabilidad
     type: ACTION
@@ -146,7 +147,6 @@ cards:
     successRate: 0.60
     duration: INSTANT
     unlocks: [ESCALATION]
-    counters: [parcheo]
 
   - id: usb-infectado
     type: ACTION
@@ -161,7 +161,6 @@ cards:
     successRate: 0.35
     duration: INSTANT
     unlocks: [ESCALATION]
-    counters: [bloqueo-usb]
 
   # ---------------------------------------------------------------------
   # ATACANTE - ESCALADA
@@ -182,7 +181,6 @@ cards:
     duration: PERMANENT
     unlocks: [IMPACT]
     effects: [AMPLIFIES_IMPACT]
-    counters: [minimo-privilegio]
 
   - id: movimiento-lateral
     type: ACTION
@@ -197,7 +195,6 @@ cards:
     successRate: 0.60
     duration: INSTANT
     unlocks: [IMPACT]
-    counters: [segmentacion-red]
 
   - id: puerta-trasera
     type: ACTION
@@ -213,7 +210,6 @@ cards:
     duration: PERMANENT
     unlocks: [IMPACT]
     effects: [PERSISTENCE]
-    counters: [caza-amenazas]
 
   - id: permisos-mal-configurados
     type: ACTION
@@ -228,7 +224,6 @@ cards:
     successRate: 0.75
     duration: INSTANT
     unlocks: [IMPACT]
-    counters: [minimo-privilegio]
 
   # ---------------------------------------------------------------------
   # ATACANTE - IMPACTO
@@ -250,7 +245,6 @@ cards:
     impact:
       AVAILABILITY: -35
       INTEGRITY: -20
-    counters: [copias-seguridad, antivirus-edr]
 
   - id: exfiltracion-datos
     type: ACTION
@@ -266,7 +260,6 @@ cards:
     duration: PERMANENT
     impact:
       CONFIDENTIALITY: -30
-    counters: [cifrado-datos]
 
   - id: defacement
     type: ACTION
@@ -282,7 +275,6 @@ cards:
     duration: PERMANENT
     impact:
       INTEGRITY: -20
-    counters: [cortafuegos-waf]
 
   - id: ddos
     type: ACTION
@@ -300,7 +292,6 @@ cards:
     rounds: 2
     impact:
       AVAILABILITY: -30
-    counters: [cortafuegos-waf]
 
   # ---------------------------------------------------------------------
   # DEFENSOR - HIGIENE BASICA
@@ -319,7 +310,10 @@ cards:
     noise: NONE
     successRate: 1.0
     duration: PERMANENT
-    counters: [fuerza-bruta, phishing]
+    counters:
+      # Una contrasena robada deja de bastar: la fuerza bruta muere.
+      fuerza-bruta: 0.10
+      phishing: 0.70
 
   - id: parcheo
     type: ACTION
@@ -335,7 +329,8 @@ cards:
     # Caduca a proposito: obliga a volver a gastar en ello cada dos rondas.
     duration: ROUNDS
     rounds: 2
-    counters: [explotar-vulnerabilidad]
+    counters:
+      explotar-vulnerabilidad: 0.10
 
   - id: formacion-usuarios
     type: ACTION
@@ -349,7 +344,10 @@ cards:
     noise: NONE
     successRate: 1.0
     duration: PERMANENT
-    counters: [phishing, vishing]
+    counters:
+      # Efecto suave a proposito: la gente sigue picando, solo que menos.
+      phishing: 0.65
+      vishing: 0.65
 
   - id: bloqueo-usb
     type: ACTION
@@ -363,7 +361,8 @@ cards:
     noise: NONE
     successRate: 1.0
     duration: PERMANENT
-    counters: [usb-infectado]
+    counters:
+      usb-infectado: 0.0
 
   # ---------------------------------------------------------------------
   # DEFENSOR - ARQUITECTURA
@@ -383,7 +382,8 @@ cards:
     successRate: 1.0
     duration: PERMANENT
     mitigation: 8
-    counters: [movimiento-lateral]
+    counters:
+      movimiento-lateral: 0.15
 
   - id: cortafuegos-waf
     type: ACTION
@@ -398,7 +398,10 @@ cards:
     successRate: 1.0
     duration: PERMANENT
     mitigation: 5
-    counters: [ddos, defacement, escaneo-puertos]
+    counters:
+      ddos: 0.50
+      defacement: 0.50
+      escaneo-puertos: 0.50
 
   - id: cifrado-datos
     type: ACTION
@@ -412,7 +415,9 @@ cards:
     noise: NONE
     successRate: 1.0
     duration: PERMANENT
-    counters: [exfiltracion-datos]
+    counters:
+      # No impide el robo, lo vuelve inutil: recorta el dano, no el acierto.
+      exfiltracion-datos: 0.20
 
   - id: minimo-privilegio
     type: ACTION
@@ -427,7 +432,9 @@ cards:
     successRate: 1.0
     duration: PERMANENT
     mitigation: 4
-    counters: [permisos-mal-configurados, robo-credenciales]
+    counters:
+      permisos-mal-configurados: 0.0
+      robo-credenciales: 0.50
 
   # ---------------------------------------------------------------------
   # DEFENSOR - DETECCION
@@ -476,7 +483,9 @@ cards:
     successRate: 1.0
     duration: PERMANENT
     detection: 1
-    counters: [ransomware, puerta-trasera]
+    counters:
+      ransomware: 0.60
+      puerta-trasera: 0.40
 
   - id: caza-amenazas
     type: ACTION
@@ -492,7 +501,8 @@ cards:
     duration: INSTANT
     detection: 2
     effects: [REMOVES_PERSISTENCE]
-    counters: [puerta-trasera]
+    counters:
+      puerta-trasera: 0.0
 
   # ---------------------------------------------------------------------
   # DEFENSOR - RESPUESTA
@@ -511,7 +521,8 @@ cards:
     noise: NONE
     successRate: 1.0
     duration: PERMANENT
-    counters: [ransomware]
+    counters:
+      ransomware: 0.35
 
   - id: restaurar-copia
     type: ACTION
