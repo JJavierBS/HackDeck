@@ -1,0 +1,726 @@
+# Catalogo de cartas de Cyber Range.
+#
+# Este fichero se puede editar sin recompilar nada: para usar otro, arranca
+# con -Dcyberrange.catalog.path=/ruta/a/mi-catalogo.yaml (o la variable de
+# entorno CYBERRANGE_CATALOG_PATH). Si algo esta mal escrito el backend no
+# arranca y dice exactamente que carta y que campo falla.
+#
+# Valores admitidos:
+#   tipo      ACTION (accion normal) | POWERUP (un solo uso) | TWIST (carta del instructor)
+#   side      ATTACKER | DEFENDER    (las TWIST no llevan side)
+#   phase     RECON | ACCESS | ESCALATION | IMPACT        (solo atacante)
+#   category  HYGIENE | ARCHITECTURE | DETECTION | RESPONSE (solo defensor)
+#   noise     NONE | LOW | MEDIUM | HIGH
+#   duration  INSTANT | ROUNDS | PERMANENT   (con ROUNDS hay que poner "rounds")
+#   impact    CONFIDENTIALITY / INTEGRITY / AVAILABILITY con el delta (negativo = dano)
+#   counters  ids de cartas rivales que esta carta neutraliza o penaliza
+#   unlocks   fases de kill chain que esta carta habilita
+#   bonus     id de carta -> cuanto le sube la probabilidad de acierto
+#
+# Nota de equilibrio: con los valores por defecto (20 iniciales + 10 por
+# ronda, 6 rondas) cada bando maneja unos 70 puntos por mitad. Derribar un
+# pilar exige encadenar la kill chain y acertar dos o tres impactos: es
+# posible, pero no sale gratis.
+
+version: 1
+
+cards:
+
+  # ---------------------------------------------------------------------
+  # ATACANTE - RECONOCIMIENTO
+  # Baratas y sin dano: su valor es habilitar el resto de la kill chain.
+  # ---------------------------------------------------------------------
+
+  - id: escaneo-puertos
+    type: ACTION
+    side: ATTACKER
+    phase: RECON
+    name: { es: "Escaneo de puertos", en: "Port scan" }
+    description:
+      es: "Busca puertas abiertas en los sistemas del rival. Mirar ya deja huella."
+      en: "Looks for open doors on the rival systems. Even looking leaves a trace."
+    cost: 4
+    noise: HIGH
+    successRate: 1.0
+    duration: INSTANT
+    unlocks: [ACCESS]
+    bonus:
+      explotar-vulnerabilidad: 0.20
+
+  - id: osint-redes
+    type: ACTION
+    side: ATTACKER
+    phase: RECON
+    name: { es: "OSINT en redes sociales", en: "Social media OSINT" }
+    description:
+      es: "Investiga a las personas fuera de la red del rival: lo que publican es municion."
+      en: "Researches people outside the rival network: what they post is ammunition."
+    cost: 3
+    # Ruido nulo porque ocurre fuera de la red del defensor: no hay nada que detectar.
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    unlocks: [ACCESS]
+    bonus:
+      phishing: 0.30
+
+  - id: vishing
+    type: ACTION
+    side: ATTACKER
+    phase: RECON
+    name: { es: "Llamada de vishing", en: "Vishing call" }
+    description:
+      es: "Llama haciendose pasar por soporte para sacar informacion. El telefono tambien es un vector."
+      en: "Calls posing as support to extract information. The phone is a vector too."
+    cost: 6
+    noise: MEDIUM
+    successRate: 0.8
+    duration: INSTANT
+    unlocks: [ACCESS]
+    bonus:
+      phishing: 0.15
+      fuerza-bruta: 0.15
+
+  - id: escaneo-vulnerabilidades
+    type: ACTION
+    side: ATTACKER
+    phase: RECON
+    name: { es: "Escaneo de vulnerabilidades", en: "Vulnerability scan" }
+    description:
+      es: "Cataloga los fallos sin parchear del rival y revela que defensas tiene puestas."
+      en: "Catalogues the rival unpatched flaws and reveals which defences are in place."
+    cost: 7
+    noise: HIGH
+    successRate: 1.0
+    duration: INSTANT
+    unlocks: [ACCESS]
+    effects: [REVEALS_DEFENCES]
+    bonus:
+      explotar-vulnerabilidad: 0.25
+
+  # ---------------------------------------------------------------------
+  # ATACANTE - ACCESO
+  # El salto a dentro. Cada una tiene un counter defensivo evidente.
+  # ---------------------------------------------------------------------
+
+  - id: phishing
+    type: ACTION
+    side: ATTACKER
+    phase: ACCESS
+    name: { es: "Phishing con enlace", en: "Phishing link" }
+    description:
+      es: "Correo con enlace malicioso. Sube mucho si antes se hizo los deberes de reconocimiento."
+      en: "Email with a malicious link. Much better if recon was done first."
+    cost: 10
+    noise: MEDIUM
+    successRate: 0.55
+    duration: INSTANT
+    unlocks: [ESCALATION]
+    counters: [formacion-usuarios]
+
+  - id: fuerza-bruta
+    type: ACTION
+    side: ATTACKER
+    phase: ACCESS
+    name: { es: "Fuerza bruta", en: "Brute force" }
+    description:
+      es: "Prueba contrasenas hasta acertar. Barata, escandalosa y muerta frente al doble factor."
+      en: "Tries passwords until one works. Cheap, loud and dead against MFA."
+    cost: 6
+    noise: HIGH
+    successRate: 0.45
+    duration: INSTANT
+    unlocks: [ESCALATION]
+    counters: [mfa]
+
+  - id: explotar-vulnerabilidad
+    type: ACTION
+    side: ATTACKER
+    phase: ACCESS
+    name: { es: "Explotar vulnerabilidad", en: "Exploit vulnerability" }
+    description:
+      es: "Aprovecha un fallo sin parchear. Silenciosa y eficaz, salvo que el rival haya parcheado."
+      en: "Abuses an unpatched flaw. Quiet and effective unless the rival patched."
+    cost: 12
+    noise: LOW
+    successRate: 0.60
+    duration: INSTANT
+    unlocks: [ESCALATION]
+    counters: [parcheo]
+
+  - id: usb-infectado
+    type: ACTION
+    side: ATTACKER
+    phase: ACCESS
+    name: { es: "USB infectado", en: "Infected USB" }
+    description:
+      es: "Deja memorias tiradas en el aparcamiento. Salta el perimetro entero si alguien pica."
+      en: "Drops USB sticks in the car park. Skips the whole perimeter if someone bites."
+    cost: 5
+    noise: NONE
+    successRate: 0.35
+    duration: INSTANT
+    unlocks: [ESCALATION]
+    counters: [bloqueo-usb]
+
+  # ---------------------------------------------------------------------
+  # ATACANTE - ESCALADA
+  # La fase que los alumnos se saltan: sin ella el impacto falla mucho.
+  # ---------------------------------------------------------------------
+
+  - id: robo-credenciales
+    type: ACTION
+    side: ATTACKER
+    phase: ESCALATION
+    name: { es: "Robo de credenciales", en: "Credential theft" }
+    description:
+      es: "Convierte un acceso cualquiera en acceso de administrador y multiplica el dano posterior."
+      en: "Turns any foothold into admin access and multiplies later damage."
+    cost: 14
+    noise: MEDIUM
+    successRate: 0.55
+    duration: PERMANENT
+    unlocks: [IMPACT]
+    effects: [AMPLIFIES_IMPACT]
+    counters: [minimo-privilegio]
+
+  - id: movimiento-lateral
+    type: ACTION
+    side: ATTACKER
+    phase: ESCALATION
+    name: { es: "Movimiento lateral", en: "Lateral movement" }
+    description:
+      es: "Salta de la maquina tomada a otra mas jugosa. La segmentacion lo deja casi inservible."
+      en: "Hops from the compromised machine to a juicier one. Segmentation nearly kills it."
+    cost: 10
+    noise: MEDIUM
+    successRate: 0.60
+    duration: INSTANT
+    unlocks: [IMPACT]
+    counters: [segmentacion-red]
+
+  - id: puerta-trasera
+    type: ACTION
+    side: ATTACKER
+    phase: ESCALATION
+    name: { es: "Puerta trasera", en: "Backdoor" }
+    description:
+      es: "No hace dano: mantiene el acceso aunque el defensor limpie. Echar al intruso no es cerrarle la puerta."
+      en: "Deals no damage: keeps access even after cleanup. Evicting is not locking the door."
+    cost: 11
+    noise: LOW
+    successRate: 0.65
+    duration: PERMANENT
+    unlocks: [IMPACT]
+    effects: [PERSISTENCE]
+    counters: [caza-amenazas]
+
+  - id: permisos-mal-configurados
+    type: ACTION
+    side: ATTACKER
+    phase: ESCALATION
+    name: { es: "Permisos mal configurados", en: "Misconfigured permissions" }
+    description:
+      es: "Se aprovecha de lo que nadie reviso. Casi siempre funciona, salvo contra el minimo privilegio."
+      en: "Abuses what nobody reviewed. Almost always works, except against least privilege."
+    cost: 5
+    noise: LOW
+    successRate: 0.75
+    duration: INSTANT
+    unlocks: [IMPACT]
+    counters: [minimo-privilegio]
+
+  # ---------------------------------------------------------------------
+  # ATACANTE - IMPACTO
+  # Cada una golpea un pilar distinto: asi se entienden la C, la I y la A.
+  # ---------------------------------------------------------------------
+
+  - id: ransomware
+    type: ACTION
+    side: ATTACKER
+    phase: IMPACT
+    name: { es: "Ransomware", en: "Ransomware" }
+    description:
+      es: "Cifra los sistemas y pide rescate. Golpea disponibilidad e integridad a la vez."
+      en: "Encrypts systems and demands ransom. Hits availability and integrity at once."
+    cost: 22
+    noise: HIGH
+    successRate: 0.70
+    duration: PERMANENT
+    impact:
+      AVAILABILITY: -35
+      INTEGRITY: -20
+    counters: [copias-seguridad, antivirus-edr]
+
+  - id: exfiltracion-datos
+    type: ACTION
+    side: ATTACKER
+    phase: IMPACT
+    name: { es: "Exfiltracion de datos", en: "Data exfiltration" }
+    description:
+      es: "Saca informacion sin hacer ruido. El defensor puede no enterarse hasta que sea tarde."
+      en: "Quietly siphons information out. The defender may not notice until it is late."
+    cost: 16
+    noise: LOW
+    successRate: 0.70
+    duration: PERMANENT
+    impact:
+      CONFIDENTIALITY: -30
+    counters: [cifrado-datos]
+
+  - id: defacement
+    type: ACTION
+    side: ATTACKER
+    phase: IMPACT
+    name: { es: "Defacement de la web", en: "Website defacement" }
+    description:
+      es: "Cambia la web publica. Dano moderado pero inmediato y muy visible."
+      en: "Changes the public website. Moderate damage, immediate and very visible."
+    cost: 12
+    noise: HIGH
+    successRate: 0.75
+    duration: PERMANENT
+    impact:
+      INTEGRITY: -20
+    counters: [cortafuegos-waf]
+
+  - id: ddos
+    type: ACTION
+    side: ATTACKER
+    phase: IMPACT
+    name: { es: "DDoS", en: "DDoS" }
+    description:
+      es: "Tumba el servicio a base de trafico. Duele fuerte, pero se recupera si el defensor aguanta."
+      en: "Floods the service with traffic. Hurts a lot, but wears off if the defender holds."
+    cost: 14
+    noise: HIGH
+    successRate: 0.85
+    # Unico impacto temporal del catalogo: ensena que no todo ataque deja dano permanente.
+    duration: ROUNDS
+    rounds: 2
+    impact:
+      AVAILABILITY: -30
+    counters: [cortafuegos-waf]
+
+  # ---------------------------------------------------------------------
+  # DEFENSOR - HIGIENE BASICA
+  # Baratas y directas: cada una mata un ataque concreto de la fase de acceso.
+  # ---------------------------------------------------------------------
+
+  - id: mfa
+    type: ACTION
+    side: DEFENDER
+    category: HYGIENE
+    name: { es: "Doble factor (MFA)", en: "Multi-factor authentication" }
+    description:
+      es: "Una contrasena robada deja de bastar. La mejor relacion calidad-precio del juego."
+      en: "A stolen password stops being enough. Best value for money in the game."
+    cost: 10
+    noise: NONE
+    successRate: 1.0
+    duration: PERMANENT
+    counters: [fuerza-bruta, phishing]
+
+  - id: parcheo
+    type: ACTION
+    side: DEFENDER
+    category: HYGIENE
+    name: { es: "Parchear sistemas", en: "Patch systems" }
+    description:
+      es: "Tapa los fallos conocidos hasta hoy. Hay que repetirlo: parchear no se acaba nunca."
+      en: "Closes the flaws known so far. Must be repeated: patching never ends."
+    cost: 9
+    noise: NONE
+    successRate: 1.0
+    # Caduca a proposito: obliga a volver a gastar en ello cada dos rondas.
+    duration: ROUNDS
+    rounds: 2
+    counters: [explotar-vulnerabilidad]
+
+  - id: formacion-usuarios
+    type: ACTION
+    side: DEFENDER
+    category: HYGIENE
+    name: { es: "Formacion y simulacro", en: "Awareness training" }
+    description:
+      es: "La gente sigue picando, solo que menos. Efecto suave pero para toda la partida."
+      en: "People still fall for it, just less often. Mild but permanent effect."
+    cost: 7
+    noise: NONE
+    successRate: 1.0
+    duration: PERMANENT
+    counters: [phishing, vishing]
+
+  - id: bloqueo-usb
+    type: ACTION
+    side: DEFENDER
+    category: HYGIENE
+    name: { es: "Bloqueo de puertos USB", en: "USB port lockdown" }
+    description:
+      es: "Anula el USB infectado y no hace nada mas. Counter estrecho: brutal si aciertas."
+      en: "Kills the infected USB and nothing else. Narrow counter: brutal when right."
+    cost: 4
+    noise: NONE
+    successRate: 1.0
+    duration: PERMANENT
+    counters: [usb-infectado]
+
+  # ---------------------------------------------------------------------
+  # DEFENSOR - ARQUITECTURA
+  # Caras y permanentes: reducen el dano de todo, no solo de un ataque.
+  # ---------------------------------------------------------------------
+
+  - id: segmentacion-red
+    type: ACTION
+    side: DEFENDER
+    category: ARCHITECTURE
+    name: { es: "Segmentacion de red", en: "Network segmentation" }
+    description:
+      es: "Divide la red en zonas. La inversion aburrida que salva la partida."
+      en: "Splits the network into zones. The boring investment that saves the match."
+    cost: 20
+    noise: NONE
+    successRate: 1.0
+    duration: PERMANENT
+    mitigation: 8
+    counters: [movimiento-lateral]
+
+  - id: cortafuegos-waf
+    type: ACTION
+    side: DEFENDER
+    category: ARCHITECTURE
+    name: { es: "Cortafuegos y WAF", en: "Firewall and WAF" }
+    description:
+      es: "Filtra lo que entra por el perimetro. La capa clasica."
+      en: "Filters what comes through the perimeter. The classic layer."
+    cost: 15
+    noise: NONE
+    successRate: 1.0
+    duration: PERMANENT
+    mitigation: 5
+    counters: [ddos, defacement, escaneo-puertos]
+
+  - id: cifrado-datos
+    type: ACTION
+    side: DEFENDER
+    category: ARCHITECTURE
+    name: { es: "Cifrado de datos", en: "Data encryption" }
+    description:
+      es: "No impide el robo: lo vuelve inutil. Hay defensas que no evitan, solo desactivan."
+      en: "Does not prevent theft: it makes it useless. Some defences disarm rather than block."
+    cost: 14
+    noise: NONE
+    successRate: 1.0
+    duration: PERMANENT
+    counters: [exfiltracion-datos]
+
+  - id: minimo-privilegio
+    type: ACTION
+    side: DEFENDER
+    category: ARCHITECTURE
+    name: { es: "Minimo privilegio", en: "Least privilege" }
+    description:
+      es: "Cada cual solo puede lo justo. Aburrida de explicar, decisiva en la partida."
+      en: "Everyone can do only what they need. Boring to explain, decisive in play."
+    cost: 18
+    noise: NONE
+    successRate: 1.0
+    duration: PERMANENT
+    mitigation: 4
+    counters: [permisos-mal-configurados, robo-credenciales]
+
+  # ---------------------------------------------------------------------
+  # DEFENSOR - DETECCION
+  # No reducen dano: levantan la niebla de guerra.
+  # ---------------------------------------------------------------------
+
+  - id: monitorizacion-ids
+    type: ACTION
+    side: DEFENDER
+    category: DETECTION
+    name: { es: "Monitorizacion (IDS)", en: "Monitoring (IDS)" }
+    description:
+      es: "Vigila el trafico y avisa. Sin esto el defensor juega a ciegas toda la partida."
+      en: "Watches traffic and raises alerts. Without it the defender plays blind."
+    cost: 13
+    noise: NONE
+    successRate: 1.0
+    duration: PERMANENT
+    detection: 2
+
+  - id: revision-logs
+    type: ACTION
+    side: DEFENDER
+    category: DETECTION
+    name: { es: "Revision de logs", en: "Log review" }
+    description:
+      es: "Descubre a posteriori lo que paso, incluso lo silencioso. Tarde, como en la vida real."
+      en: "Uncovers afterwards what happened, even the quiet moves. Late, as in real life."
+    cost: 5
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    detection: 3
+    effects: [REVEALS_PREVIOUS_ROUND]
+
+  - id: antivirus-edr
+    type: ACTION
+    side: DEFENDER
+    category: DETECTION
+    name: { es: "Antivirus / EDR", en: "Antivirus / EDR" }
+    description:
+      es: "Detecta y a veces corta en seco. Mitad deteccion, mitad defensa."
+      en: "Detects and sometimes stops the attack outright. Half detection, half defence."
+    cost: 12
+    noise: NONE
+    successRate: 1.0
+    duration: PERMANENT
+    detection: 1
+    counters: [ransomware, puerta-trasera]
+
+  - id: caza-amenazas
+    type: ACTION
+    side: DEFENDER
+    category: DETECTION
+    name: { es: "Caza de amenazas", en: "Threat hunting" }
+    description:
+      es: "Busca activamente al intruso ya dentro. La unica forma de echar de verdad a quien persiste."
+      en: "Actively hunts the intruder already inside. The only way to truly evict persistence."
+    cost: 16
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    detection: 2
+    effects: [REMOVES_PERSISTENCE]
+    counters: [puerta-trasera]
+
+  # ---------------------------------------------------------------------
+  # DEFENSOR - RESPUESTA
+  # Curan dano ya hecho en vez de prevenirlo.
+  # ---------------------------------------------------------------------
+
+  - id: copias-seguridad
+    type: ACTION
+    side: DEFENDER
+    category: RESPONSE
+    name: { es: "Copias de seguridad", en: "Backups" }
+    description:
+      es: "No cura sola, pero hunde el dano del ransomware. La respuesta a 'yo no pago el rescate'."
+      en: "Heals nothing by itself, but guts ransomware damage. The answer to 'I won't pay'."
+    cost: 13
+    noise: NONE
+    successRate: 1.0
+    duration: PERMANENT
+    counters: [ransomware]
+
+  - id: restaurar-copia
+    type: ACTION
+    side: DEFENDER
+    category: RESPONSE
+    name: { es: "Restaurar desde copia", en: "Restore from backup" }
+    description:
+      es: "Recupera bastante de un pilar, pero solo si antes se compraron copias."
+      en: "Recovers a good chunk of a pillar, but only if backups were bought first."
+    cost: 6
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    requires: [copias-seguridad]
+    impact:
+      AVAILABILITY: 25
+
+  - id: aislar-equipo
+    type: ACTION
+    side: DEFENDER
+    category: RESPONSE
+    name: { es: "Aislar equipo", en: "Isolate host" }
+    description:
+      es: "El boton de emergencia: corta el ataque de esta ronda pero no repara nada."
+      en: "The emergency button: cuts this round's attack but repairs nothing."
+    cost: 5
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    mitigation: 15
+
+  - id: plan-respuesta
+    type: ACTION
+    side: DEFENDER
+    category: RESPONSE
+    name: { es: "Plan de respuesta", en: "Incident response plan" }
+    description:
+      es: "No hace nada por si sola: abarata el resto de respuestas. Preparar el incendio antes del fuego."
+      en: "Does nothing alone: makes every other response cheaper. Prepare before the fire."
+    cost: 17
+    noise: NONE
+    successRate: 1.0
+    duration: PERMANENT
+    effects: [CHEAPER_RESPONSE]
+
+  # ---------------------------------------------------------------------
+  # POWER-UPS
+  # Un solo uso y caros: obligan a elegir entre gastar ya o ahorrar.
+  # ---------------------------------------------------------------------
+
+  - id: exploit-dia-cero
+    type: POWERUP
+    side: ATTACKER
+    name: { es: "Exploit de dia cero", en: "Zero-day exploit" }
+    description:
+      es: "La siguiente accion ignora el counter del defensor. Por esto asusta tanto un 0-day."
+      en: "The next action ignores the defender's counter. This is why a 0-day is scary."
+    cost: 30
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    effects: [IGNORES_COUNTERS]
+
+  - id: botnet-alquilada
+    type: POWERUP
+    side: ATTACKER
+    name: { es: "Botnet alquilada", en: "Rented botnet" }
+    description:
+      es: "Duplica el dano del siguiente impacto. La potencia se alquila por horas."
+      en: "Doubles the next impact's damage. Firepower is rented by the hour."
+    cost: 28
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    effects: [DOUBLE_IMPACT]
+
+  - id: informante-interno
+    type: POWERUP
+    side: ATTACKER
+    name: { es: "Informante interno", en: "Insider" }
+    description:
+      es: "Revela todas las defensas activas del rival. La amenaza interna existe."
+      en: "Reveals every active defence. The insider threat is real."
+    cost: 20
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    effects: [REVEALS_DEFENCES]
+
+  - id: borrar-huellas
+    type: POWERUP
+    side: ATTACKER
+    name: { es: "Borrar huellas", en: "Cover tracks" }
+    description:
+      es: "Silencia todo lo que se haga esta ronda. Por esto los logs se guardan aparte."
+      en: "Silences everything done this round. This is why logs live somewhere else."
+    cost: 18
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    effects: [SILENCES_ROUND]
+
+  - id: auditoria-externa
+    type: POWERUP
+    side: DEFENDER
+    name: { es: "Auditoria externa", en: "External audit" }
+    description:
+      es: "Revela toda la actividad del atacante esta ronda, incluida la silenciosa."
+      en: "Reveals all attacker activity this round, silent moves included."
+    cost: 25
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    effects: [REVEALS_ROUND]
+
+  - id: equipo-24-7
+    type: POWERUP
+    side: DEFENDER
+    name: { es: "Equipo 24/7", en: "24/7 response team" }
+    description:
+      es: "Duplica la reparacion de esta ronda. La carta de remontada."
+      en: "Doubles this round's repair. The comeback card."
+    cost: 26
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    effects: [DOUBLE_REPAIR]
+
+  - id: aviso-cert
+    type: POWERUP
+    side: DEFENDER
+    name: { es: "Aviso del CERT", en: "CERT advisory" }
+    description:
+      es: "Anula por completo el proximo ataque del tipo que elijas. Si fallas la apuesta, dinero tirado."
+      en: "Fully blocks the next attack of your chosen type. Guess wrong and it is wasted."
+    cost: 20
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    effects: [BLOCKS_CHOSEN_ATTACK]
+
+  - id: presupuesto-crisis
+    type: POWERUP
+    side: DEFENDER
+    name: { es: "Presupuesto de crisis", en: "Emergency budget" }
+    description:
+      es: "Inyecta presupuesto extra de golpe."
+      en: "Injects extra budget at once."
+    cost: 15
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    effects: [EXTRA_BUDGET]
+
+  # ---------------------------------------------------------------------
+  # TWISTS DEL INSTRUCTOR
+  # No se compran: las lanza el instructor para agitar la partida.
+  # ---------------------------------------------------------------------
+
+  - id: vulnerabilidad-mundial
+    type: TWIST
+    name: { es: "Vulnerabilidad mundial", en: "Worldwide vulnerability" }
+    description:
+      es: "Se publica un fallo critico: esta ronda explotar vulnerabilidad casi no falla."
+      en: "A critical flaw goes public: exploiting barely fails this round."
+    cost: 0
+    noise: NONE
+    successRate: 1.0
+    duration: ROUNDS
+    rounds: 1
+    bonus:
+      explotar-vulnerabilidad: 0.35
+
+  - id: auditoria-sorpresa
+    type: TWIST
+    name: { es: "Auditoria sorpresa", en: "Surprise audit" }
+    description:
+      es: "Se revelan las acciones encoladas de ambos bandos. Rompe los turnos a ciegas una vez."
+      en: "Both sides' queued actions are revealed. Breaks blind turns once."
+    cost: 0
+    noise: NONE
+    successRate: 1.0
+    duration: ROUNDS
+    rounds: 1
+    effects: [REVEALS_ROUND]
+
+  - id: recorte-presupuesto
+    type: TWIST
+    name: { es: "Recorte de presupuesto", en: "Budget cut" }
+    description:
+      es: "Ambos bandos pierden parte de lo ahorrado. La seguridad compite por dinero con todo lo demas."
+      en: "Both sides lose part of their savings. Security competes for money with everything else."
+    cost: 0
+    noise: NONE
+    successRate: 1.0
+    duration: INSTANT
+    effects: [BUDGET_CUT]
+
+  - id: teletrabajo
+    type: TWIST
+    name: { es: "Teletrabajo", en: "Remote work" }
+    description:
+      es: "El perimetro se amplia: sube el phishing y baja el valor del cortafuegos. El perimetro ya no existe."
+      en: "The perimeter widens: phishing improves and the firewall loses value. There is no perimeter."
+    cost: 0
+    noise: NONE
+    successRate: 1.0
+    duration: ROUNDS
+    rounds: 3
+    effects: [WEAKENS_PERIMETER]
+    bonus:
+      phishing: 0.20
