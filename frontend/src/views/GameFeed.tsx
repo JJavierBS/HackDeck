@@ -34,10 +34,7 @@ export function GameFeed({ state }: { state: GameStateDto }) {
         ) : (
           <ul>
             {state.yourQueuedActions.map((action, index) => (
-              <li key={index}>
-                {action.actionType}
-                {action.noisy ? " (ruidosa)" : " (sigilosa)"}
-              </li>
+              <li key={index}>{action.cardId}</li>
             ))}
           </ul>
         )}

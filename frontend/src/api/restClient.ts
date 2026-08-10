@@ -26,9 +26,24 @@ export interface MatchResultDto {
 export type PillarStatus = "INTACT" | "DAMAGED" | "CRITICAL" | "DOWN";
 
 export interface QueuedActionDto {
-  actionType: string;
+  cardId: string;
   parameters: Record<string, string>;
-  noisy: boolean;
+}
+
+/** Carta del catalogo. El coste, el ruido y el efecto los fija el servidor. */
+export interface CardDto {
+  id: string;
+  type: "ACTION" | "POWERUP" | "TWIST";
+  side: "ATTACKER" | "DEFENDER" | null;
+  phase: "RECON" | "ACCESS" | "ESCALATION" | "IMPACT" | null;
+  category: "HYGIENE" | "ARCHITECTURE" | "DETECTION" | "RESPONSE" | null;
+  name: Record<string, string>;
+  description: Record<string, string>;
+  cost: number;
+  noise: "NONE" | "LOW" | "MEDIUM" | "HIGH";
+  successRate: number;
+  impact: Record<string, number>;
+  counters: Record<string, number>;
 }
 
 export interface GameEventDto {
@@ -71,9 +86,8 @@ export interface GameSettingsDto {
 }
 
 export interface EnqueueActionDto {
-  actionType: string;
+  cardId: string;
   parameters: Record<string, string>;
-  noisy: boolean;
 }
 
 export interface RestClient {
@@ -83,6 +97,8 @@ export interface RestClient {
   getGameState(session: GameSession): Promise<GameStateDto>;
   enqueueAction(session: GameSession, action: EnqueueActionDto): Promise<void>;
   resolveRound(session: GameSession): Promise<GameStateDto>;
+  getCatalog(session: GameSession): Promise<CardDto[]>;
+  launchTwist(session: GameSession, cardId: string): Promise<void>;
 }
 
 /**
@@ -113,6 +129,11 @@ export function createRestClient(): RestClient {
 
     resolveRound: (session) =>
       request<GameStateDto>("POST", `/api/v1/games/${session.gameId}/rounds/resolve`, { session }),
+
+    getCatalog: (session) => request<CardDto[]>("GET", "/api/v1/catalog", { session }),
+
+    launchTwist: (session, cardId) =>
+      request<void>("POST", `/api/v1/games/${session.gameId}/twists/${cardId}`, { session }),
   };
 }
 
