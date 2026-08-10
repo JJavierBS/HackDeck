@@ -3,7 +3,6 @@ package com.cyberrange.adapter.rest.controller;
 import com.cyberrange.adapter.rest.dto.CreateGameRequest;
 import com.cyberrange.adapter.rest.dto.CreateGameResponse;
 import com.cyberrange.adapter.rest.dto.EnqueueActionRequest;
-import com.cyberrange.adapter.rest.dto.GameStateResponse;
 import com.cyberrange.adapter.rest.dto.JoinGameRequest;
 import com.cyberrange.adapter.security.InstructorAccessGuard;
 import com.cyberrange.application.port.in.CreateGameUseCase;
@@ -14,6 +13,8 @@ import com.cyberrange.application.port.in.GetGameStateUseCase;
 import com.cyberrange.application.port.in.JoinGameUseCase;
 import com.cyberrange.application.port.in.ResolveRoundUseCase;
 import com.cyberrange.application.port.in.StartGameUseCase;
+import com.cyberrange.application.service.GameViewProjector;
+import com.cyberrange.application.view.GameView;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameId;
 import com.cyberrange.domain.model.JoinCode;
@@ -39,6 +40,7 @@ public class GameController {
     private final ResolveRoundUseCase resolveRoundUseCase;
     private final GetGameStateUseCase getGameStateUseCase;
     private final InstructorAccessGuard instructorAccessGuard;
+    private final GameViewProjector projector;
 
     public GameController(
             CreateGameUseCase createGameUseCase,
@@ -47,7 +49,8 @@ public class GameController {
             EnqueueActionUseCase enqueueActionUseCase,
             ResolveRoundUseCase resolveRoundUseCase,
             GetGameStateUseCase getGameStateUseCase,
-            InstructorAccessGuard instructorAccessGuard) {
+            InstructorAccessGuard instructorAccessGuard,
+            GameViewProjector projector) {
         this.createGameUseCase = createGameUseCase;
         this.joinGameUseCase = joinGameUseCase;
         this.startGameUseCase = startGameUseCase;
@@ -55,6 +58,7 @@ public class GameController {
         this.resolveRoundUseCase = resolveRoundUseCase;
         this.getGameStateUseCase = getGameStateUseCase;
         this.instructorAccessGuard = instructorAccessGuard;
+        this.projector = projector;
     }
 
     @PostMapping
@@ -82,9 +86,9 @@ public class GameController {
     }
 
     @GetMapping("/{gameId}")
-    public GameStateResponse getGameState(@PathVariable String gameId, ParticipantSession session) {
+    public GameView getGameState(@PathVariable String gameId, ParticipantSession session) {
         Game game = getGameStateUseCase.getGameState(GameId.of(gameId), session);
-        return GameStateResponse.from(game, session.participant());
+        return projector.project(game, session.participant());
     }
 
     @PostMapping("/{gameId}/actions")
@@ -100,8 +104,8 @@ public class GameController {
     }
 
     @PostMapping("/{gameId}/rounds/resolve")
-    public GameStateResponse resolveRound(@PathVariable String gameId, ParticipantSession session) {
+    public GameView resolveRound(@PathVariable String gameId, ParticipantSession session) {
         Game game = resolveRoundUseCase.resolveCurrentRound(GameId.of(gameId), session);
-        return GameStateResponse.from(game, session.participant());
+        return projector.project(game, session.participant());
     }
 }

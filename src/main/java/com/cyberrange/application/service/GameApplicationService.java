@@ -123,7 +123,6 @@ public final class GameApplicationService implements
 
         gameRepository.save(game);
         broadcaster.broadcastState(game.id(), game);
-        broadcaster.broadcastEvents(game.id(), resolution.generatedEvents());
         return game;
     }
 

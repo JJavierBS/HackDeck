@@ -1,6 +1,8 @@
 package com.cyberrange.adapter.websocket;
 
+import com.cyberrange.application.port.in.GetGameStateUseCase;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
@@ -15,21 +17,30 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
  */
 @Configuration
 @EnableWebSocket
+@EnableScheduling
 public class GameWebSocketConfig implements WebSocketConfigurer {
 
     private final WebSocketSessionRegistry sessionRegistry;
     private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
+    private final GetGameStateUseCase getGameStateUseCase;
+    private final GameStateWebSocketBroadcaster broadcaster;
 
     public GameWebSocketConfig(
             WebSocketSessionRegistry sessionRegistry,
-            JwtHandshakeInterceptor jwtHandshakeInterceptor) {
+            JwtHandshakeInterceptor jwtHandshakeInterceptor,
+            GetGameStateUseCase getGameStateUseCase,
+            GameStateWebSocketBroadcaster broadcaster) {
         this.sessionRegistry = sessionRegistry;
         this.jwtHandshakeInterceptor = jwtHandshakeInterceptor;
+        this.getGameStateUseCase = getGameStateUseCase;
+        this.broadcaster = broadcaster;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new GameWebSocketHandler(sessionRegistry), "/ws/games/{gameId}")
+        registry.addHandler(
+                        new GameWebSocketHandler(sessionRegistry, getGameStateUseCase, broadcaster),
+                        "/ws/games/{gameId}")
                 .addInterceptors(jwtHandshakeInterceptor)
                 .setAllowedOrigins("*");
     }
