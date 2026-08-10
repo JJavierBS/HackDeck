@@ -1,5 +1,6 @@
 import type { GameStateDto, RestClient } from "../api/restClient";
 import type { GameSession } from "../api/session";
+import { GameFeed } from "./GameFeed";
 import { MatchScoreboard } from "./MatchScoreboard";
 
 interface ViewProps {
@@ -40,6 +41,7 @@ export function InstructorView({ client, session, state }: ViewProps) {
       <button onClick={() => client.resolveRound(session)} disabled={state?.phase !== "IN_PROGRESS"}>
         Resolver ronda
       </button>
+      {state && <GameFeed state={state} />}
       {state && <MatchScoreboard state={state} />}
     </main>
   );

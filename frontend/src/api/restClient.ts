@@ -23,11 +23,32 @@ export interface MatchResultDto {
   takedownRound: Record<string, number>;
 }
 
+export type PillarStatus = "INTACT" | "DAMAGED" | "CRITICAL" | "DOWN";
+
+export interface QueuedActionDto {
+  actionType: string;
+  parameters: Record<string, string>;
+  noisy: boolean;
+}
+
+export interface GameEventDto {
+  roundNumber: number;
+  actor: "ATTACKER" | "DEFENDER";
+  description: string;
+  occurredAt: string;
+}
+
+/**
+ * Lo que el servidor deja ver a este rol. Los campos que no le
+ * corresponden llegan a null: no es que se oculten al pintar, es que no
+ * vienen en la respuesta.
+ */
 export interface GameStateDto {
   gameId: string;
   joinCode: string;
   phase: "PREPARATION" | "IN_PROGRESS" | "FINISHED";
-  ciaLevels: Record<string, number>;
+  ciaLevels: Record<string, number> | null;
+  ciaStatus: Record<string, PillarStatus> | null;
   halfNumber: number | null;
   currentRoundNumber: number;
   roundsPerHalf: number;
@@ -37,6 +58,8 @@ export interface GameStateDto {
   yourSide: "ATTACKER" | "DEFENDER" | null;
   yourBudget: number | null;
   budgets: Record<string, number> | null;
+  yourQueuedActions: QueuedActionDto[];
+  events: GameEventDto[];
   result: MatchResultDto | null;
 }
 

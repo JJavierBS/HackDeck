@@ -12,6 +12,8 @@ export interface RealtimeClient {
   connect(session: GameSession): void;
   disconnect(): void;
   onMessage(handler: (message: RealtimeMessage) => void): void;
+  /** Se dispara en cada conexion, tambien tras reconectar. */
+  onOpen(handler: () => void): void;
 }
 
 const INITIAL_RETRY_MS = 500;
@@ -20,6 +22,7 @@ const MAX_RETRY_MS = 10_000;
 export function createRealtimeClient(): RealtimeClient {
   let socket: WebSocket | null = null;
   let handler: (message: RealtimeMessage) => void = () => {};
+  let openHandler: () => void = () => {};
   let retryMs = INITIAL_RETRY_MS;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let closedByUs = false;
@@ -29,6 +32,7 @@ export function createRealtimeClient(): RealtimeClient {
 
     socket.onopen = () => {
       retryMs = INITIAL_RETRY_MS;
+      openHandler();
     };
 
     socket.onmessage = (event) => {
@@ -66,6 +70,10 @@ export function createRealtimeClient(): RealtimeClient {
 
     onMessage(newHandler) {
       handler = newHandler;
+    },
+
+    onOpen(newHandler) {
+      openHandler = newHandler;
     },
   };
 }

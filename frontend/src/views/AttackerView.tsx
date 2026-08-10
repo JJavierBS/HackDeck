@@ -1,5 +1,6 @@
 import type { GameStateDto } from "../api/restClient";
 import type { GameSession } from "../api/session";
+import { GameFeed } from "./GameFeed";
 import { MatchScoreboard } from "./MatchScoreboard";
 
 interface ViewProps {
@@ -16,6 +17,7 @@ export function AttackerView({ session, state }: ViewProps) {
         {state?.roundsPerHalf ?? "-"}
       </p>
       <p>Presupuesto: {state?.yourBudget ?? 0}</p>
+      {state && <GameFeed state={state} />}
       {state && <MatchScoreboard state={state} />}
     </main>
   );

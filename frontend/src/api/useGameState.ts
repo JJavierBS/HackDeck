@@ -4,30 +4,31 @@ import type { GameStateDto, RestClient } from "./restClient";
 import type { GameSession } from "./session";
 
 /**
- * El estado autorizado viene por REST; el WebSocket solo avisa de que hay
- * novedades, para no depender de un canal que aun no filtra por rol.
+ * El estado llega ya filtrado por rol desde el servidor, asi que el
+ * mensaje del WebSocket se usa tal cual. El REST solo se consulta al
+ * conectar y al reconectar, para reconciliar lo que se haya perdido
+ * mientras el socket estuvo caido.
  */
 export function useGameState(client: RestClient, session: GameSession): GameStateDto | null {
   const [state, setState] = useState<GameStateDto | null>(null);
 
   useEffect(() => {
     let active = true;
-
-    const refresh = () => {
-      client
-        .getGameState(session)
-        .then((next) => {
-          if (active) {
-            setState(next);
-          }
-        })
-        .catch(() => {});
+    const apply = (next: GameStateDto) => {
+      if (active) {
+        setState(next);
+      }
     };
 
-    refresh();
-
     const realtime = createRealtimeClient();
-    realtime.onMessage(refresh);
+    realtime.onOpen(() => {
+      client.getGameState(session).then(apply).catch(() => {});
+    });
+    realtime.onMessage((message) => {
+      if (message.type === "state") {
+        apply(message.state as GameStateDto);
+      }
+    });
     realtime.connect(session);
 
     return () => {
