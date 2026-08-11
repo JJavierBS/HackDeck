@@ -16,13 +16,14 @@ interface PlayerViewProps {
   client: RestClient;
   session: GameSession;
   state: GameStateDto;
+  onChange: () => void;
 }
 
 /**
  * Atacante y defensor comparten pantalla: lo que cambia es el catalogo que
  * reciben y los paneles que el servidor les deja ver.
  */
-export function PlayerView({ client, session, state }: PlayerViewProps) {
+export function PlayerView({ client, session, state, onChange }: PlayerViewProps) {
   const { t } = useLanguage();
   const cards = useCatalog(client, session, state.halfNumber);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +35,7 @@ export function PlayerView({ client, session, state }: PlayerViewProps) {
     setPending(true);
     client
       .enqueueAction(session, { cardId, parameters: {} })
+      .then(onChange)
       .catch((cause: unknown) => {
         setError(cause instanceof ApiRequestError ? cause.message : t("entry.error.network"));
       })

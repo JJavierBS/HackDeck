@@ -1,16 +1,32 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createRealtimeClient } from "./realtimeClient";
 import type { GameStateDto, RestClient } from "./restClient";
 import type { GameSession } from "./session";
 
+interface GameStateHandle {
+  state: GameStateDto | null;
+  /**
+   * Vuelve a pedir el estado. Hace falta tras encolar: el servidor no
+   * difunde nada en ese momento a proposito, porque los turnos son
+   * simultaneos a ciegas, asi que sin esto el equipo pulsa y no ve nada.
+   */
+  refresh: () => void;
+}
+
 /**
  * El estado llega ya filtrado por rol desde el servidor, asi que el
  * mensaje del WebSocket se usa tal cual. El REST solo se consulta al
- * conectar y al reconectar, para reconciliar lo que se haya perdido
- * mientras el socket estuvo caido.
+ * conectar, al reconectar y cuando uno mismo cambia algo.
  */
-export function useGameState(client: RestClient, session: GameSession): GameStateDto | null {
+export function useGameState(client: RestClient, session: GameSession): GameStateHandle {
   const [state, setState] = useState<GameStateDto | null>(null);
+
+  const refresh = useCallback(() => {
+    client
+      .getGameState(session)
+      .then(setState)
+      .catch(() => {});
+  }, [client, session]);
 
   useEffect(() => {
     let active = true;
@@ -37,5 +53,5 @@ export function useGameState(client: RestClient, session: GameSession): GameStat
     };
   }, [client, session]);
 
-  return state;
+  return { state, refresh };
 }

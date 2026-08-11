@@ -50,7 +50,7 @@ export function App() {
  */
 function GameRouter({ client, session }: { client: RestClient; session: GameSession }) {
   const { t } = useLanguage();
-  const state = useGameState(client, session);
+  const { state, refresh } = useGameState(client, session);
 
   if (state === null) {
     return (
@@ -60,7 +60,7 @@ function GameRouter({ client, session }: { client: RestClient; session: GameSess
     );
   }
   if (session.team === null) {
-    return <InstructorView client={client} session={session} state={state} />;
+    return <InstructorView client={client} session={session} state={state} onChange={refresh} />;
   }
   if (state.phase === "PREPARATION") {
     return (
@@ -75,5 +75,5 @@ function GameRouter({ client, session }: { client: RestClient; session: GameSess
       </main>
     );
   }
-  return <PlayerView client={client} session={session} state={state} />;
+  return <PlayerView client={client} session={session} state={state} onChange={refresh} />;
 }

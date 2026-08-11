@@ -11,9 +11,10 @@ interface InstructorViewProps {
   client: RestClient;
   session: GameSession;
   state: GameStateDto;
+  onChange: () => void;
 }
 
-export function InstructorView({ client, session, state }: InstructorViewProps) {
+export function InstructorView({ client, session, state, onChange }: InstructorViewProps) {
   const { t, fromServer } = useLanguage();
   const cards = useCatalog(client, session, state.halfNumber ?? 0);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +23,7 @@ export function InstructorView({ client, session, state }: InstructorViewProps) 
 
   const run = (action: Promise<unknown>) => {
     setError(null);
-    action.catch((cause: unknown) => {
+    action.then(onChange).catch((cause: unknown) => {
       setError(cause instanceof ApiRequestError ? cause.message : t("entry.error.network"));
     });
   };
@@ -102,7 +103,7 @@ export function InstructorView({ client, session, state }: InstructorViewProps) 
                   <div className="carta-nombre">{fromServer(twist.name)}</div>
                   <p className="carta-descripcion">{fromServer(twist.description)}</p>
                   <button onClick={() => run(client.launchTwist(session, twist.id))}>
-                    {t("card.play")}
+                    {t("card.launch")}
                   </button>
                 </article>
               ))}
