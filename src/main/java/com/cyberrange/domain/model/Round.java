@@ -1,8 +1,11 @@
 package com.cyberrange.domain.model;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Una ronda de la partida: las acciones que ambos bandos han encolado. Lo
@@ -12,14 +15,37 @@ import java.util.Objects;
 public final class Round {
 
     private final int number;
+    private final Instant startedAt;
     private final List<ActionIntent> queuedActions = new ArrayList<>();
+    private final Set<TeamId> readyTeams = EnumSet.noneOf(TeamId.class);
 
     public Round(int number) {
         this.number = number;
+        this.startedAt = Instant.now();
     }
 
     public int number() {
         return number;
+    }
+
+    public Instant startedAt() {
+        return startedAt;
+    }
+
+    /**
+     * Un equipo declara que ya ha decidido. No cierra la ronda por si solo:
+     * eso depende de si el instructor tiene puesto el modo automatico.
+     */
+    public void markReady(TeamId team) {
+        readyTeams.add(team);
+    }
+
+    public Set<TeamId> readyTeams() {
+        return Set.copyOf(readyTeams);
+    }
+
+    public boolean everyoneReady() {
+        return readyTeams.size() >= TeamId.values().length;
     }
 
     public List<ActionIntent> queuedActions() {

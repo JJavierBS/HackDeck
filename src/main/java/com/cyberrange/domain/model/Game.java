@@ -2,6 +2,7 @@ package com.cyberrange.domain.model;
 
 import com.cyberrange.domain.exception.GameNotJoinableException;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -26,6 +27,12 @@ public final class Game {
     private final List<GameEvent> history = new ArrayList<>();
     private GamePhase phase;
     private MatchResult result;
+    /**
+     * Con el modo automatico apagado el reloj solo avisa y resuelve el
+     * instructor; encendido, la ronda se cierra sola al expirar o en cuanto
+     * los dos equipos se declaran listos.
+     */
+    private boolean autoResolve;
 
     public Game(GameId id, JoinCode joinCode, Participant instructor, GameSettings settings, GamePhase phase) {
         this.id = Objects.requireNonNull(id, "id");
@@ -226,6 +233,56 @@ public final class Game {
 
     public boolean isOver() {
         return phase == GamePhase.FINISHED;
+    }
+
+    public boolean isAutoResolve() {
+        return autoResolve;
+    }
+
+    public void setAutoResolve(boolean enabled) {
+        this.autoResolve = enabled;
+    }
+
+    /**
+     * Momento en el que se agota el tiempo de la ronda en curso.
+     */
+    public Optional<Instant> roundDeadline() {
+        if (phase != GamePhase.IN_PROGRESS) {
+            return Optional.empty();
+        }
+        return Optional.of(currentRound().startedAt().plus(settings.roundTimeout()));
+    }
+
+    public boolean isRoundExpired(Instant now) {
+        return roundDeadline().map(now::isAfter).orElse(false);
+    }
+
+    public void markReady(TeamId team) {
+        requireInProgress();
+        currentRound().markReady(team);
+    }
+
+    /**
+     * El instructor corta la mitad en curso: se puntua con lo que haya. Si
+     * era la primera, arranca la segunda; si era la segunda, se acaba.
+     */
+    public void closeHalf() {
+        requireInProgress();
+        record(GameEvent.of(
+                currentHalf().number(),
+                currentRound().number(),
+                GameEventType.HALF_STARTED,
+                "El instructor cierra la mitad antes de tiempo"));
+        endHalf();
+    }
+
+    /**
+     * Cierre de emergencia del match entero, para cuando se acaba la clase.
+     */
+    public void closeMatch() {
+        requireInProgress();
+        currentHalf().finish();
+        phase = GamePhase.FINISHED;
     }
 
     private void endHalf() {
