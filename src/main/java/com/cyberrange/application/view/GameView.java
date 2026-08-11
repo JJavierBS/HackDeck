@@ -11,6 +11,8 @@ import java.util.Map;
  * @param ciaLevels         valores exactos de la triada; solo instructor y defensor.
  * @param ciaStatus         lectura cualitativa de la triada; lo que ve el atacante.
  * @param budgets           presupuesto de los dos equipos; solo instructor.
+ * @param yourKillChain     fases que el atacante lleva desbloqueadas.
+ * @param yourActiveCards   capas y persistencias propias que siguen en pie.
  * @param yourQueuedActions lo que uno mismo lleva encolado esta ronda.
  * @param events            eventos que ese rol ha llegado a percibir.
  */
@@ -29,6 +31,8 @@ public record GameView(
         Map<String, Integer> budgets,
         Map<String, Integer> ciaLevels,
         Map<String, String> ciaStatus,
+        List<String> yourKillChain,
+        List<ActiveCardView> yourActiveCards,
         List<QueuedActionView> yourQueuedActions,
         List<EventView> events,
         MatchResultView result) {

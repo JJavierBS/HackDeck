@@ -1,10 +1,13 @@
 package com.cyberrange.application.service;
 
+import com.cyberrange.application.view.ActiveCardView;
 import com.cyberrange.application.view.EventView;
 import com.cyberrange.application.view.GameView;
 import com.cyberrange.application.view.MatchResultView;
 import com.cyberrange.application.view.QueuedActionView;
+import com.cyberrange.domain.catalog.KillChainPhase;
 import com.cyberrange.domain.model.ActionIntent;
+import com.cyberrange.domain.model.ActiveCard;
 import com.cyberrange.domain.model.CiaPillar;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameEvent;
@@ -53,6 +56,8 @@ public final class GameViewProjector {
                 viewer.isInstructor() && half != null ? budgetsOf(half) : null,
                 half != null && seesExactCia ? ciaLevelsOf(half) : null,
                 half != null && !seesExactCia ? ciaStatusOf(half) : null,
+                half == null || viewerSide != Role.ATTACKER ? List.of() : killChainOf(half),
+                half == null ? List.of() : activeCardsFor(half, viewerSide),
                 half == null || viewerSide == null ? List.of() : queuedActionsOf(half, viewerSide),
                 half == null ? List.of() : eventsFor(half, viewerSide),
                 resultOf(game.result()));
@@ -64,6 +69,24 @@ public final class GameViewProjector {
             game.playerOf(team).ifPresent(player -> teams.put(team.name(), player.displayName()));
         }
         return teams;
+    }
+
+    private static List<String> killChainOf(Half half) {
+        return half.unlockedPhases().stream().map(KillChainPhase::name).sorted().toList();
+    }
+
+    /**
+     * Cada bando ve sus propias capas; el instructor las ve todas. Saber que
+     * defensas tiene el rival es justo lo que cuesta una carta de recon.
+     */
+    private static List<ActiveCardView> activeCardsFor(Half half, Role viewerSide) {
+        List<ActiveCard> visible = viewerSide == null ? half.activeCards() : half.activeCardsOf(viewerSide);
+        return visible.stream()
+                .map(card -> new ActiveCardView(
+                        card.cardId(),
+                        card.side() == null ? null : card.side().name(),
+                        card.isPermanent() ? null : card.roundsRemaining()))
+                .toList();
     }
 
     private static Map<String, Integer> budgetsOf(Half half) {
