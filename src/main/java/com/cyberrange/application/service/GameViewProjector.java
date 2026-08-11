@@ -3,6 +3,7 @@ package com.cyberrange.application.service;
 import com.cyberrange.application.view.ActiveCardView;
 import com.cyberrange.application.view.EventView;
 import com.cyberrange.application.view.GameView;
+import com.cyberrange.application.view.MatchHistoryView;
 import com.cyberrange.application.view.MatchResultView;
 import com.cyberrange.application.view.QueuedActionView;
 import com.cyberrange.domain.catalog.KillChainPhase;
@@ -17,7 +18,6 @@ import com.cyberrange.domain.model.MatchResult;
 import com.cyberrange.domain.model.Participant;
 import com.cyberrange.domain.model.PillarStatus;
 import com.cyberrange.domain.model.Role;
-import com.cyberrange.domain.model.Round;
 import com.cyberrange.domain.model.TeamId;
 import org.springframework.stereotype.Service;
 
@@ -59,7 +59,7 @@ public final class GameViewProjector {
                 half == null || viewerSide != Role.ATTACKER ? List.of() : killChainOf(half),
                 half == null ? List.of() : activeCardsFor(half, viewerSide),
                 half == null || viewerSide == null ? List.of() : queuedActionsOf(half, viewerSide),
-                half == null ? List.of() : eventsFor(half, viewerSide),
+                eventsFor(game, half, viewerSide),
                 resultOf(game.result()));
     }
 
@@ -122,13 +122,36 @@ public final class GameViewProjector {
                 .toList();
     }
 
-    private static List<EventView> eventsFor(Half half, Role viewerSide) {
-        return half.rounds().stream()
-                .map(Round::events)
-                .flatMap(List::stream)
+    /**
+     * Durante la partida solo se ensena la mitad en curso: el historial
+     * completo del match es cosa del debriefing, no del tablero.
+     */
+    private static List<EventView> eventsFor(Game game, Half half, Role viewerSide) {
+        return game.history().stream()
+                .filter(event -> half == null || event.halfNumber() == half.number())
                 .filter(event -> viewerSide == null || event.isVisibleTo(viewerSide))
                 .map(GameViewProjector::toEventView)
                 .toList();
+    }
+
+    /**
+     * Historial completo, sin filtrar por rol: al acabar el match ya no hay
+     * niebla de guerra que proteger y la gracia del debriefing es justo ver
+     * lo que el rival hacia sin que te enterases.
+     */
+    public MatchHistoryView history(Game game) {
+        return new MatchHistoryView(
+                game.id().toString(),
+                game.joinCode().toString(),
+                game.phase().name(),
+                new MatchHistoryView.Settings(
+                        game.settings().roundsPerHalf(),
+                        game.settings().roundTimeout().toSeconds(),
+                        game.settings().initialBudget(),
+                        game.settings().incomePerRound()),
+                teamsOf(game),
+                game.history().stream().map(GameViewProjector::toEventView).toList(),
+                resultOf(game.result()));
     }
 
     private static QueuedActionView toQueuedActionView(ActionIntent action) {
@@ -136,10 +159,22 @@ public final class GameViewProjector {
     }
 
     private static EventView toEventView(GameEvent event) {
+        // Siempre en el orden de la triada: Map.copyOf no conserva ninguno y
+        // los pilares saldrian barajados de un evento a otro.
+        Map<String, Integer> ciaAfter = new LinkedHashMap<>();
+        for (CiaPillar pillar : CiaPillar.values()) {
+            if (event.ciaAfter().containsKey(pillar)) {
+                ciaAfter.put(pillar.name(), event.ciaAfter().get(pillar));
+            }
+        }
         return new EventView(
+                event.halfNumber(),
                 event.roundNumber(),
-                event.actor().name(),
+                event.type().name(),
+                event.actor() == null ? null : event.actor().name(),
+                event.cardId(),
                 event.description(),
+                ciaAfter,
                 event.occurredAt().toString());
     }
 

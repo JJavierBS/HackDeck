@@ -16,6 +16,8 @@ import com.cyberrange.application.port.in.ResolveRoundUseCase;
 import com.cyberrange.application.port.in.StartGameUseCase;
 import com.cyberrange.application.service.GameViewProjector;
 import com.cyberrange.application.view.GameView;
+import com.cyberrange.application.view.MatchHistoryView;
+import com.cyberrange.application.exception.AccessDeniedException;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameId;
 import com.cyberrange.domain.model.JoinCode;
@@ -93,6 +95,19 @@ public class GameController {
     public GameView getGameState(@PathVariable String gameId, ParticipantSession session) {
         Game game = getGameStateUseCase.getGameState(GameId.of(gameId), session);
         return projector.project(game, session.participant());
+    }
+
+    /**
+     * Linea temporal completa del match. Solo el instructor: es material de
+     * debriefing, no de partida.
+     */
+    @GetMapping("/{gameId}/history")
+    public MatchHistoryView getHistory(@PathVariable String gameId, ParticipantSession session) {
+        Game game = getGameStateUseCase.getGameState(GameId.of(gameId), session);
+        if (!session.isInstructor()) {
+            throw new AccessDeniedException("El historial completo es solo para el instructor");
+        }
+        return projector.history(game);
     }
 
     @PostMapping("/{gameId}/actions")
