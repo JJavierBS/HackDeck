@@ -3,9 +3,11 @@ package com.cyberrange.adapter.persistence.memory;
 import com.cyberrange.application.port.out.GameRepository;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameId;
+import com.cyberrange.domain.model.GamePhase;
 import com.cyberrange.domain.model.JoinCode;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,5 +38,10 @@ public final class InMemoryGameRepository implements GameRepository {
     @Override
     public boolean existsByJoinCode(JoinCode joinCode) {
         return gamesByJoinCode.containsKey(joinCode);
+    }
+
+    @Override
+    public List<Game> findInProgress() {
+        return games.values().stream().filter(game -> game.phase() == GamePhase.IN_PROGRESS).toList();
     }
 }

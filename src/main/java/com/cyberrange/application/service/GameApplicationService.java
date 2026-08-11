@@ -8,6 +8,9 @@ import com.cyberrange.application.port.in.GameAccess;
 import com.cyberrange.application.port.in.GetGameStateUseCase;
 import com.cyberrange.application.port.in.JoinGameUseCase;
 import com.cyberrange.application.port.in.LaunchTwistUseCase;
+import com.cyberrange.application.port.in.MarkReadyUseCase;
+import com.cyberrange.application.port.in.ResolveExpiredRoundsUseCase;
+import com.cyberrange.application.port.in.RoundControlUseCase;
 import com.cyberrange.application.port.in.ResolveRoundUseCase;
 import com.cyberrange.application.port.in.StartGameUseCase;
 import com.cyberrange.application.port.out.AccessTokenPort;
@@ -29,6 +32,7 @@ import com.cyberrange.domain.rules.RoundResolution;
 import com.cyberrange.domain.rules.RuleEngine;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -40,7 +44,8 @@ import java.util.UUID;
 @Service
 public final class GameApplicationService implements
         CreateGameUseCase, JoinGameUseCase, StartGameUseCase, LaunchTwistUseCase,
-        EnqueueActionUseCase, ResolveRoundUseCase, GetGameStateUseCase {
+        EnqueueActionUseCase, ResolveRoundUseCase, GetGameStateUseCase,
+        MarkReadyUseCase, RoundControlUseCase, ResolveExpiredRoundsUseCase {
 
     private static final int MAX_JOIN_CODE_ATTEMPTS = 100;
 
@@ -121,6 +126,76 @@ public final class GameApplicationService implements
     public Game resolveCurrentRound(GameId gameId, ParticipantSession session) {
         Game game = requireGame(gameId);
         requireInstructor(game, session);
+        return resolveRound(game);
+    }
+
+    @Override
+    public void markReady(GameId gameId, ParticipantSession session) {
+        Game game = requireGame(gameId);
+        Participant participant = requireParticipant(game, session);
+        if (participant.isInstructor()) {
+            throw new AccessDeniedException("El instructor arbitra, no declara listo a nadie");
+        }
+        game.markReady(participant.team());
+        // Con el modo automatico apagado esto solo avisa al instructor: es el
+        // quien decide cuando se cierra la ronda.
+        if (game.isAutoResolve() && game.currentRound().everyoneReady()) {
+            resolveRound(game);
+            return;
+        }
+        gameRepository.save(game);
+        broadcaster.broadcastState(game.id(), game);
+    }
+
+    @Override
+    public void setAutoResolve(GameId gameId, ParticipantSession session, boolean enabled) {
+        Game game = requireGame(gameId);
+        requireInstructor(game, session);
+        game.setAutoResolve(enabled);
+        // Si los dos ya habian confirmado, encender el modo automatico cierra
+        // la ronda en ese momento: es lo que el instructor espera al pulsarlo.
+        if (enabled && game.currentRound().everyoneReady()) {
+            resolveRound(game);
+            return;
+        }
+        gameRepository.save(game);
+        broadcaster.broadcastState(game.id(), game);
+    }
+
+    @Override
+    public void closeHalf(GameId gameId, ParticipantSession session) {
+        Game game = requireGame(gameId);
+        requireInstructor(game, session);
+        game.closeHalf();
+        finishIfOver(game);
+        gameRepository.save(game);
+        broadcaster.broadcastState(game.id(), game);
+    }
+
+    @Override
+    public void closeMatch(GameId gameId, ParticipantSession session) {
+        Game game = requireGame(gameId);
+        requireInstructor(game, session);
+        game.closeMatch();
+        finishIfOver(game);
+        gameRepository.save(game);
+        broadcaster.broadcastState(game.id(), game);
+    }
+
+    @Override
+    public int resolveExpiredRounds() {
+        Instant now = Instant.now();
+        int resolved = 0;
+        for (Game game : gameRepository.findInProgress()) {
+            if (game.isAutoResolve() && game.isRoundExpired(now)) {
+                resolveRound(game);
+                resolved++;
+            }
+        }
+        return resolved;
+    }
+
+    private Game resolveRound(Game game) {
         game.requireInProgress();
 
         RoundResolution resolution = ruleEngine.resolveRound(game, game.currentRound());
@@ -129,13 +204,17 @@ public final class GameApplicationService implements
                 resolution.generatedEvents(),
                 resolution.takedown(),
                 resolution.catchUpBonus());
-        if (game.isOver()) {
-            game.recordResult(ruleEngine.scoreMatch(game));
-        }
+        finishIfOver(game);
 
         gameRepository.save(game);
         broadcaster.broadcastState(game.id(), game);
         return game;
+    }
+
+    private void finishIfOver(Game game) {
+        if (game.isOver() && game.result() == null) {
+            game.recordResult(ruleEngine.scoreMatch(game));
+        }
     }
 
     @Override

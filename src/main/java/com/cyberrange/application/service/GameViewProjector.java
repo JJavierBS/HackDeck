@@ -21,6 +21,7 @@ import com.cyberrange.domain.model.Role;
 import com.cyberrange.domain.model.TeamId;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,11 @@ public final class GameViewProjector {
                 viewer.isInstructor() && half != null ? budgetsOf(half) : null,
                 half != null && seesExactCia ? ciaLevelsOf(half) : null,
                 half != null && !seesExactCia ? ciaStatusOf(half) : null,
+                half == null ? null : half.attackingTeam().name(),
+                half == null ? null : game.roundDeadline().map(Instant::toString).orElse(null),
+                game.isAutoResolve(),
+                half == null ? List.of() : readyTeamsOf(half),
+                viewer.isInstructor() && half != null ? queuedBySide(half) : null,
                 half == null || viewerSide != Role.ATTACKER ? List.of() : killChainOf(half),
                 half == null ? List.of() : activeCardsFor(half, viewerSide),
                 half == null || viewerSide == null ? List.of() : queuedActionsOf(half, viewerSide),
@@ -69,6 +75,22 @@ public final class GameViewProjector {
             game.playerOf(team).ifPresent(player -> teams.put(team.name(), player.displayName()));
         }
         return teams;
+    }
+
+    private static List<String> readyTeamsOf(Half half) {
+        return half.currentRound().readyTeams().stream().map(TeamId::name).sorted().toList();
+    }
+
+    /**
+     * El instructor si ve las dos colas antes de resolver, porque su panel
+     * ya no es lo que se proyecta: la pantalla del aula es otra.
+     */
+    private static Map<String, List<QueuedActionView>> queuedBySide(Half half) {
+        Map<String, List<QueuedActionView>> bySide = new LinkedHashMap<>();
+        for (Role side : Role.values()) {
+            bySide.put(side.name(), queuedActionsOf(half, side));
+        }
+        return bySide;
     }
 
     private static List<String> killChainOf(Half half) {

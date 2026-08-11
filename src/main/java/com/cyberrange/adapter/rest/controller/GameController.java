@@ -12,6 +12,8 @@ import com.cyberrange.application.port.in.GameAccess;
 import com.cyberrange.application.port.in.GetGameStateUseCase;
 import com.cyberrange.application.port.in.JoinGameUseCase;
 import com.cyberrange.application.port.in.LaunchTwistUseCase;
+import com.cyberrange.application.port.in.MarkReadyUseCase;
+import com.cyberrange.application.port.in.RoundControlUseCase;
 import com.cyberrange.application.port.in.ResolveRoundUseCase;
 import com.cyberrange.application.port.in.StartGameUseCase;
 import com.cyberrange.application.service.GameViewProjector;
@@ -44,6 +46,8 @@ public class GameController {
     private final GetGameStateUseCase getGameStateUseCase;
     private final InstructorAccessGuard instructorAccessGuard;
     private final LaunchTwistUseCase launchTwistUseCase;
+    private final MarkReadyUseCase markReadyUseCase;
+    private final RoundControlUseCase roundControlUseCase;
     private final GameViewProjector projector;
 
     public GameController(
@@ -55,6 +59,8 @@ public class GameController {
             GetGameStateUseCase getGameStateUseCase,
             InstructorAccessGuard instructorAccessGuard,
             LaunchTwistUseCase launchTwistUseCase,
+            MarkReadyUseCase markReadyUseCase,
+            RoundControlUseCase roundControlUseCase,
             GameViewProjector projector) {
         this.createGameUseCase = createGameUseCase;
         this.joinGameUseCase = joinGameUseCase;
@@ -64,6 +70,8 @@ public class GameController {
         this.getGameStateUseCase = getGameStateUseCase;
         this.instructorAccessGuard = instructorAccessGuard;
         this.launchTwistUseCase = launchTwistUseCase;
+        this.markReadyUseCase = markReadyUseCase;
+        this.roundControlUseCase = roundControlUseCase;
         this.projector = projector;
     }
 
@@ -129,6 +137,31 @@ public class GameController {
             @PathVariable String cardId,
             ParticipantSession session) {
         launchTwistUseCase.launchTwist(GameId.of(gameId), session, cardId);
+    }
+
+    @PostMapping("/{gameId}/rounds/ready")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void markReady(@PathVariable String gameId, ParticipantSession session) {
+        markReadyUseCase.markReady(GameId.of(gameId), session);
+    }
+
+    @PostMapping("/{gameId}/auto-resolve/{enabled}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void setAutoResolve(
+            @PathVariable String gameId, @PathVariable boolean enabled, ParticipantSession session) {
+        roundControlUseCase.setAutoResolve(GameId.of(gameId), session, enabled);
+    }
+
+    @PostMapping("/{gameId}/half/close")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void closeHalf(@PathVariable String gameId, ParticipantSession session) {
+        roundControlUseCase.closeHalf(GameId.of(gameId), session);
+    }
+
+    @PostMapping("/{gameId}/close")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void closeMatch(@PathVariable String gameId, ParticipantSession session) {
+        roundControlUseCase.closeMatch(GameId.of(gameId), session);
     }
 
     @PostMapping("/{gameId}/rounds/resolve")

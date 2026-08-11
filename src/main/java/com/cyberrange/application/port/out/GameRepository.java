@@ -4,6 +4,7 @@ import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameId;
 import com.cyberrange.domain.model.JoinCode;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -18,4 +19,7 @@ public interface GameRepository {
     Optional<Game> findByJoinCode(JoinCode joinCode);
 
     boolean existsByJoinCode(JoinCode joinCode);
+
+    /** Partidas en curso, para que el reloj del servidor las repase. */
+    List<Game> findInProgress();
 }
