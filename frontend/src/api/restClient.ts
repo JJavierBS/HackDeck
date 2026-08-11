@@ -25,6 +25,13 @@ export interface MatchResultDto {
 
 export type PillarStatus = "INTACT" | "DAMAGED" | "CRITICAL" | "DOWN";
 
+export interface ActiveCardDto {
+  cardId: string;
+  side: "ATTACKER" | "DEFENDER" | null;
+  /** null significa que aguanta hasta el final de la mitad. */
+  roundsRemaining: number | null;
+}
+
 export interface QueuedActionDto {
   cardId: string;
   parameters: Record<string, string>;
@@ -73,6 +80,8 @@ export interface GameStateDto {
   yourSide: "ATTACKER" | "DEFENDER" | null;
   yourBudget: number | null;
   budgets: Record<string, number> | null;
+  yourKillChain: string[];
+  yourActiveCards: ActiveCardDto[];
   yourQueuedActions: QueuedActionDto[];
   events: GameEventDto[];
   result: MatchResultDto | null;

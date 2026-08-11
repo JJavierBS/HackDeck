@@ -1,13 +1,9 @@
 import type { GameStateDto } from "../api/restClient";
-
-const OUTCOME_TEXT: Record<string, string> = {
-  TAKEDOWN: "derribo de un pilar",
-  TAKEDOWN_FASTER: "derribo mas rapido",
-  POINTS: "mejor defensa de la triada",
-  DRAW: "empate",
-};
+import { useLanguage } from "../i18n/LanguageContext";
+import type { TranslationKey } from "../i18n/dictionary";
 
 export function MatchScoreboard({ state }: { state: GameStateDto }) {
+  const { t } = useLanguage();
   const result = state.result;
   if (result === null) {
     return null;
@@ -16,16 +12,19 @@ export function MatchScoreboard({ state }: { state: GameStateDto }) {
 
   return (
     <section>
-      <h2>Fin del match</h2>
-      <p>
-        {winnerName === null ? "Empate" : `Gana ${winnerName}`} por {OUTCOME_TEXT[result.outcome]}
+      <h2>{t("result.title")}</h2>
+      <p className="marca-valor">
+        {winnerName === null ? t("result.draw") : `${t("result.winner")} ${winnerName}`}{" "}
+        <span className="tenue">
+          {t("result.by")} {t(`result.${result.outcome}` as TranslationKey)}
+        </span>
       </p>
       <ul>
         {Object.entries(result.defendedCia).map(([team, defended]) => (
           <li key={team}>
-            {state.teams[team]} defendio {defended} puntos de triada
+            {state.teams[team]} {t("result.defended")} {defended} {t("result.points")}
             {result.takedownRound[team] !== undefined
-              ? `, y derribo un pilar en la ronda ${result.takedownRound[team]}`
+              ? `, ${t("result.takedownRound")} ${result.takedownRound[team]}`
               : ""}
           </li>
         ))}

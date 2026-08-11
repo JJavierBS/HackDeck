@@ -2,45 +2,45 @@ import { useMemo, useState } from "react";
 import { createRestClient, type RestClient } from "./api/restClient";
 import { clearSession, loadSession, saveSession, type GameSession } from "./api/session";
 import { useGameState } from "./api/useGameState";
+import { useLanguage } from "./i18n/LanguageContext";
 import { EntryView } from "./views/EntryView";
 import { InstructorView } from "./views/InstructorView";
-import { AttackerView } from "./views/AttackerView";
-import { DefenderView } from "./views/DefenderView";
+import { PlayerView } from "./views/PlayerView";
 
 export function App() {
+  const { t, toggle } = useLanguage();
   const client = useMemo(() => createRestClient(), []);
   const [session, setSession] = useState<GameSession | null>(() => loadSession());
 
-  if (session === null) {
-    return (
-      <EntryView
-        client={client}
-        onSession={(newSession) => {
-          saveSession(newSession);
-          setSession(newSession);
-        }}
-      />
-    );
-  }
-
   return (
     <>
-      <GameRouter client={client} session={session} />
-      <button
-        onClick={() => {
-          clearSession();
-          setSession(null);
-        }}
-      >
-        Salir de la partida
-      </button>
+      <nav className="barra-superior">
+        <button onClick={toggle}>{t("app.language")}</button>
+        {session !== null && (
+          <button
+            onClick={() => {
+              clearSession();
+              setSession(null);
+            }}
+          >
+            {t("app.leave")}
+          </button>
+        )}
+      </nav>
+
+      {session === null ? (
+        <EntryView
+          client={client}
+          onSession={(newSession) => {
+            saveSession(newSession);
+            setSession(newSession);
+          }}
+        />
+      ) : (
+        <GameRouter client={client} session={session} />
+      )}
     </>
   );
-}
-
-interface GameRouterProps {
-  client: RestClient;
-  session: GameSession;
 }
 
 /**
@@ -48,15 +48,32 @@ interface GameRouterProps {
  * El bando tampoco lo decide el cliente, viene del servidor, que es quien
  * sabe que mitad se esta jugando.
  */
-function GameRouter({ client, session }: GameRouterProps) {
+function GameRouter({ client, session }: { client: RestClient; session: GameSession }) {
+  const { t } = useLanguage();
   const state = useGameState(client, session);
 
+  if (state === null) {
+    return (
+      <main>
+        <p className="tenue">{t("app.loading")}</p>
+      </main>
+    );
+  }
   if (session.team === null) {
     return <InstructorView client={client} session={session} state={state} />;
   }
-  return state?.yourSide === "DEFENDER" ? (
-    <DefenderView session={session} state={state} />
-  ) : (
-    <AttackerView session={session} state={state} />
-  );
+  if (state.phase === "PREPARATION") {
+    return (
+      <main>
+        <h1>{t("app.title")}</h1>
+        <section>
+          <p>{t("game.waiting")}</p>
+          <p className="tenue">
+            {t("game.code")}: {session.joinCode}
+          </p>
+        </section>
+      </main>
+    );
+  }
+  return <PlayerView client={client} session={session} state={state} />;
 }

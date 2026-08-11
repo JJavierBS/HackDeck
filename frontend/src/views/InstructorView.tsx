@@ -1,48 +1,119 @@
-import type { GameStateDto, RestClient } from "../api/restClient";
+import { useState } from "react";
+import { ApiRequestError, type GameStateDto, type RestClient } from "../api/restClient";
 import type { GameSession } from "../api/session";
-import { GameFeed } from "./GameFeed";
+import { useCatalog } from "../api/useCatalog";
+import { CiaPanel } from "../components/CiaPanel";
+import { EventLog } from "../components/EventLog";
+import { useLanguage } from "../i18n/LanguageContext";
 import { MatchScoreboard } from "./MatchScoreboard";
 
-interface ViewProps {
+interface InstructorViewProps {
   client: RestClient;
   session: GameSession;
-  state: GameStateDto | null;
+  state: GameStateDto;
 }
 
-export function InstructorView({ client, session, state }: ViewProps) {
-  const teams = Object.entries(state?.teams ?? {});
+export function InstructorView({ client, session, state }: InstructorViewProps) {
+  const { t, fromServer } = useLanguage();
+  const cards = useCatalog(client, session, state.halfNumber ?? 0);
+  const [error, setError] = useState<string | null>(null);
+  const teams = Object.entries(state.teams);
+  const twists = cards.filter((card) => card.type === "TWIST");
+
+  const run = (action: Promise<unknown>) => {
+    setError(null);
+    action.catch((cause: unknown) => {
+      setError(cause instanceof ApiRequestError ? cause.message : t("entry.error.network"));
+    });
+  };
 
   return (
     <main>
-      <h1>Instructor</h1>
-      <p>
-        Codigo de partida: <strong>{session.joinCode}</strong>
-      </p>
-      <p>
-        Fase: {state?.phase ?? "cargando"}
-        {state?.halfNumber !== null && state !== null
-          ? ` — mitad ${state.halfNumber} de 2, ronda ${state.currentRoundNumber} de ${state.roundsPerHalf}`
-          : ""}
-      </p>
-      <ul>
-        {teams.map(([team, name]) => (
-          <li key={team}>
-            Equipo {team}: {name}
-            {state?.budgets ? ` (presupuesto ${state.budgets[team]})` : ""}
-          </li>
-        ))}
-      </ul>
-      <button
-        onClick={() => client.startGame(session)}
-        disabled={state?.phase !== "PREPARATION" || teams.length < 2}
-      >
-        Empezar partida
-      </button>
-      <button onClick={() => client.resolveRound(session)} disabled={state?.phase !== "IN_PROGRESS"}>
-        Resolver ronda
-      </button>
-      {state && <GameFeed state={state} />}
-      {state && <MatchScoreboard state={state} />}
+      <header className="barra-superior">
+        <div>
+          <div className="marca-etiqueta">{t("game.code")}</div>
+          <div className="codigo">{session.joinCode}</div>
+        </div>
+        <div className="marcas">
+          <div>
+            <div className="marca-etiqueta">{t("game.half")}</div>
+            <div className="marca-valor">{state.halfNumber ?? "-"} / 2</div>
+          </div>
+          <div>
+            <div className="marca-etiqueta">{t("game.round")}</div>
+            <div className="marca-valor">
+              {state.currentRoundNumber} / {state.roundsPerHalf}
+            </div>
+          </div>
+          <div>
+            <div className="marca-etiqueta">{t("game.timePerRound")}</div>
+            <div className="marca-valor">
+              {state.roundTimeoutSeconds}
+              {t("game.seconds")}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {state.result !== null && <MatchScoreboard state={state} />}
+      {error !== null && <p className="error">{error}</p>}
+
+      <div className="columnas">
+        <div>
+          <section>
+            <h2>{t("lobby.teams")}</h2>
+            {teams.length === 0 ? (
+              <p className="tenue">{t("lobby.empty")}</p>
+            ) : (
+              <ul>
+                {teams.map(([team, name]) => (
+                  <li key={team}>
+                    <strong>{name}</strong>{" "}
+                    <span className="tenue">
+                      ({team}
+                      {state.budgets === null ? "" : ` · ${t("game.budget")} ${state.budgets[team]}`})
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="etiquetas">
+              <button
+                disabled={state.phase !== "PREPARATION" || teams.length < 2}
+                onClick={() => run(client.startGame(session))}
+              >
+                {t("lobby.start")}
+              </button>
+              <button
+                disabled={state.phase !== "IN_PROGRESS"}
+                onClick={() => run(client.resolveRound(session))}
+              >
+                {t("lobby.resolve")}
+              </button>
+            </div>
+            {teams.length < 2 && <p className="tenue">{t("lobby.needTeams")}</p>}
+          </section>
+
+          {state.phase === "IN_PROGRESS" && twists.length > 0 && (
+            <section>
+              <h2>{t("lobby.twists")}</h2>
+              {twists.map((twist) => (
+                <article className="carta" key={twist.id}>
+                  <div className="carta-nombre">{fromServer(twist.name)}</div>
+                  <p className="carta-descripcion">{fromServer(twist.description)}</p>
+                  <button onClick={() => run(client.launchTwist(session, twist.id))}>
+                    {t("card.play")}
+                  </button>
+                </article>
+              ))}
+            </section>
+          )}
+        </div>
+        <div>
+          <CiaPanel state={state} />
+          <EventLog events={state.events} />
+        </div>
+      </div>
     </main>
   );
 }
