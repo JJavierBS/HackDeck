@@ -1,0 +1,282 @@
+/*
+ * Prioridad: legible a tres metros en la pantalla del instructor y usable
+ * en el movil de un equipo. Sin librerias de estilos.
+ *
+ * Los bandos no se distinguen solo por color (rojo/azul): cada vista lleva
+ * su rotulo y sus iconos, para no dejar fuera a quien no distinga colores.
+ */
+
+:root {
+  --fondo: #10131a;
+  --panel: #1a1f2b;
+  --panel-claro: #232a38;
+  --borde: #333c4e;
+  --texto: #eef1f6;
+  --texto-tenue: #a4adbd;
+  --rojo: #ff6b5e;
+  --azul: #5aa9ff;
+  --verde: #4fd18b;
+  --ambar: #ffc857;
+  --radio: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 1rem 4rem;
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin: 0.2rem 0;
+}
+
+h2 {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-tenue);
+  margin: 0 0 0.6rem;
+}
+
+button {
+  font: inherit;
+  font-weight: 600;
+  color: var(--fondo);
+  background: var(--texto);
+  border: none;
+  border-radius: var(--radio);
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: var(--panel-claro);
+  color: var(--texto-tenue);
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--ambar);
+  outline-offset: 2px;
+}
+
+input {
+  font: inherit;
+  color: var(--texto);
+  background: var(--panel-claro);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0.55rem 0.7rem;
+  width: 100%;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.6rem;
+  color: var(--texto-tenue);
+  font-size: 0.9rem;
+}
+
+section {
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.barra-superior {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 0;
+}
+
+.marcas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+}
+
+.marca-valor {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.marca-etiqueta {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--texto-tenue);
+}
+
+.codigo {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: 0.35em;
+  color: var(--ambar);
+}
+
+.rol-atacante {
+  border-left: 6px solid var(--rojo);
+}
+
+.rol-defensor {
+  border-left: 6px solid var(--azul);
+}
+
+.columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 780px) {
+  .columnas {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pilar {
+  margin-bottom: 0.7rem;
+}
+
+.pilar-cabecera {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+
+.pilar-barra {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--panel-claro);
+  overflow: hidden;
+}
+
+.pilar-relleno {
+  height: 100%;
+  background: var(--verde);
+}
+
+.pilar-relleno.tocado {
+  background: var(--ambar);
+}
+
+.pilar-relleno.critico {
+  background: var(--rojo);
+}
+
+.carta {
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0.7rem;
+  margin-bottom: 0.6rem;
+  background: var(--panel-claro);
+}
+
+.carta-cabecera {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.carta-nombre {
+  font-weight: 700;
+}
+
+.carta-descripcion {
+  color: var(--texto-tenue);
+  font-size: 0.9rem;
+  margin: 0.3rem 0 0.6rem;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.etiqueta {
+  font-size: 0.78rem;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  color: var(--texto-tenue);
+}
+
+.etiqueta.coste {
+  color: var(--ambar);
+  border-color: var(--ambar);
+}
+
+.fase {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+
+.fase-paso {
+  flex: 1 1 120px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  color: var(--texto-tenue);
+}
+
+.fase-paso.abierta {
+  border-color: var(--verde);
+  color: var(--texto);
+}
+
+.evento {
+  border-left: 3px solid var(--borde);
+  padding: 0.2rem 0 0.2rem 0.6rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.92rem;
+}
+
+.evento.de-atacante {
+  border-left-color: var(--rojo);
+}
+
+.evento.de-defensor {
+  border-left-color: var(--azul);
+}
+
+.tenue {
+  color: var(--texto-tenue);
+}
+
+.error {
+  color: var(--rojo);
+  font-weight: 600;
+}
