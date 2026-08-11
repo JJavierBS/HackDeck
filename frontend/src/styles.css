@@ -280,3 +280,68 @@ ul {
   color: var(--rojo);
   font-weight: 600;
 }
+
+/* Pantalla de proyeccion: se lee desde el fondo del aula, asi que todo va
+   varias tallas por encima de lo normal. */
+.proyeccion {
+  max-width: none;
+  padding: 2rem 3rem;
+}
+
+.proyeccion-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.codigo-gigante {
+  font-size: 5rem;
+  line-height: 1.1;
+}
+
+.proyeccion .marca-etiqueta {
+  font-size: 1.1rem;
+}
+
+.proyeccion-equipos {
+  display: flex;
+  gap: 2rem;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.proyeccion-equipos > div {
+  flex: 1;
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1rem 1.5rem;
+}
+
+.proyeccion-equipos .marca-valor {
+  font-size: 2.4rem;
+}
+
+.proyeccion-triada .pilar-cabecera {
+  font-size: 1.8rem;
+}
+
+.pilar-barra-gorda {
+  height: 34px;
+  border-radius: 17px;
+}
+
+.proyeccion-aviso {
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 2rem;
+}
+
+.agotado {
+  color: var(--rojo);
+}

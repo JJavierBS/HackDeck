@@ -4,6 +4,7 @@ import { clearSession, loadSession, saveSession, type GameSession } from "./api/
 import { useGameState } from "./api/useGameState";
 import { useLanguage } from "./i18n/LanguageContext";
 import { EntryView } from "./views/EntryView";
+import { ProjectionView } from "./views/ProjectionView";
 import { InstructorView } from "./views/InstructorView";
 import { PlayerView } from "./views/PlayerView";
 
@@ -11,6 +12,13 @@ export function App() {
   const { t, toggle } = useLanguage();
   const client = useMemo(() => createRestClient(), []);
   const [session, setSession] = useState<GameSession | null>(() => loadSession());
+  const projected = useMemo(() => projectionSession(), []);
+
+  // La proyeccion vive en su propia URL para que el instructor pueda
+  // consultar su panel sin que lo lea toda la clase.
+  if (projected !== null) {
+    return <ProjectionView session={projected} />;
+  }
 
   return (
     <>
@@ -41,6 +49,16 @@ export function App() {
       )}
     </>
   );
+}
+
+function projectionSession(): GameSession | null {
+  const params = new URLSearchParams(window.location.search);
+  const gameId = params.get("proyeccion");
+  const token = params.get("token");
+  if (gameId === null || token === null) {
+    return null;
+  }
+  return { gameId, joinCode: "", team: null, token };
 }
 
 /**

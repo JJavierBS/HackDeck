@@ -7,6 +7,7 @@ import { CardPicker } from "../components/CardPicker";
 import { CiaPanel } from "../components/CiaPanel";
 import { EventLog } from "../components/EventLog";
 import { GameHeader } from "../components/GameHeader";
+import { RoundTimer } from "../components/RoundTimer";
 import { KillChainPanel } from "../components/KillChainPanel";
 import { QueuePanel } from "../components/QueuePanel";
 import { useLanguage } from "../i18n/LanguageContext";
@@ -45,6 +46,33 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
   return (
     <main className={attacking ? "rol-atacante" : "rol-defensor"}>
       <GameHeader title={attacking ? t("role.attacker") : t("role.defender")} state={state} />
+      {state.phase === "IN_PROGRESS" && (
+        <section>
+          <div className="barra-superior">
+            <RoundTimer deadlineAt={state.roundDeadlineAt} />
+            <button
+              disabled={pending || state.readyTeams.includes(state.yourTeam ?? "")}
+              onClick={() => {
+                setPending(true);
+                client
+                  .markReady(session)
+                  .then(onChange)
+                  .catch(() => {})
+                  .finally(() => setPending(false));
+              }}
+            >
+              {t("ready.button")}
+            </button>
+          </div>
+          <p className="tenue">
+            {state.readyTeams.includes(state.yourTeam ?? "")
+              ? state.readyTeams.length > 1
+                ? t("ready.done")
+                : `${t("ready.done")} · ${t("ready.waiting")}`
+              : t("queue.empty")}
+          </p>
+        </section>
+      )}
       {state.result !== null && <MatchScoreboard state={state} />}
       {error !== null && <p className="error">{error}</p>}
 

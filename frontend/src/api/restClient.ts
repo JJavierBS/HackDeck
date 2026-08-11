@@ -115,6 +115,12 @@ export interface GameStateDto {
   yourSide: "ATTACKER" | "DEFENDER" | null;
   yourBudget: number | null;
   budgets: Record<string, number> | null;
+  attackingTeam: "A" | "B" | null;
+  roundDeadlineAt: string | null;
+  autoResolve: boolean;
+  readyTeams: string[];
+  /** Solo llega al instructor: su panel ya no es lo que se proyecta. */
+  queuedBySide: Record<string, QueuedActionDto[]> | null;
   yourKillChain: string[];
   yourActiveCards: ActiveCardDto[];
   yourQueuedActions: QueuedActionDto[];
@@ -144,6 +150,10 @@ export interface RestClient {
   getCatalog(session: GameSession): Promise<CardDto[]>;
   launchTwist(session: GameSession, cardId: string): Promise<void>;
   getHistory(session: GameSession): Promise<MatchHistoryDto>;
+  markReady(session: GameSession): Promise<void>;
+  setAutoResolve(session: GameSession, enabled: boolean): Promise<void>;
+  closeHalf(session: GameSession): Promise<void>;
+  closeMatch(session: GameSession): Promise<void>;
 }
 
 /**
@@ -182,6 +192,16 @@ export function createRestClient(): RestClient {
 
     getHistory: (session) =>
       request<MatchHistoryDto>("GET", `/api/v1/games/${session.gameId}/history`, { session }),
+
+    markReady: (session) =>
+      request<void>("POST", `/api/v1/games/${session.gameId}/rounds/ready`, { session }),
+
+    setAutoResolve: (session, enabled) =>
+      request<void>("POST", `/api/v1/games/${session.gameId}/auto-resolve/${enabled}`, { session }),
+
+    closeHalf: (session) => request<void>("POST", `/api/v1/games/${session.gameId}/half/close`, { session }),
+
+    closeMatch: (session) => request<void>("POST", `/api/v1/games/${session.gameId}/close`, { session }),
   };
 }
 

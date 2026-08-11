@@ -5,6 +5,7 @@ import { useCatalog } from "../api/useCatalog";
 import { CiaPanel } from "../components/CiaPanel";
 import { EventLog } from "../components/EventLog";
 import { ReplayPanel } from "../components/ReplayPanel";
+import { RoundControl } from "../components/RoundControl";
 import { useLanguage } from "../i18n/LanguageContext";
 import { MatchScoreboard } from "./MatchScoreboard";
 
@@ -87,14 +88,19 @@ export function InstructorView({ client, session, state, onChange }: InstructorV
                 {t("lobby.start")}
               </button>
               <button
-                disabled={state.phase !== "IN_PROGRESS"}
-                onClick={() => run(client.resolveRound(session))}
+                onClick={() =>
+                  window.open(`/?proyeccion=${session.gameId}&token=${encodeURIComponent(session.token)}`, "_blank")
+                }
               >
-                {t("lobby.resolve")}
+                {t("projection.open")}
               </button>
             </div>
             {teams.length < 2 && <p className="tenue">{t("lobby.needTeams")}</p>}
           </section>
+
+          {state.phase === "IN_PROGRESS" && (
+            <RoundControl client={client} session={session} state={state} cards={cards} run={run} />
+          )}
 
           {state.phase === "IN_PROGRESS" && twists.length > 0 && (
             <section>
