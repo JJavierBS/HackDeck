@@ -15,6 +15,7 @@ import com.cyberrange.domain.model.CiaPillar;
 import com.cyberrange.domain.model.CiaState;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameEvent;
+import com.cyberrange.domain.model.GameEventType;
 import com.cyberrange.domain.model.Half;
 import com.cyberrange.domain.model.MatchOutcome;
 import com.cyberrange.domain.model.MatchResult;
@@ -123,7 +124,7 @@ public final class DefaultRuleEngine implements RuleEngine {
         for (ActionIntent intent : intentsOf(round, Role.DEFENDER)) {
             ActionCard card = cardFor(Role.DEFENDER, intent.cardId());
             state = applyDefence(half, state, card, intent, doubleRepair);
-            events.add(event(round, Role.DEFENDER, describeDefence(card), true));
+            events.add(defenceEvent(half, round, card));
         }
 
         int detection = detectionLevel(half, defences);
@@ -146,9 +147,10 @@ public final class DefaultRuleEngine implements RuleEngine {
                 damage = totalDrop(before, state);
             }
             boolean detected = revealed || detected(card.noise(), detection, silenced);
-            events.add(event(round, Role.ATTACKER, describeAttack(card, success, damage), detected));
+            events.add(attackEvent(half, round, card, describeAttack(card, success, damage), detected));
         }
 
+        events.add(roundResolvedEvent(half, round, state));
         boolean takedown = firstDownedPillar(state) != null;
         return new RoundResolution(state, events, takedown, catchUpBonus(game, half, state, round));
     }
@@ -396,8 +398,42 @@ public final class DefaultRuleEngine implements RuleEngine {
         return drop;
     }
 
-    private static GameEvent event(Round round, Role actor, String description, boolean visibleToDefender) {
-        return new GameEvent(round.number(), actor, description, visibleToDefender, Instant.now());
+    private static GameEvent attackEvent(
+            Half half, Round round, ActionCard card, String description, boolean detected) {
+        return GameEvent.byCard(
+                half.number(), round.number(), GameEventType.ATTACK, Role.ATTACKER, card.id(), description, detected);
+    }
+
+    private static GameEvent defenceEvent(Half half, Round round, ActionCard card) {
+        return GameEvent.byCard(
+                half.number(),
+                round.number(),
+                GameEventType.DEFENCE,
+                Role.DEFENDER,
+                card.id(),
+                describeDefence(card),
+                true);
+    }
+
+    /**
+     * Cierra la ronda con la foto de la triada. Es lo que permite rebobinar
+     * el match despues sin volver a pasar las reglas.
+     */
+    private static GameEvent roundResolvedEvent(Half half, Round round, CiaState state) {
+        Map<CiaPillar, Integer> snapshot = new EnumMap<>(CiaPillar.class);
+        for (CiaPillar pillar : CiaPillar.values()) {
+            snapshot.put(pillar, state.levelOf(pillar));
+        }
+        return new GameEvent(
+                half.number(),
+                round.number(),
+                GameEventType.ROUND_RESOLVED,
+                null,
+                null,
+                "Se resuelve la ronda " + round.number(),
+                true,
+                snapshot,
+                Instant.now());
     }
 
     private static String describeAttack(ActionCard card, boolean success, int damage) {

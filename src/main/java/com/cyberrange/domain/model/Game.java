@@ -22,6 +22,8 @@ public final class Game {
     private final GameSettings settings;
     private final Map<TeamId, Participant> players = new EnumMap<>(TeamId.class);
     private final List<Half> halves = new ArrayList<>();
+    /** Linea temporal completa del match, pensada para el debriefing. */
+    private final List<GameEvent> history = new ArrayList<>();
     private GamePhase phase;
     private MatchResult result;
 
@@ -67,6 +69,22 @@ public final class Game {
 
     public List<Half> halves() {
         return List.copyOf(halves);
+    }
+
+    public List<GameEvent> history() {
+        return List.copyOf(history);
+    }
+
+    public void record(GameEvent event) {
+        history.add(event);
+    }
+
+    private void recordAtCurrentRound(GameEventType type, String description) {
+        record(GameEvent.of(
+                halves.isEmpty() ? 0 : currentHalf().number(),
+                halves.isEmpty() ? 0 : currentHalf().currentRound().number(),
+                type,
+                description));
     }
 
     public Half currentHalf() {
@@ -117,6 +135,7 @@ public final class Game {
             throw new GameNotJoinableException("El equipo " + player.team() + " ya esta ocupado");
         }
         players.put(player.team(), player);
+        recordAtCurrentRound(GameEventType.TEAM_JOINED, player.displayName() + " se une como equipo " + player.team());
     }
 
     /**
@@ -131,6 +150,8 @@ public final class Game {
         }
         phase = GamePhase.IN_PROGRESS;
         halves.add(new Half(Half.FIRST, TeamId.A, settings));
+        recordAtCurrentRound(GameEventType.MATCH_STARTED, "Empieza el match");
+        recordHalfStarted();
     }
 
     public void enqueue(ActionIntent action, int cost) {
@@ -154,7 +175,7 @@ public final class Game {
         requireInProgress();
         Half half = currentHalf();
         half.applyResolvedState(resolvedState);
-        events.forEach(half.currentRound()::recordEvent);
+        events.forEach(this::record);
 
         if (takedown) {
             half.recordTakedown();
@@ -175,10 +196,26 @@ public final class Game {
         Half half = currentHalf();
         half.activate(new ActiveCard(cardId, null, rounds));
         budgetChange.forEach(half::addBudget);
+        record(GameEvent.byCard(
+                half.number(),
+                half.currentRound().number(),
+                GameEventType.TWIST_LAUNCHED,
+                null,
+                cardId,
+                "El instructor lanza un evento",
+                true));
     }
 
     public void recordResult(MatchResult matchResult) {
         this.result = Objects.requireNonNull(matchResult, "matchResult");
+        Half last = currentHalf();
+        record(GameEvent.of(
+                last.number(),
+                last.currentRound().number(),
+                GameEventType.MATCH_FINISHED,
+                matchResult.winner() == null
+                        ? "El match termina en empate"
+                        : "Gana el equipo " + matchResult.winner() + " por " + matchResult.outcome()));
     }
 
     public void requireInProgress() {
@@ -196,9 +233,17 @@ public final class Game {
         half.finish();
         if (half.number() == Half.FIRST) {
             halves.add(new Half(Half.SECOND, half.defendingTeam(), settings));
+            recordHalfStarted();
         } else {
             phase = GamePhase.FINISHED;
         }
+    }
+
+    private void recordHalfStarted() {
+        Half half = currentHalf();
+        recordAtCurrentRound(
+                GameEventType.HALF_STARTED,
+                "Empieza la mitad " + half.number() + ": ataca el equipo " + half.attackingTeam());
     }
 
     private TeamId teamPlaying(Role side) {
