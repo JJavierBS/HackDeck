@@ -25,6 +25,41 @@ export interface MatchResultDto {
 
 export type PillarStatus = "INTACT" | "DAMAGED" | "CRITICAL" | "DOWN";
 
+export interface HistoryEventDto {
+  halfNumber: number;
+  roundNumber: number;
+  type:
+    | "TEAM_JOINED"
+    | "MATCH_STARTED"
+    | "HALF_STARTED"
+    | "ATTACK"
+    | "DEFENCE"
+    | "TWIST_LAUNCHED"
+    | "ROUND_RESOLVED"
+    | "MATCH_FINISHED";
+  actor: "ATTACKER" | "DEFENDER" | null;
+  cardId: string | null;
+  description: string;
+  /** Solo viene en el cierre de ronda. */
+  ciaAfter: Record<string, number>;
+  occurredAt: string;
+}
+
+export interface MatchHistoryDto {
+  gameId: string;
+  joinCode: string;
+  phase: string;
+  settings: {
+    roundsPerHalf: number;
+    roundTimeoutSeconds: number;
+    initialBudget: number;
+    incomePerRound: number;
+  };
+  teams: Record<string, string>;
+  events: HistoryEventDto[];
+  result: MatchResultDto | null;
+}
+
 export interface ActiveCardDto {
   cardId: string;
   side: "ATTACKER" | "DEFENDER" | null;
@@ -108,6 +143,7 @@ export interface RestClient {
   resolveRound(session: GameSession): Promise<GameStateDto>;
   getCatalog(session: GameSession): Promise<CardDto[]>;
   launchTwist(session: GameSession, cardId: string): Promise<void>;
+  getHistory(session: GameSession): Promise<MatchHistoryDto>;
 }
 
 /**
@@ -143,6 +179,9 @@ export function createRestClient(): RestClient {
 
     launchTwist: (session, cardId) =>
       request<void>("POST", `/api/v1/games/${session.gameId}/twists/${cardId}`, { session }),
+
+    getHistory: (session) =>
+      request<MatchHistoryDto>("GET", `/api/v1/games/${session.gameId}/history`, { session }),
   };
 }
 

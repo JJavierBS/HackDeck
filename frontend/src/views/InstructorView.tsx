@@ -4,6 +4,7 @@ import type { GameSession } from "../api/session";
 import { useCatalog } from "../api/useCatalog";
 import { CiaPanel } from "../components/CiaPanel";
 import { EventLog } from "../components/EventLog";
+import { ReplayPanel } from "../components/ReplayPanel";
 import { useLanguage } from "../i18n/LanguageContext";
 import { MatchScoreboard } from "./MatchScoreboard";
 
@@ -112,7 +113,11 @@ export function InstructorView({ client, session, state, onChange }: InstructorV
         </div>
         <div>
           <CiaPanel state={state} />
-          <EventLog events={state.events} />
+          {state.phase === "FINISHED" ? (
+            <ReplayPanel client={client} session={session} cards={cards} />
+          ) : (
+            <EventLog events={state.events} />
+          )}
         </div>
       </div>
     </main>

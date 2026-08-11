@@ -101,6 +101,14 @@ export const DICTIONARY = {
     "result.defended": "defendio",
     "result.points": "puntos de triada",
     "result.takedownRound": "derribo en la ronda",
+
+    "replay.title": "Repaso de la partida",
+    "replay.open": "Repasar la partida",
+    "replay.previous": "Anterior",
+    "replay.next": "Siguiente",
+    "replay.hint": "Aqui se ve todo, tambien lo que cada bando no llego a detectar",
+    "replay.nothing": "En esta ronda no jugo nadie",
+    "replay.cia": "Triada al cerrar",
   },
 
   en: {
@@ -201,6 +209,14 @@ export const DICTIONARY = {
     "result.defended": "defended",
     "result.points": "triad points",
     "result.takedownRound": "takedown on round",
+
+    "replay.title": "Match replay",
+    "replay.open": "Replay the match",
+    "replay.previous": "Previous",
+    "replay.next": "Next",
+    "replay.hint": "Everything shows here, including what each side never detected",
+    "replay.nothing": "Nobody played this round",
+    "replay.cia": "Triad at close",
   },
 } as const;
 

@@ -14,10 +14,14 @@ export function MatchScoreboard({ state }: { state: GameStateDto }) {
     <section>
       <h2>{t("result.title")}</h2>
       <p className="marca-valor">
-        {winnerName === null ? t("result.draw") : `${t("result.winner")} ${winnerName}`}{" "}
-        <span className="tenue">
-          {t("result.by")} {t(`result.${result.outcome}` as TranslationKey)}
-        </span>
+        {winnerName === null ? t("result.draw") : `${t("result.winner")} ${winnerName}`}
+        {/* "Empate por empate" no lo dice nadie. */}
+        {result.outcome !== "DRAW" && (
+          <span className="tenue">
+            {" "}
+            {t("result.by")} {t(`result.${result.outcome}` as TranslationKey)}
+          </span>
+        )}
       </p>
       <ul>
         {Object.entries(result.defendedCia).map(([team, defended]) => (
