@@ -56,12 +56,19 @@ export function CardPicker({ cards, state, onPlay, pending }: CardPickerProps) {
                   </div>
                   <p className="carta-descripcion">{fromServer(card.description)}</p>
                   <div className="etiquetas">
-                    <span className="etiqueta">
-                      {t("card.noise")}: {t(`noise.${card.noise}` as TranslationKey)}
-                    </span>
-                    <span className="etiqueta">
-                      {t("card.success")}: {Math.round(card.successRate * 100)}%
-                    </span>
+                    {/* En las defensas el ruido y el acierto son siempre los
+                        mismos y solo estorban; en los ataques deciden la
+                        jugada, y "ruido nulo" es media carta. */}
+                    {attacking && (
+                      <>
+                        <span className="etiqueta">
+                          {t("card.noise")}: {t(`noise.${card.noise}` as TranslationKey)}
+                        </span>
+                        <span className="etiqueta">
+                          {t("card.success")}: {Math.round(card.successRate * 100)}%
+                        </span>
+                      </>
+                    )}
                     {phaseLocked && <span className="etiqueta">{t("card.phaseLocked")}</span>}
                   </div>
                   <button disabled={!affordable || pending} onClick={() => onPlay(card.id)}>
