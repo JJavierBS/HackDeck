@@ -848,6 +848,29 @@ ul {
   border-bottom-color: var(--texto-fuerte);
 }
 
+.footer-socials {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--texto-tenue) !important;
+  border: 1px solid var(--borde) !important;
+  border-bottom: 1px solid var(--borde) !important;
+  border-radius: var(--radio);
+  padding: 0.45rem;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.footer-social-link:hover {
+  color: var(--acento) !important;
+  border-color: var(--acento) !important;
+}
+
 .placeholder-captura {
   background: var(--neutral-900);
   border: 1px dashed var(--borde-fuerte);
