@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.cyberrange</groupId>
-  <artifactId>cyber-range-backend</artifactId>
+  <groupId>com.cyberdeck</groupId>
+  <artifactId>cyber-deck-backend</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Cyber Range :: Backend</name>
+  <name>CyberDeck :: Backend</name>
   <description>
-    Backend del juego Cyber Range.
+    Backend del juego CyberDeck.
   </description>
 
   <properties>
@@ -70,7 +70,7 @@
   </dependencies>
 
   <build>
-    <finalName>cyber-range-backend</finalName>
+    <finalName>cyber-deck-backend</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -94,7 +94,7 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
         <configuration>
-          <mainClass>com.cyberrange.CyberRangeApplication</mainClass>
+          <mainClass>com.cyberdeck.CyberDeckApplication</mainClass>
         </configuration>
         <executions>
           <execution>

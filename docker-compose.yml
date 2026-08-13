@@ -1,14 +1,14 @@
 services:
-  cyber-range:
+  cyber-deck:
     build: .
     ports:
       - "8080:8080"
     environment:
       # Sin clave fija, los tokens mueren en cada reinicio y echa a los equipos.
-      CYBERRANGE_JWT_SECRET: ${CYBERRANGE_JWT_SECRET:?pon una clave de al menos 32 caracteres}
-      CYBERRANGE_INSTRUCTOR_KEY: ${CYBERRANGE_INSTRUCTOR_KEY:?pon la clave con la que crearas partidas}
+      CYBERDECK_JWT_SECRET: ${CYBERDECK_JWT_SECRET:?pon una clave de al menos 32 caracteres}
+      CYBERDECK_INSTRUCTOR_KEY: ${CYBERDECK_INSTRUCTOR_KEY:?pon la clave con la que crearas partidas}
       # Para usar tu propio catalogo, montalo y apunta aqui.
-      # CYBERRANGE_CATALOG_PATH: /catalogo/cartas.yaml
+      # CYBERDECK_CATALOG_PATH: /catalogo/cartas.yaml
     # volumes:
     #   - ./mi-catalogo.yaml:/catalogo/cartas.yaml:ro
     restart: unless-stopped

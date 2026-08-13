@@ -1,4 +1,4 @@
-# Cyber Range
+# CyberDeck
 
 Videojuego educativo de ciberseguridad por turnos para el aula. Dos equipos se enfrentan:
 el **rojo** ataca una infraestructura y el **azul** la defiende. Gana quien derribe un pilar
@@ -33,9 +33,9 @@ clase, viendo también lo que cada bando no llegó a enterarse.
 Necesitas **JDK 25**, **Maven** y **Node**.
 
 ```bash
-git clone <este-repositorio> && cd Cyber-Range
+git clone <este-repositorio> && cd CyberDeck
 ./build.sh
-java -jar target/cyber-range-backend.jar
+java -jar target/cyber-deck-backend.jar
 ```
 
 Abre <http://localhost:8080>. El jar sirve la API y la interfaz, no hace falta nada más.
@@ -47,7 +47,7 @@ pueden entrar los equipos, y esas mismas direcciones aparecen en su pantalla mie
 espera en el lobby:
 
 ```
-Cyber Range listo. Instructor: http://localhost:8080
+CyberDeck listo. Instructor: http://localhost:8080
 Los equipos entran por: http://192.168.1.50:8080
 ```
 
@@ -70,12 +70,12 @@ cd frontend && npm run dev   # frontend en :5173
 ### En un servidor
 
 ```bash
-export CYBERRANGE_JWT_SECRET='una-clave-larga-de-al-menos-32-caracteres'
-export CYBERRANGE_INSTRUCTOR_KEY='la-clave-para-crear-partidas'
+export CYBERDECK_JWT_SECRET='una-clave-larga-de-al-menos-32-caracteres'
+export CYBERDECK_INSTRUCTOR_KEY='la-clave-para-crear-partidas'
 docker compose up --build
 ```
 
-O sin Docker, con `java -jar cyber-range-backend.jar --spring.profiles.active=cloud`.
+O sin Docker, con `java -jar cyber-deck-backend.jar --spring.profiles.active=cloud`.
 
 > **Importante detrás de un proxy inverso.** Crear partidas está abierto desde la propia
 > máquina y exige clave desde fuera. Si el proxy no reenvía la IP real, aparece como cliente
@@ -89,7 +89,7 @@ con el coste, el ruido, la probabilidad y los counters de cada carta comentados.
 otro:
 
 ```bash
-java -jar target/cyber-range-backend.jar --cyberrange.catalog.path=/ruta/a/mi-catalogo.yaml
+java -jar target/cyber-deck-backend.jar --cyberdeck.catalog.path=/ruta/a/mi-catalogo.yaml
 ```
 
 Si algo está mal escrito el servidor no arranca y dice qué carta y qué campo falla, en vez
@@ -100,11 +100,11 @@ de fallar a mitad de una clase.
 | Variable | Por defecto | Para qué |
 |---|---|---|
 | `PORT` | `8080` | Puerto del servidor. |
-| `CYBERRANGE_JWT_SECRET` | aleatoria | Clave de firma de los tokens. Si no se fija, los tokens mueren al reiniciar. |
-| `CYBERRANGE_INSTRUCTOR_KEY` | vacía | Clave para crear partidas desde fuera de la máquina. |
-| `CYBERRANGE_ALLOW_LOOPBACK` | `true` | Exime de la clave a las peticiones locales. **Ponlo a `false` detrás de un proxy.** |
-| `CYBERRANGE_CORS_ORIGINS` | `http://localhost:5173` | Solo hace falta en desarrollo. |
-| `CYBERRANGE_CATALOG_PATH` | catálogo empaquetado | Catálogo de cartas externo. |
+| `CYBERDECK_JWT_SECRET` | aleatoria | Clave de firma de los tokens. Si no se fija, los tokens mueren al reiniciar. |
+| `CYBERDECK_INSTRUCTOR_KEY` | vacía | Clave para crear partidas desde fuera de la máquina. |
+| `CYBERDECK_ALLOW_LOOPBACK` | `true` | Exime de la clave a las peticiones locales. **Ponlo a `false` detrás de un proxy.** |
+| `CYBERDECK_CORS_ORIGINS` | `http://localhost:5173` | Solo hace falta en desarrollo. |
+| `CYBERDECK_CATALOG_PATH` | catálogo empaquetado | Catálogo de cartas externo. |
 
 Las partidas viven **en memoria**: al reiniciar el servidor se pierden, igual que los
 tokens. Es lo previsto para el uso en el aula.

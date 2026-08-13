@@ -1,4 +1,4 @@
-# Contribuir a Cyber Range
+# Contribuir a CyberDeck
 
 Gracias por querer echar una mano. Este proyecto nace para el plan de apoyo del
 *Cyberbootcamp Málaga*, así que la vara de medir siempre es la misma: **¿esto se entiende en
@@ -46,7 +46,7 @@ explicar no entra.
 Los costes, impactos, probabilidades y counters de las 44 cartas están en
 `src/main/resources/catalog/cartas.yaml`, comentados carta a carta. Para reequilibrar **no
 hace falta tocar código**: edita el YAML y arranca con
-`--cyberrange.catalog.path=/ruta/a/tu-catalogo.yaml`.
+`--cyberdeck.catalog.path=/ruta/a/tu-catalogo.yaml`.
 
 Si propones un cambio de balance, cuenta con qué lo has probado. El juego todavía no ha
 pasado por un aula real, así que los datos de partidas de verdad valen más que cualquier

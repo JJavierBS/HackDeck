@@ -9,7 +9,7 @@ interface LanguageContextValue {
   fromServer: (texts: Record<string, string>) => string;
 }
 
-const STORAGE_KEY = "cyberrange.language";
+const STORAGE_KEY = "cyberdeck.language";
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 

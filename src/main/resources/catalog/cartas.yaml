@@ -1,8 +1,8 @@
-# Catalogo de cartas de Cyber Range.
+# Catalogo de cartas de CyberDeck.
 #
 # Este fichero se puede editar sin recompilar nada: para usar otro, arranca
-# con -Dcyberrange.catalog.path=/ruta/a/mi-catalogo.yaml (o la variable de
-# entorno CYBERRANGE_CATALOG_PATH). Si algo esta mal escrito el backend no
+# con -Dcyberdeck.catalog.path=/ruta/a/mi-catalogo.yaml (o la variable de
+# entorno CYBERDECK_CATALOG_PATH). Si algo esta mal escrito el backend no
 # arranca y dice exactamente que carta y que campo falla.
 #
 # Valores admitidos:
