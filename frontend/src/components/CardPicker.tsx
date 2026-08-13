@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { CardDto, GameStateDto } from "../api/restClient";
 import { useLanguage } from "../i18n/LanguageContext";
 import type { TranslationKey } from "../i18n/dictionary";
@@ -5,7 +6,7 @@ import type { TranslationKey } from "../i18n/dictionary";
 interface CardPickerProps {
   cards: CardDto[];
   state: GameStateDto;
-  onPlay: (cardId: string) => void;
+  onPlay: (cardId: string, parameters: Record<string, string>) => void;
   pending: boolean;
 }
 
@@ -14,6 +15,15 @@ const DEFENCE_GROUPS = ["HYGIENE", "ARCHITECTURE", "DETECTION", "RESPONSE"] as c
 
 export function CardPicker({ cards, state, onPlay, pending }: CardPickerProps) {
   const { t, fromServer } = useLanguage();
+  const [anticipado, setAnticipado] = useState("");
+  // Solo se puede anticipar un ataque que ya se haya detectado alguna vez.
+  const detectados = [
+    ...new Map(
+      state.events
+        .filter((evento) => evento.actor === "ATTACKER" && evento.cardId !== null)
+        .map((evento) => [evento.cardId!, evento.cardName]),
+    ).entries(),
+  ];
   const attacking = state.yourSide === "ATTACKER";
   const budget = state.yourBudget ?? 0;
   const groups: readonly string[] = attacking ? ATTACK_GROUPS : DEFENCE_GROUPS;
@@ -66,9 +76,38 @@ export function CardPicker({ cards, state, onPlay, pending }: CardPickerProps) {
                     )}
                     {phaseLocked && <span className="etiqueta">{t("card.phaseLocked")}</span>}
                   </div>
-                  <button disabled={!affordable || pending} onClick={() => onPlay(card.id)}>
-                    {affordable ? t("card.play") : t("card.noBudget")}
-                  </button>
+                  {card.effects.includes("BLOCKS_CHOSEN_ATTACK") ? (
+                    <>
+                      <label>
+                        {t("block.choose")}
+                        <select
+                          value={anticipado}
+                          onChange={(evento) => setAnticipado(evento.target.value)}
+                          disabled={detectados.length === 0}
+                        >
+                          <option value="">
+                            {detectados.length === 0 ? t("block.none") : "—"}
+                          </option>
+                          {detectados.map(([id, nombre]) => (
+                            <option key={id} value={id}>
+                              {nombre === null ? id : fromServer(nombre)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <p className="tenue">{t("block.hint")}</p>
+                      <button
+                        disabled={!affordable || pending || anticipado === ""}
+                        onClick={() => onPlay(card.id, { blocks: anticipado })}
+                      >
+                        {affordable ? t("card.play") : t("card.noBudget")}
+                      </button>
+                    </>
+                  ) : (
+                    <button disabled={!affordable || pending} onClick={() => onPlay(card.id, {})}>
+                      {affordable ? t("card.play") : t("card.noBudget")}
+                    </button>
+                  )}
                 </article>
               );
             })}

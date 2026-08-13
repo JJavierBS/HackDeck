@@ -32,9 +32,8 @@ export function RoundReveal({ events, cards, mySide, onClose }: RoundRevealProps
     const card = cards.find((candidate) => candidate.id === cardId);
     return card === undefined ? null : fromServer(card.name);
   };
-  // Las cartas del rival no estan en mi catalogo, asi que de una accion suya
-  // que haya detectado me quedo con el texto del evento.
-  const titleOf = (event: GameEventDto) => nameOf(event.cardId) ?? event.description;
+  const titleOf = (event: GameEventDto) =>
+    event.cardName !== null ? fromServer(event.cardName) : (nameOf(event.cardId) ?? event.description);
   const pillar = (key: string) => t(`cia.${key}` as TranslationKey);
 
   return (

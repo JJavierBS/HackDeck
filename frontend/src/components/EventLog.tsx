@@ -2,7 +2,7 @@ import type { GameEventDto } from "../api/restClient";
 import { useLanguage } from "../i18n/LanguageContext";
 
 export function EventLog({ events, hint }: { events: GameEventDto[]; hint?: boolean }) {
-  const { t } = useLanguage();
+  const { t, fromServer } = useLanguage();
   const latest = [...events].reverse();
 
   return (
@@ -22,7 +22,15 @@ export function EventLog({ events, hint }: { events: GameEventDto[]; hint?: bool
                 {t("game.round")} {event.roundNumber} ·{" "}
                 {event.actor === "ATTACKER" ? t("log.attacker") : t("log.defender")}
               </span>
-              <div>{event.description}</div>
+              <div>
+                {event.cardName === null ? event.description : fromServer(event.cardName)}
+                {event.detail !== null && event.detail.success !== null && (
+                  <span className={event.detail.success ? "acierto" : "error"}>
+                    {" "}
+                    {event.detail.success ? t("reveal.success") : t("reveal.failed")}
+                  </span>
+                )}
+              </div>
             </li>
           ))}
         </ul>

@@ -1,12 +1,8 @@
-import type { CardDto, GameStateDto } from "../api/restClient";
+import type { GameStateDto } from "../api/restClient";
 import { useLanguage } from "../i18n/LanguageContext";
 
-export function ActiveLayers({ state, cards }: { state: GameStateDto; cards: CardDto[] }) {
+export function ActiveLayers({ state }: { state: GameStateDto }) {
   const { t, fromServer } = useLanguage();
-  const nameOf = (cardId: string) => {
-    const card = cards.find((candidate) => candidate.id === cardId);
-    return card === undefined ? cardId : fromServer(card.name);
-  };
 
   return (
     <section>
@@ -17,7 +13,7 @@ export function ActiveLayers({ state, cards }: { state: GameStateDto; cards: Car
         <ul>
           {state.yourActiveCards.map((layer, index) => (
             <li key={index}>
-              · {nameOf(layer.cardId)}{" "}
+              · {layer.cardName === null ? layer.cardId : fromServer(layer.cardName)}{" "}
               <span className="tenue">
                 (
                 {layer.roundsRemaining === null

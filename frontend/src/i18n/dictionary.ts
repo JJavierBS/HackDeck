@@ -150,6 +150,10 @@ export const DICTIONARY = {
     "reveal.detectedAttack": "Ataque detectado",
     "connection.title": "Los equipos entran por",
     "connection.hint": "Si no llegan, abre el puerto en el cortafuegos de este equipo",
+    "reveal.rivalDefences": "Defensas del rival que has descubierto",
+    "block.choose": "Que ataque anticipas",
+    "block.hint": "Solo puedes anticipar algo que ya hayas detectado",
+    "block.none": "Todavia no has detectado ningun ataque",
   },
 
   en: {
@@ -299,6 +303,10 @@ export const DICTIONARY = {
     "reveal.detectedAttack": "Attack detected",
     "connection.title": "Teams connect at",
     "connection.hint": "If they cannot reach it, open the port in this machine's firewall",
+    "reveal.rivalDefences": "Rival defences you uncovered",
+    "block.choose": "Which attack do you anticipate",
+    "block.hint": "You can only anticipate something you already detected",
+    "block.none": "You have not detected any attack yet",
   },
 } as const;
 

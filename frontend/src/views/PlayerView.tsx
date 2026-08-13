@@ -3,6 +3,7 @@ import { ApiRequestError, type GameStateDto, type RestClient } from "../api/rest
 import type { GameSession } from "../api/session";
 import { useCatalog } from "../api/useCatalog";
 import { ActiveLayers } from "../components/ActiveLayers";
+import { RivalDefences } from "../components/RivalDefences";
 import { CardPicker } from "../components/CardPicker";
 import { CiaPanel } from "../components/CiaPanel";
 import { EventLog } from "../components/EventLog";
@@ -42,11 +43,11 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
     lastRound.current = state.currentRoundNumber;
   }, [state.currentRoundNumber]);
 
-  const play = (cardId: string) => {
+  const play = (cardId: string, parameters: Record<string, string>) => {
     setError(null);
     setPending(true);
     client
-      .enqueueAction(session, { cardId, parameters: {} })
+      .enqueueAction(session, { cardId, parameters })
       .then(onChange)
       .catch((cause: unknown) => {
         setError(cause instanceof ApiRequestError ? cause.message : t("entry.error.network"));
@@ -105,7 +106,8 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
           <CiaPanel state={state} />
           {attacking && <KillChainPanel unlocked={state.yourKillChain} />}
           <QueuePanel state={state} cards={cards} />
-          <ActiveLayers state={state} cards={cards} />
+          <ActiveLayers state={state} />
+          {attacking && <RivalDefences state={state} />}
           <EventLog events={state.events} hint={!attacking} />
         </div>
       </div>

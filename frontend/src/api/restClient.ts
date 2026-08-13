@@ -60,6 +60,7 @@ export interface MatchHistoryDto {
 
 export interface ActiveCardDto {
   cardId: string;
+  cardName: Record<string, string> | null;
   side: "ATTACKER" | "DEFENDER" | null;
   /** null significa que aguanta hasta el final de la mitad. */
   roundsRemaining: number | null;
@@ -83,6 +84,7 @@ export interface CardDto {
   successRate: number;
   impact: Record<string, number>;
   counters: Record<string, number>;
+  effects: string[];
 }
 
 export interface EventDetailDto {
@@ -103,6 +105,7 @@ export interface GameEventDto {
   type: string;
   actor: "ATTACKER" | "DEFENDER" | null;
   cardId: string | null;
+  cardName: Record<string, string> | null;
   description: string;
   detail: EventDetailDto | null;
   occurredAt: string;
@@ -135,6 +138,8 @@ export interface GameStateDto {
   queuedBySide: Record<string, QueuedActionDto[]> | null;
   yourKillChain: string[];
   yourActiveCards: ActiveCardDto[];
+  /** Defensas del rival, solo si se ha pagado por averiguarlas. */
+  revealedRivalCards: ActiveCardDto[];
   yourQueuedActions: QueuedActionDto[];
   events: GameEventDto[];
   result: MatchResultDto | null;
