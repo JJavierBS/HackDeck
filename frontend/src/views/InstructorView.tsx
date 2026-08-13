@@ -104,15 +104,27 @@ export function InstructorView({ client, session, state, onChange }: InstructorV
               </button>
             </div>
             {teams.length < 2 && <p className="tenue">{t("lobby.needTeams")}</p>}
-            {state.phase === "PREPARATION" && urls.length > 0 && (
+            {state.phase === "PREPARATION" && (
               <>
                 <h2>{t("connection.title")}</h2>
                 <ul>
-                  {urls.map((url) => (
+                  {(
+                    urls.filter(
+                      (url) => !(window.location.protocol === "https:" && url.startsWith("http://")),
+                    ).length > 0
+                      ? urls.filter(
+                          (url) => !(window.location.protocol === "https:" && url.startsWith("http://")),
+                        )
+                      : [window.location.origin]
+                  ).map((url) => (
                     <li key={url}>{url}</li>
                   ))}
                 </ul>
-                <p className="tenue">{t("connection.hint")}</p>
+                {(window.location.hostname === "localhost" ||
+                  window.location.hostname === "127.0.0.1" ||
+                  window.location.hostname.endsWith(".local")) && (
+                  <p className="tenue">{t("connection.hint")}</p>
+                )}
               </>
             )}
           </section>

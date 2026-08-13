@@ -15,14 +15,23 @@ public class StartupBanner {
     private static final Logger log = LoggerFactory.getLogger(StartupBanner.class);
 
     private final int port;
+    private final String publicUrl;
 
-    public StartupBanner(@Value("${server.port:8080}") int port) {
+    public StartupBanner(
+            @Value("${server.port:8080}") int port,
+            @Value("${hackdeck.public-url:}") String publicUrl
+    ) {
         this.port = port;
+        this.publicUrl = publicUrl != null ? publicUrl.trim() : "";
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void mostrarDirecciones() {
         log.info("HackDeck listo. Instructor: http://localhost:{}", port);
+        if (!publicUrl.isEmpty()) {
+            log.info("Los equipos entran por: {}", publicUrl);
+            return;
+        }
         List<String> locales = ConnectionInfoController.localAddresses();
         if (locales.isEmpty()) {
             return;

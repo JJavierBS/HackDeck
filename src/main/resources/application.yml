@@ -17,3 +17,5 @@ hackdeck:
     # cliente local y todo el mundo quedaria exento de la clave.
     allow-loopback-without-key: ${HACKDECK_ALLOW_LOOPBACK:true}
     cors-allowed-origins: ${HACKDECK_CORS_ORIGINS:http://localhost:5173}
+  public-url: ${HACKDECK_PUBLIC_URL:}
+

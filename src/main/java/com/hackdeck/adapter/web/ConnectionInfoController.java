@@ -24,13 +24,21 @@ import java.util.List;
 public class ConnectionInfoController {
 
     private final int port;
+    private final String publicUrl;
 
-    public ConnectionInfoController(@Value("${server.port:8080}") int port) {
+    public ConnectionInfoController(
+            @Value("${server.port:8080}") int port,
+            @Value("${hackdeck.public-url:}") String publicUrl
+    ) {
         this.port = port;
+        this.publicUrl = publicUrl != null ? publicUrl.trim() : "";
     }
 
     @GetMapping
     public ConnectionInfo connectionInfo() {
+        if (!publicUrl.isEmpty()) {
+            return new ConnectionInfo(List.of(publicUrl));
+        }
         return new ConnectionInfo(localAddresses().stream().map(host -> "http://" + host + ":" + port).toList());
     }
 
