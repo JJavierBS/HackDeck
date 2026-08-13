@@ -89,9 +89,12 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
 
   return (
     <main>
-      <h1>
-        Hack<span className="acento-texto">Deck</span>
-      </h1>
+      <div className="logo-titulo-contenedor">
+        <img src="/hackdecklogo.png" alt="HackDeck Logo" className="logo-titulo-img" />
+        <h1 style={{ margin: 0 }}>
+          Hack<span className="acento-texto">Deck</span>
+        </h1>
+      </div>
 
       {loading !== null && (
         <div className="indicador-carga">

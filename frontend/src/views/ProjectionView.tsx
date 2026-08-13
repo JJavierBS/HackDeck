@@ -27,9 +27,12 @@ export function ProjectionView({ session }: { session: GameSession }) {
   return (
     <main className="proyeccion">
       <header className="proyeccion-cabecera">
-        <div>
-          <div className="marca-etiqueta">{t("projection.join")}</div>
-          <div className="codigo codigo-gigante">{state.joinCode}</div>
+        <div className="barra-superior-brand">
+          <img src="/hackdecklogo.png" alt="HackDeck Logo" style={{ width: 44, height: 44, objectFit: "contain" }} />
+          <div>
+            <div className="marca-etiqueta">{t("projection.join")}</div>
+            <div className="codigo codigo-gigante">{state.joinCode}</div>
+          </div>
         </div>
         <div className="marcas">
           <div>

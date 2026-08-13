@@ -6,7 +6,10 @@ export function GameHeader({ title, state }: { title: string; state: GameStateDt
 
   return (
     <header className="barra-superior">
-      <h1>{title}</h1>
+      <div className="barra-superior-brand">
+        <img src="/hackdecklogo.png" alt="HackDeck Logo" className="barra-superior-logo" />
+        <h1 style={{ margin: 0 }}>{title}</h1>
+      </div>
       <div className="marcas">
         <div>
           <div className="marca-etiqueta">{t("game.half")}</div>

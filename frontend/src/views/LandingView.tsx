@@ -14,9 +14,12 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
   return (
     <main>
       <header className="landing-hero">
-        <h1 className="landing-title">
-          Hack<span className="acento-texto">Deck</span>
-        </h1>
+        <div className="landing-hero-head">
+          <img src="/hackdecklogo.png" alt="HackDeck Logo" className="landing-logo-img" />
+          <h1 className="landing-title">
+            Hack<span className="acento-texto">Deck</span>
+          </h1>
+        </div>
         <p className="landing-lede">{t("landing.hero.lede")}</p>
         <div className="grupo-botones">
           <button onClick={onEnterGame}>{t("landing.hero.cta.play")}</button>
@@ -109,15 +112,18 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
       </section>
 
       <footer className="landing-footer">
-        <div>
-          {t("landing.footer.by")}{" "}
-          <a href="https://josejavierbravo.com" target="_blank" rel="noreferrer">
-            {t("landing.footer.portfolio")}
-          </a>{" "}
-          ·{" "}
-          <a href="https://github.com/JJavierBS/HackDeck" target="_blank" rel="noreferrer">
-            {t("landing.footer.repo")}
-          </a>
+        <div className="landing-footer-brand">
+          <img src="/hackdecklogo.png" alt="HackDeck" className="footer-logo-img" />
+          <span>
+            {t("landing.footer.by")}{" "}
+            <a href="https://josejavierbravo.com" target="_blank" rel="noreferrer">
+              {t("landing.footer.portfolio")}
+            </a>{" "}
+            ·{" "}
+            <a href="https://github.com/JJavierBS/HackDeck" target="_blank" rel="noreferrer">
+              {t("landing.footer.repo")}
+            </a>
+          </span>
         </div>
         <div className="footer-socials">
           <a
