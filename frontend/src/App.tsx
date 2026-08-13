@@ -12,7 +12,7 @@ import {
 } from "./api/session";
 import { useGameState } from "./api/useGameState";
 import { useLanguage } from "./i18n/LanguageContext";
-import { EntryView } from "./views/EntryView";
+import { LandingView } from "./views/LandingView";
 import { TournamentView } from "./views/TournamentView";
 import { TournamentPlayerView } from "./views/TournamentPlayerView";
 import { TournamentProjectionView } from "./views/TournamentProjectionView";
@@ -75,7 +75,7 @@ export function App() {
         }
         if (session === null) {
           return (
-            <EntryView
+            <LandingView
               client={client}
               onSession={(nueva) => {
                 saveSession(nueva);
