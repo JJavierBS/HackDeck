@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiRequestError, type GameStateDto, type RestClient } from "../api/restClient";
 import type { GameSession } from "../api/session";
 import { useCatalog } from "../api/useCatalog";
@@ -10,6 +10,7 @@ import { GameHeader } from "../components/GameHeader";
 import { RoundTimer } from "../components/RoundTimer";
 import { KillChainPanel } from "../components/KillChainPanel";
 import { QueuePanel } from "../components/QueuePanel";
+import { RoundReveal } from "../components/RoundReveal";
 import { useLanguage } from "../i18n/LanguageContext";
 import { MatchScoreboard } from "./MatchScoreboard";
 
@@ -30,6 +31,16 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const attacking = state.yourSide === "ATTACKER";
+
+  // Al cerrarse una ronda se abre el resumen de la que acaba de pasar.
+  const [revealedRound, setRevealedRound] = useState<number | null>(null);
+  const lastRound = useRef(state.currentRoundNumber);
+  useEffect(() => {
+    if (state.currentRoundNumber > lastRound.current) {
+      setRevealedRound(lastRound.current);
+    }
+    lastRound.current = state.currentRoundNumber;
+  }, [state.currentRoundNumber]);
 
   const play = (cardId: string) => {
     setError(null);
@@ -74,6 +85,14 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
         </section>
       )}
       {state.result !== null && <MatchScoreboard state={state} />}
+      {revealedRound !== null && state.yourSide !== null && (
+        <RoundReveal
+          events={state.events.filter((event) => event.roundNumber === revealedRound)}
+          cards={cards}
+          mySide={state.yourSide}
+          onClose={() => setRevealedRound(null)}
+        />
+      )}
       {error !== null && <p className="error">{error}</p>}
 
       <div className="columnas">

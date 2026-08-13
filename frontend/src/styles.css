@@ -345,3 +345,18 @@ ul {
 .agotado {
   color: var(--rojo);
 }
+
+/* Resumen de ronda: tiene que robar la atencion, porque es donde el equipo
+   entiende por que le ha ido bien o mal. */
+.resumen {
+  border: 2px solid var(--ambar);
+  background: var(--panel-claro);
+}
+
+.resumen li {
+  padding: 0.2rem 0;
+}
+
+.acierto {
+  color: var(--verde);
+}

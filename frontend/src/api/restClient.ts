@@ -23,8 +23,6 @@ export interface MatchResultDto {
   takedownRound: Record<string, number>;
 }
 
-export type PillarStatus = "INTACT" | "DAMAGED" | "CRITICAL" | "DOWN";
-
 export interface HistoryEventDto {
   halfNumber: number;
   roundNumber: number;
@@ -88,10 +86,27 @@ export interface CardDto {
   counters: Record<string, number>;
 }
 
+/** Lo que le paso a una accion, para contarselo a quien la jugo. */
+export interface EventDetailDto {
+  success: boolean | null;
+  failureReason: "KILL_CHAIN" | "COUNTERED" | "BAD_LUCK" | null;
+  impact: Record<string, number>;
+  mitigated: number;
+  unlocked: string[];
+  boosts: string[];
+  detected: boolean | null;
+  /** Llega vacio al atacante: las defensas del rival se averiguan con recon. */
+  counteredBy: string | null;
+}
+
 export interface GameEventDto {
+  halfNumber: number;
   roundNumber: number;
-  actor: "ATTACKER" | "DEFENDER";
+  type: string;
+  actor: "ATTACKER" | "DEFENDER" | null;
+  cardId: string | null;
   description: string;
+  detail: EventDetailDto | null;
   occurredAt: string;
 }
 
@@ -105,7 +120,6 @@ export interface GameStateDto {
   joinCode: string;
   phase: "PREPARATION" | "IN_PROGRESS" | "FINISHED";
   ciaLevels: Record<string, number> | null;
-  ciaStatus: Record<string, PillarStatus> | null;
   halfNumber: number | null;
   currentRoundNumber: number;
   roundsPerHalf: number;
