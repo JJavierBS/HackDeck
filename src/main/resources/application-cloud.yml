@@ -1,0 +1,13 @@
+# Perfil para un servidor publico detras de un proxy inverso.
+# Arrancalo con: java -jar cyber-range-backend.jar --spring.profiles.active=cloud
+
+server:
+  # Sin esto, el proxy aparece como cliente y la exencion de clave por
+  # loopback dejaria crear partidas a cualquiera.
+  forward-headers-strategy: framework
+
+cyberrange:
+  security:
+    allow-loopback-without-key: false
+    jwt-secret: ${CYBERRANGE_JWT_SECRET}
+    instructor-key: ${CYBERRANGE_INSTRUCTOR_KEY}
