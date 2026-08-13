@@ -7,6 +7,8 @@ import com.cyberrange.domain.model.ParticipantKind;
 import com.cyberrange.domain.model.ParticipantSession;
 import com.cyberrange.domain.model.PlayerId;
 import com.cyberrange.domain.model.TeamId;
+import com.cyberrange.domain.model.TournamentId;
+import com.cyberrange.domain.model.TournamentSession;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
@@ -29,6 +31,7 @@ public final class JwtAccessTokenAdapter implements AccessTokenPort {
 
     private static final String ALGORITHM = "HS256";
     private static final String CLAIM_GAME_ID = "gid";
+    private static final String CLAIM_TOURNAMENT_ID = "tid";
     private static final String CLAIM_KIND = "kind";
     private static final String CLAIM_TEAM = "team";
     private static final String CLAIM_NAME = "name";
@@ -58,7 +61,36 @@ public final class JwtAccessTokenAdapter implements AccessTokenPort {
     }
 
     @Override
+    public String issueTournament(TournamentSession session) {
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .subject(session.teamId().toString())
+                .claim(CLAIM_TOURNAMENT_ID, session.tournamentId().toString())
+                .claim(CLAIM_NAME, session.displayName())
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plus(properties.tokenTtl())))
+                .signWith(signingKey)
+                .compact();
+    }
+
+    @Override
+    public Optional<TournamentSession> verifyTournament(String token) {
+        return claimsOf(token)
+                .filter(claims -> claims.get(CLAIM_TOURNAMENT_ID, String.class) != null)
+                .map(claims -> new TournamentSession(
+                        TournamentId.of(claims.get(CLAIM_TOURNAMENT_ID, String.class)),
+                        PlayerId.of(claims.getSubject()),
+                        claims.get(CLAIM_NAME, String.class)));
+    }
+
+    @Override
     public Optional<ParticipantSession> verify(String token) {
+        return claimsOf(token)
+                .filter(claims -> claims.get(CLAIM_GAME_ID, String.class) != null)
+                .map(JwtAccessTokenAdapter::toSession);
+    }
+
+    private Optional<Claims> claimsOf(String token) {
         if (token == null || token.isBlank()) {
             return Optional.empty();
         }
@@ -70,13 +102,13 @@ public final class JwtAccessTokenAdapter implements AccessTokenPort {
             if (!ALGORITHM.equals(jws.getHeader().getAlgorithm())) {
                 return Optional.empty();
             }
-            return Optional.of(toSession(jws.getPayload()));
+            return Optional.of(jws.getPayload());
         } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
         }
     }
 
-    private ParticipantSession toSession(Claims claims) {
+    private static ParticipantSession toSession(Claims claims) {
         String team = claims.get(CLAIM_TEAM, String.class);
         Participant participant = new Participant(
                 PlayerId.of(claims.getSubject()),

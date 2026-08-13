@@ -12,18 +12,22 @@ import java.util.List;
 public class WebMvcSecurityConfig implements WebMvcConfigurer {
 
     private final ParticipantSessionArgumentResolver participantSessionArgumentResolver;
+    private final TournamentSessionArgumentResolver tournamentSessionArgumentResolver;
     private final SecurityProperties properties;
 
     public WebMvcSecurityConfig(
             ParticipantSessionArgumentResolver participantSessionArgumentResolver,
+            TournamentSessionArgumentResolver tournamentSessionArgumentResolver,
             SecurityProperties properties) {
         this.participantSessionArgumentResolver = participantSessionArgumentResolver;
+        this.tournamentSessionArgumentResolver = tournamentSessionArgumentResolver;
         this.properties = properties;
     }
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(participantSessionArgumentResolver);
+        resolvers.add(tournamentSessionArgumentResolver);
     }
 
     @Override

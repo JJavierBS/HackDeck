@@ -4,6 +4,7 @@ import com.cyberrange.adapter.rest.dto.CreateGameRequest;
 import com.cyberrange.adapter.rest.dto.CreateGameResponse;
 import com.cyberrange.adapter.rest.dto.EnqueueActionRequest;
 import com.cyberrange.adapter.rest.dto.JoinGameRequest;
+import com.cyberrange.adapter.rest.dto.JoinResponse;
 import com.cyberrange.adapter.security.InstructorAccessGuard;
 import com.cyberrange.application.port.in.CreateGameUseCase;
 import com.cyberrange.application.port.in.EnqueueActionCommand;
@@ -16,6 +17,7 @@ import com.cyberrange.application.port.in.MarkReadyUseCase;
 import com.cyberrange.application.port.in.RoundControlUseCase;
 import com.cyberrange.application.port.in.ResolveRoundUseCase;
 import com.cyberrange.application.port.in.StartGameUseCase;
+import com.cyberrange.application.port.in.TournamentUseCase;
 import com.cyberrange.application.service.GameViewProjector;
 import com.cyberrange.application.view.GameView;
 import com.cyberrange.application.view.MatchHistoryView;
@@ -48,6 +50,7 @@ public class GameController {
     private final LaunchTwistUseCase launchTwistUseCase;
     private final MarkReadyUseCase markReadyUseCase;
     private final RoundControlUseCase roundControlUseCase;
+    private final TournamentUseCase tournaments;
     private final GameViewProjector projector;
 
     public GameController(
@@ -61,6 +64,7 @@ public class GameController {
             LaunchTwistUseCase launchTwistUseCase,
             MarkReadyUseCase markReadyUseCase,
             RoundControlUseCase roundControlUseCase,
+            TournamentUseCase tournaments,
             GameViewProjector projector) {
         this.createGameUseCase = createGameUseCase;
         this.joinGameUseCase = joinGameUseCase;
@@ -72,6 +76,7 @@ public class GameController {
         this.launchTwistUseCase = launchTwistUseCase;
         this.markReadyUseCase = markReadyUseCase;
         this.roundControlUseCase = roundControlUseCase;
+        this.tournaments = tournaments;
         this.projector = projector;
     }
 
@@ -87,10 +92,16 @@ public class GameController {
         return CreateGameResponse.from(createGameUseCase.createGame(settings.toSettings()));
     }
 
+    /**
+     * El equipo teclea un codigo y no sabe si es de una partida suelta o de
+     * un torneo: se prueba primero como partida y si no, como torneo.
+     */
     @PostMapping("/join")
-    public CreateGameResponse joinGame(@RequestBody JoinGameRequest request) {
-        GameAccess access = joinGameUseCase.joinGame(JoinCode.of(request.code()), request.displayName());
-        return CreateGameResponse.from(access);
+    public JoinResponse joinGame(@RequestBody JoinGameRequest request) {
+        JoinCode codigo = JoinCode.of(request.code());
+        return tournaments.joinTournament(codigo, request.displayName())
+                .map(JoinResponse::of)
+                .orElseGet(() -> JoinResponse.of(joinGameUseCase.joinGame(codigo, request.displayName())));
     }
 
     @PostMapping("/{gameId}/start")
