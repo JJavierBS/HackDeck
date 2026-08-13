@@ -67,6 +67,7 @@ export interface ActiveCardDto {
 }
 
 export interface QueuedActionDto {
+  intentId: string;
   cardId: string;
   parameters: Record<string, string>;
 }
@@ -205,7 +206,12 @@ export interface RestClient {
   joinGame(code: string, displayName: string): Promise<JoinDto>;
   startGame(session: GameSession): Promise<void>;
   getGameState(session: GameSession): Promise<GameStateDto>;
-  enqueueAction(session: GameSession, action: EnqueueActionDto): Promise<void>;
+  enqueueAction(
+    session: GameSession,
+    action: { cardId: string; parameters: Record<string, string> },
+  ): Promise<void>;
+  dequeueAction(session: GameSession, intentId: string): Promise<void>;
+  reorderQueue(session: GameSession, intentIds: string[]): Promise<void>;
   resolveRound(session: GameSession): Promise<GameStateDto>;
   getCatalog(session: GameSession): Promise<CardDto[]>;
   launchTwist(session: GameSession, cardId: string): Promise<void>;
@@ -257,6 +263,12 @@ export function createRestClient(): RestClient {
 
     enqueueAction: (session, action) =>
       request<void>("POST", `/api/v1/games/${session.gameId}/actions`, { session, body: action }),
+
+    dequeueAction: (session, intentId) =>
+      request<void>("DELETE", `/api/v1/games/${session.gameId}/actions/${intentId}`, { session }),
+
+    reorderQueue: (session, intentIds) =>
+      request<void>("PUT", `/api/v1/games/${session.gameId}/actions/reorder`, { session, body: { intentIds } }),
 
     resolveRound: (session) =>
       request<GameStateDto>("POST", `/api/v1/games/${session.gameId}/rounds/resolve`, { session }),

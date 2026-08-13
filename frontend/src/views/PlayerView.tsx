@@ -56,6 +56,28 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
       .finally(() => setPending(false));
   };
 
+  const isReady = state.readyTeams.includes(state.yourTeam ?? "");
+
+  const handleDequeue = (intentId: string) => {
+    setError(null);
+    setPending(true);
+    client
+      .dequeueAction(session, intentId)
+      .then(onChange)
+      .catch((cause: unknown) => setError(cause))
+      .finally(() => setPending(false));
+  };
+
+  const handleReorder = (intentIds: string[]) => {
+    setError(null);
+    setPending(true);
+    client
+      .reorderQueue(session, intentIds)
+      .then(onChange)
+      .catch((cause: unknown) => setError(cause))
+      .finally(() => setPending(false));
+  };
+
   return (
     <main className={attacking ? "rol-atacante" : "rol-defensor"}>
       <GameHeader title={attacking ? t("role.attacker") : t("role.defender")} state={state} />
@@ -64,7 +86,7 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
           <div className="barra-superior">
             <RoundTimer deadlineAt={state.roundDeadlineAt} />
             <button
-              disabled={pending || state.readyTeams.includes(state.yourTeam ?? "")}
+              disabled={pending || isReady}
               onClick={() => {
                 setPending(true);
                 client
@@ -78,7 +100,7 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
             </button>
           </div>
           <p className="tenue">
-            {state.readyTeams.includes(state.yourTeam ?? "")
+            {isReady
               ? state.readyTeams.length > 1
                 ? t("ready.done")
                 : `${t("ready.done")} · ${t("ready.waiting")}`
@@ -106,7 +128,13 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
         <div>
           <CiaPanel state={state} />
           {attacking && <KillChainPanel unlocked={state.yourKillChain} />}
-          <QueuePanel state={state} cards={cards} />
+          <QueuePanel
+            state={state}
+            cards={cards}
+            disabled={pending || isReady || state.phase !== "IN_PROGRESS"}
+            onRemove={handleDequeue}
+            onReorder={handleReorder}
+          />
           <ActiveLayers state={state} />
           {attacking && <RivalDefences state={state} />}
           <EventLog events={state.events} hint={!attacking} />

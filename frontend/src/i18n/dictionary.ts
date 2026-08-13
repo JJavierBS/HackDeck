@@ -88,6 +88,9 @@ export const DICTIONARY = {
 
     "queue.title": "Tu cola de esta ronda",
     "queue.empty": "Nada encolado. Nadie vera lo que elijas hasta que se resuelva la ronda.",
+    "queue.remove": "Retirar",
+    "queue.moveUp": "Subir",
+    "queue.moveDown": "Bajar",
     "layers.title": "Capas activas",
     "layers.empty": "Ninguna",
     "layers.permanent": "toda la mitad",
@@ -308,6 +311,9 @@ export const DICTIONARY = {
 
     "queue.title": "Your queue this round",
     "queue.empty": "Nothing queued. Nobody sees your choices until the round is resolved.",
+    "queue.remove": "Remove",
+    "queue.moveUp": "Move up",
+    "queue.moveDown": "Move down",
     "layers.title": "Active layers",
     "layers.empty": "None",
     "layers.permanent": "whole half",

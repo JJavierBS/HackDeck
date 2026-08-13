@@ -947,6 +947,84 @@ ul {
   }
 }
 
+/* ----------------------------------------------------------------------
+   Lista de cola interactiva (retirar y reordenar)
+   ---------------------------------------------------------------------- */
+
+.lista-cola {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.item-cola {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--neutral-900);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.item-cola-nombre {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-cola-indice {
+  font-family: var(--mono);
+  color: var(--acento);
+  font-weight: 700;
+}
+
+.item-cola-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.btn-icono-mono {
+  background: transparent;
+  border: 1px solid var(--borde);
+  color: var(--texto-tenue);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radio);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icono-mono:hover:not(:disabled) {
+  border-color: var(--acento);
+  color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 10%, transparent);
+}
+
+.btn-icono-mono:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-peligro-mono:hover:not(:disabled) {
+  border-color: var(--rojo) !important;
+  color: var(--rojo) !important;
+  background: color-mix(in srgb, var(--rojo) 12%, transparent) !important;
+}
+
 @media (max-width: 640px) {
   main {
     padding: 1.25rem 1rem 3rem;

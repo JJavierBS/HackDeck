@@ -167,6 +167,21 @@ class AutorizacionTest {
     }
 
     @Test
+    void retirar_accion_reembolsa_presupuesto() {
+        Game partida = partidaEnCurso();
+        ParticipantSession atacante = sesionDe(partida, TeamId.A);
+
+        servicio.enqueueAction(partida.id(), atacante, new EnqueueActionCommand(ATAQUE, Map.of()));
+        assertThat(partida.currentHalf().budgetOf(TeamId.A)).isEqualTo(90);
+
+        java.util.UUID intentId = partida.currentRound().queuedActions().getFirst().id();
+        servicio.dequeueAction(partida.id(), atacante, intentId);
+
+        assertThat(partida.currentRound().queuedActions()).isEmpty();
+        assertThat(partida.currentHalf().budgetOf(TeamId.A)).isEqualTo(100);
+    }
+
+    @Test
     void con_el_modo_manual_confirmar_los_dos_no_cierra_la_ronda() {
         Game partida = partidaEnCurso();
 

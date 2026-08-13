@@ -141,6 +141,30 @@ public class GameController {
                 new EnqueueActionCommand(request.cardId(), request.parameters()));
     }
 
+    @org.springframework.web.bind.annotation.DeleteMapping("/{gameId}/actions/{intentId}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void dequeueAction(
+            @PathVariable String gameId,
+            @PathVariable String intentId,
+            ParticipantSession session) {
+        enqueueActionUseCase.dequeueAction(
+                GameId.of(gameId),
+                session,
+                java.util.UUID.fromString(intentId));
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/{gameId}/actions/reorder")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void reorderQueue(
+            @PathVariable String gameId,
+            ParticipantSession session,
+            @RequestBody com.hackdeck.adapter.rest.dto.ReorderQueueRequest request) {
+        enqueueActionUseCase.reorderQueue(
+                GameId.of(gameId),
+                session,
+                request.intentIds().stream().map(java.util.UUID::fromString).toList());
+    }
+
     @PostMapping("/{gameId}/twists/{cardId}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void launchTwist(

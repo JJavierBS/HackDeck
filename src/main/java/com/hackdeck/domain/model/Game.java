@@ -157,6 +157,26 @@ public final class Game {
         half.currentRound().enqueue(action);
     }
 
+    public ActionIntent dequeue(java.util.UUID intentId, Role side) {
+        requireInProgress();
+        Round round = currentRound();
+        ActionIntent intent = round.findAction(intentId, side);
+        if (intent == null) {
+            return null;
+        }
+        round.removeAction(intentId, side);
+        return intent;
+    }
+
+    public void refund(TeamId team, int cost) {
+        currentHalf().addBudget(team, cost);
+    }
+
+    public void reorderQueue(Role side, List<java.util.UUID> intentIds) {
+        requireInProgress();
+        currentRound().reorderQueue(side, intentIds);
+    }
+
     /**
      * Aplica lo que decidio el motor de reglas y hace avanzar la maquina de
      * estados: derribar un pilar cierra la mitad en el acto, y agotar las

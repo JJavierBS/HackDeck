@@ -107,6 +107,35 @@ public final class GameApplicationService implements
     }
 
     @Override
+    public void dequeueAction(GameId gameId, ParticipantSession session, UUID intentId) {
+        Game game = requireGame(gameId);
+        Participant participant = requireParticipant(game, session);
+        if (participant.isInstructor()) {
+            throw new AccessDeniedException("El instructor arbitra, no retira acciones");
+        }
+        Role side = game.sideOf(participant.team());
+        ActionIntent intent = game.dequeue(intentId, side);
+        if (intent != null) {
+            ActionCard card = ruleEngine.playableCard(game, side, intent.cardId());
+            int cost = ruleEngine.costOf(game, card);
+            game.refund(participant.team(), cost);
+            gameRepository.save(game);
+        }
+    }
+
+    @Override
+    public void reorderQueue(GameId gameId, ParticipantSession session, java.util.List<UUID> intentIds) {
+        Game game = requireGame(gameId);
+        Participant participant = requireParticipant(game, session);
+        if (participant.isInstructor()) {
+            throw new AccessDeniedException("El instructor arbitra, no reordena acciones");
+        }
+        Role side = game.sideOf(participant.team());
+        game.reorderQueue(side, intentIds);
+        gameRepository.save(game);
+    }
+
+    @Override
     public void launchTwist(GameId gameId, ParticipantSession session, String cardId) {
         Game game = requireGame(gameId);
         requireInstructor(game, session);
