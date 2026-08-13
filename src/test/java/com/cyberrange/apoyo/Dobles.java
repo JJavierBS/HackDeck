@@ -8,6 +8,7 @@ import com.cyberrange.domain.model.GameId;
 import com.cyberrange.domain.model.GamePhase;
 import com.cyberrange.domain.model.JoinCode;
 import com.cyberrange.domain.model.ParticipantSession;
+import com.cyberrange.domain.model.TournamentSession;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,6 +76,16 @@ public final class Dobles {
 
         @Override
         public Optional<ParticipantSession> verify(String token) {
+            return Optional.empty();
+        }
+
+        @Override
+        public String issueTournament(TournamentSession session) {
+            return "token-de-torneo-" + session.teamId();
+        }
+
+        @Override
+        public Optional<TournamentSession> verifyTournament(String token) {
             return Optional.empty();
         }
     }
