@@ -125,6 +125,7 @@ public final class TournamentApplicationService implements TournamentUseCase {
         return TeamPlacement.playing(
                 partida.id().toString(),
                 tokens.issue(new ParticipantSession(partida.id(), participante)),
+                participante.team().name(),
                 ronda);
     }
 

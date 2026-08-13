@@ -7,6 +7,38 @@ export interface GameSession {
   token: string;
 }
 
+/** Identidad de torneo: dura todo el torneo aunque cambie de mesa. */
+export interface TournamentSession {
+  tournamentId: string;
+  joinCode: string;
+  token: string;
+  /** El instructor gobierna el torneo; los equipos solo juegan. */
+  instructor: boolean;
+}
+
+const TOURNAMENT_KEY = "cyberrange.tournament";
+
+export function loadTournament(): TournamentSession | null {
+  const raw = sessionStorage.getItem(TOURNAMENT_KEY);
+  if (!raw) {
+    return null;
+  }
+  try {
+    return JSON.parse(raw) as TournamentSession;
+  } catch {
+    sessionStorage.removeItem(TOURNAMENT_KEY);
+    return null;
+  }
+}
+
+export function saveTournament(session: TournamentSession): void {
+  sessionStorage.setItem(TOURNAMENT_KEY, JSON.stringify(session));
+}
+
+export function clearTournament(): void {
+  sessionStorage.removeItem(TOURNAMENT_KEY);
+}
+
 const STORAGE_KEY = "cyberrange.session";
 
 /**

@@ -145,6 +145,45 @@ export interface GameStateDto {
   result: MatchResultDto | null;
 }
 
+export interface TournamentTableDto {
+  gameId: string | null;
+  instructorToken: string | null;
+  homeName: string;
+  awayName: string | null;
+  phase: string;
+  halfNumber: number | null;
+  roundNumber: number;
+  ciaLevels: Record<string, number>;
+  readyTeams: string[];
+  winnerName: string | null;
+}
+
+export interface TournamentDto {
+  tournamentId: string;
+  joinCode: string;
+  phase: "LOBBY" | "IN_PROGRESS" | "FINISHED";
+  roundNumber: number;
+  roundComplete: boolean;
+  championName: string | null;
+  standings: { teamId: string; displayName: string; status: string; wins: number; defendedCia: number }[];
+  tables: TournamentTableDto[];
+}
+
+export interface TournamentAccessDto {
+  tournamentId: string;
+  joinCode: string;
+  token: string;
+}
+
+/** Donde juega ahora el equipo; el cliente lo consulta y entra sin mas. */
+export interface PlacementDto {
+  status: "WAITING" | "PLAYING" | "ELIMINATED" | "CHAMPION";
+  gameId: string | null;
+  gameToken: string | null;
+  team: "A" | "B" | null;
+  roundNumber: number;
+}
+
 export interface ConnectionInfoDto {
   urls: string[];
 }
@@ -163,7 +202,7 @@ export interface EnqueueActionDto {
 
 export interface RestClient {
   createGame(settings: GameSettingsDto, instructorKey?: string): Promise<GameSession>;
-  joinGame(code: string, displayName: string): Promise<GameSession>;
+  joinGame(code: string, displayName: string): Promise<JoinDto>;
   startGame(session: GameSession): Promise<void>;
   getGameState(session: GameSession): Promise<GameStateDto>;
   enqueueAction(session: GameSession, action: EnqueueActionDto): Promise<void>;
@@ -176,6 +215,21 @@ export interface RestClient {
   closeHalf(session: GameSession): Promise<void>;
   closeMatch(session: GameSession): Promise<void>;
   getConnectionInfo(): Promise<ConnectionInfoDto>;
+  createTournament(settings: GameSettingsDto, instructorKey?: string): Promise<TournamentAccessDto>;
+  getTournament(session: GameSession, tournamentId: string): Promise<TournamentDto>;
+  startTournament(session: GameSession, tournamentId: string): Promise<void>;
+  nextTournamentRound(session: GameSession, tournamentId: string): Promise<void>;
+  getPlacement(tournamentToken: string): Promise<PlacementDto>;
+}
+
+/** Respuesta de unirse: puede ser una partida suelta o un torneo. */
+export interface JoinDto {
+  kind: "GAME" | "TOURNAMENT";
+  gameId: string | null;
+  tournamentId: string | null;
+  joinCode: string;
+  team: "A" | "B" | null;
+  token: string;
 }
 
 /**
@@ -193,7 +247,7 @@ export function createRestClient(): RestClient {
       }),
 
     joinGame: (code, displayName) =>
-      request<GameSession>("POST", "/api/v1/games/join", { body: { code, displayName } }),
+      request<JoinDto>("POST", "/api/v1/games/join", { body: { code, displayName } }),
 
     startGame: (session) =>
       request<void>("POST", `/api/v1/games/${session.gameId}/start`, { session }),
@@ -226,6 +280,26 @@ export function createRestClient(): RestClient {
     closeMatch: (session) => request<void>("POST", `/api/v1/games/${session.gameId}/close`, { session }),
 
     getConnectionInfo: () => request<ConnectionInfoDto>("GET", "/api/v1/connection"),
+
+    createTournament: (settings, instructorKey) =>
+      request<TournamentAccessDto>("POST", "/api/v1/tournaments", {
+        body: settings,
+        headers: instructorKey ? { "X-Instructor-Key": instructorKey } : undefined,
+      }),
+
+    getTournament: (session, tournamentId) =>
+      request<TournamentDto>("GET", `/api/v1/tournaments/${tournamentId}`, { session }),
+
+    startTournament: (session, tournamentId) =>
+      request<void>("POST", `/api/v1/tournaments/${tournamentId}/start`, { session }),
+
+    nextTournamentRound: (session, tournamentId) =>
+      request<void>("POST", `/api/v1/tournaments/${tournamentId}/rounds/next`, { session }),
+
+    getPlacement: (tournamentToken) =>
+      request<PlacementDto>("GET", "/api/v1/tournaments/me", {
+        session: { gameId: "", joinCode: "", team: null, token: tournamentToken },
+      }),
   };
 }
 
