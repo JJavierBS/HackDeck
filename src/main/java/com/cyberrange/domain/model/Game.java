@@ -210,7 +210,8 @@ public final class Game {
                 null,
                 cardId,
                 "El instructor lanza un evento",
-                true));
+                true,
+                null));
     }
 
     public void recordResult(MatchResult matchResult) {

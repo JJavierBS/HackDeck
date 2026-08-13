@@ -13,6 +13,8 @@ import com.cyberrange.domain.model.ActionIntent;
 import com.cyberrange.domain.model.ActiveCard;
 import com.cyberrange.domain.model.CiaPillar;
 import com.cyberrange.domain.model.CiaState;
+import com.cyberrange.domain.model.EventDetail;
+import com.cyberrange.domain.model.FailureReason;
 import com.cyberrange.domain.model.Game;
 import com.cyberrange.domain.model.GameEvent;
 import com.cyberrange.domain.model.GameEventType;
@@ -48,6 +50,13 @@ public final class DefaultRuleEngine implements RuleEngine {
 
     /** Probabilidad de que la deteccion salga al reves de lo esperado. */
     static final double DETECTION_LUCK = 0.15;
+
+    /**
+     * Cuanto hace falta sumar entre el ruido de la accion y la capacidad de
+     * deteccion del defensor para que se vea. Un DDoS se nota aunque no haya
+     * nadie mirando; una exfiltracion sigilosa solo si hay con que mirar.
+     */
+    static final int DETECTION_THRESHOLD = 3;
 
     /** Descuento de las cartas de respuesta cuando hay plan de respuesta. */
     static final double RESPONSE_DISCOUNT = 0.5;
@@ -123,8 +132,9 @@ public final class DefaultRuleEngine implements RuleEngine {
         boolean doubleRepair = anyHasEffect(defences, CardEffect.DOUBLE_REPAIR);
         for (ActionIntent intent : intentsOf(round, Role.DEFENDER)) {
             ActionCard card = cardFor(Role.DEFENDER, intent.cardId());
+            CiaState before = state;
             state = applyDefence(half, state, card, intent, doubleRepair);
-            events.add(defenceEvent(half, round, card));
+            events.add(defenceEvent(half, round, card, difference(before, state)));
         }
 
         int detection = detectionLevel(half, defences);
@@ -136,18 +146,41 @@ public final class DefaultRuleEngine implements RuleEngine {
 
         for (ActionIntent intent : intentsOf(round, Role.ATTACKER)) {
             ActionCard card = cardFor(Role.ATTACKER, intent.cardId());
+            String counteredBy = ignoresCounters ? null : counterAgainst(half, card.id());
+            boolean phaseLocked = card.phase() != null && !half.isUnlocked(card.phase());
             double chance = successChance(half, card, ignoresCounters);
             boolean success = randomizer.chance(chance);
-            int damage = 0;
+
+            Map<CiaPillar, Integer> impact = Map.of();
+            int mitigated = 0;
+            List<KillChainPhase> unlocked = List.of();
             if (success) {
-                card.unlocks().forEach(half::unlock);
+                unlocked = card.unlocks().stream().filter(phase -> !half.isUnlocked(phase)).toList();
+                unlocked.forEach(half::unlock);
                 activateIfLasting(half, card, Role.ATTACKER);
                 CiaState before = state;
                 state = applyAttack(half, state, card, ignoresCounters, doubleImpact);
-                damage = totalDrop(before, state);
+                impact = difference(before, state);
+                mitigated = mitigation(half) * impact.size();
             }
             boolean detected = revealed || detected(card.noise(), detection, silenced);
-            events.add(attackEvent(half, round, card, describeAttack(card, success, damage), detected));
+            events.add(attackEvent(
+                    half,
+                    round,
+                    card,
+                    describeAttack(card, success),
+                    detected,
+                    EventDetail.attack(
+                            success,
+                            success ? null : failureReason(phaseLocked, counteredBy),
+                            impact,
+                            mitigated,
+                            unlocked,
+                            List.copyOf(card.bonus().keySet()),
+                            detected,
+                            // Solo si de verdad lo paro: que exista un counter y
+                            // el ataque entre igual no es haberlo frenado.
+                            success ? null : counteredBy)));
         }
 
         events.add(roundResolvedEvent(half, round, state));
@@ -223,14 +256,17 @@ public final class DefaultRuleEngine implements RuleEngine {
     /**
      * Deteccion mixta: umbral determinista mas un modificador de suerte que
      * deja pasar algo ruidoso de vez en cuando y descubre algo silencioso.
-     * Lo que no hace ruido en absoluto no se detecta nunca: ocurre fuera de
-     * la red del defensor.
+     *
+     * El ruido suma a favor de que se vea, no en contra: cuanto mas escandalosa
+     * es la accion, menos capacidad de deteccion hace falta para pillarla. Lo
+     * que no hace ruido en absoluto no se detecta nunca, porque ocurre fuera
+     * de la red del defensor.
      */
     private boolean detected(NoiseLevel noise, int detection, boolean silenced) {
         if (silenced || noise == NoiseLevel.NONE) {
             return false;
         }
-        boolean expected = detection >= noise.level();
+        boolean expected = noise.level() + detection >= DETECTION_THRESHOLD;
         return randomizer.chance(DETECTION_LUCK) != expected;
     }
 
@@ -390,21 +426,21 @@ public final class DefaultRuleEngine implements RuleEngine {
         return intentsOf(round, side).stream().map(intent -> card(intent.cardId())).toList();
     }
 
-    private static int totalDrop(CiaState before, CiaState after) {
-        int drop = 0;
-        for (CiaPillar pillar : CiaPillar.values()) {
-            drop += before.levelOf(pillar) - after.levelOf(pillar);
-        }
-        return drop;
-    }
-
     private static GameEvent attackEvent(
-            Half half, Round round, ActionCard card, String description, boolean detected) {
+            Half half, Round round, ActionCard card, String description, boolean detected, EventDetail detail) {
         return GameEvent.byCard(
-                half.number(), round.number(), GameEventType.ATTACK, Role.ATTACKER, card.id(), description, detected);
+                half.number(),
+                round.number(),
+                GameEventType.ATTACK,
+                Role.ATTACKER,
+                card.id(),
+                description,
+                detected,
+                detail);
     }
 
-    private static GameEvent defenceEvent(Half half, Round round, ActionCard card) {
+    private static GameEvent defenceEvent(
+            Half half, Round round, ActionCard card, Map<CiaPillar, Integer> repaired) {
         return GameEvent.byCard(
                 half.number(),
                 round.number(),
@@ -412,7 +448,35 @@ public final class DefaultRuleEngine implements RuleEngine {
                 Role.DEFENDER,
                 card.id(),
                 describeDefence(card),
-                true);
+                true,
+                EventDetail.defence(repaired));
+    }
+
+    private static FailureReason failureReason(boolean phaseLocked, String counteredBy) {
+        if (phaseLocked) {
+            return FailureReason.KILL_CHAIN;
+        }
+        return counteredBy == null ? FailureReason.BAD_LUCK : FailureReason.COUNTERED;
+    }
+
+    /** Primera carta activa del defensor que contrarresta a esta. */
+    private String counterAgainst(Half half, String cardId) {
+        return half.activeCardsOf(Role.DEFENDER).stream()
+                .filter(active -> card(active.cardId()).counters().containsKey(cardId))
+                .map(ActiveCard::cardId)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static Map<CiaPillar, Integer> difference(CiaState before, CiaState after) {
+        Map<CiaPillar, Integer> change = new EnumMap<>(CiaPillar.class);
+        for (CiaPillar pillar : CiaPillar.values()) {
+            int delta = after.levelOf(pillar) - before.levelOf(pillar);
+            if (delta != 0) {
+                change.put(pillar, delta);
+            }
+        }
+        return change;
     }
 
     /**
@@ -433,15 +497,12 @@ public final class DefaultRuleEngine implements RuleEngine {
                 "Se resuelve la ronda " + round.number(),
                 true,
                 snapshot,
+                null,
                 Instant.now());
     }
 
-    private static String describeAttack(ActionCard card, boolean success, int damage) {
-        String name = card.nameIn("es");
-        if (!success) {
-            return name + " fracasa";
-        }
-        return damage > 0 ? name + " tiene exito (-" + damage + ")" : name + " tiene exito";
+    private static String describeAttack(ActionCard card, boolean success) {
+        return card.nameIn("es") + (success ? " tiene exito" : " fracasa");
     }
 
     private static String describeDefence(ActionCard card) {

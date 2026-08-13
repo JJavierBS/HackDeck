@@ -17,6 +17,8 @@ import java.util.Objects;
  * @param ciaAfter foto de la triada al cerrar la ronda, solo en
  *                 ROUND_RESOLVED. Es lo que permite rebobinar la partida sin
  *                 tener que recalcularla.
+ * @param detail   consecuencias mecanicas de la accion, para poder explicarle
+ *                 a quien la jugo que ha pasado con ella.
  */
 public record GameEvent(
         int halfNumber,
@@ -27,6 +29,7 @@ public record GameEvent(
         String description,
         boolean visibleToDefender,
         Map<CiaPillar, Integer> ciaAfter,
+        EventDetail detail,
         Instant occurredAt) {
 
     public GameEvent {
@@ -38,7 +41,8 @@ public record GameEvent(
 
     public static GameEvent of(
             int halfNumber, int roundNumber, GameEventType type, String description) {
-        return new GameEvent(halfNumber, roundNumber, type, null, null, description, true, Map.of(), Instant.now());
+        return new GameEvent(
+                halfNumber, roundNumber, type, null, null, description, true, Map.of(), null, Instant.now());
     }
 
     public static GameEvent byCard(
@@ -48,9 +52,25 @@ public record GameEvent(
             Role actor,
             String cardId,
             String description,
-            boolean visibleToDefender) {
+            boolean visibleToDefender,
+            EventDetail detail) {
         return new GameEvent(
-                halfNumber, roundNumber, type, actor, cardId, description, visibleToDefender, Map.of(), Instant.now());
+                halfNumber,
+                roundNumber,
+                type,
+                actor,
+                cardId,
+                description,
+                visibleToDefender,
+                Map.of(),
+                detail,
+                Instant.now());
+    }
+
+    public GameEvent withDetail(EventDetail newDetail) {
+        return new GameEvent(
+                halfNumber, roundNumber, type, actor, cardId, description, visibleToDefender, ciaAfter, newDetail,
+                occurredAt);
     }
 
     /**
