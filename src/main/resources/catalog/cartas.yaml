@@ -402,6 +402,7 @@ cards:
       ddos: 0.50
       defacement: 0.50
       escaneo-puertos: 0.50
+      escaneo-vulnerabilidades: 0.50
 
   - id: cifrado-datos
     type: ACTION
