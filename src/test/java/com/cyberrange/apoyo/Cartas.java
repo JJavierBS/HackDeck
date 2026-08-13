@@ -37,6 +37,7 @@ public final class Cartas {
     private Map<String, Double> counters = Map.of();
     private Set<KillChainPhase> unlocks = Set.of();
     private Map<String, Double> bonus = Map.of();
+    private List<String> requires = List.of();
     private Set<CardEffect> effects = Set.of();
 
     public static Cartas ataque(String id) {
@@ -117,6 +118,11 @@ public final class Cartas {
         return this;
     }
 
+    public Cartas necesita(String otraCarta) {
+        this.requires = List.of(otraCarta);
+        return this;
+    }
+
     public Cartas categoria(DefenseCategory valor) {
         this.category = valor;
         return this;
@@ -128,6 +134,6 @@ public final class Cartas {
                 Map.of("es", id, "en", id), Map.of("es", id, "en", id),
                 cost, noise, successRate, duration, rounds,
                 impact, mitigation, detection,
-                counters, List.of(), unlocks, bonus, effects);
+                counters, requires, unlocks, bonus, effects);
     }
 }

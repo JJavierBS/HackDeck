@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class NieblaDeGuerraTest {
 
-    private final GameViewProjector proyector = new GameViewProjector();
+    private final GameViewProjector proyector = new GameViewProjector(Partidas::catalogoVacio);
 
     private Game partidaConAtaque(boolean detectado) {
         Game partida = Partidas.enCurso();
@@ -47,6 +47,21 @@ class NieblaDeGuerraTest {
 
     private GameView vista(Game partida, TeamId equipo) {
         return proyector.project(partida, partida.playerOf(equipo).orElseThrow());
+    }
+
+    @Test
+    void las_defensas_del_rival_solo_se_ven_si_se_ha_pagado_por_averiguarlas() {
+        Game partida = Partidas.enCurso();
+        partida.currentHalf().activate(
+                com.cyberrange.domain.model.ActiveCard.permanent("mfa", Role.DEFENDER));
+
+        assertThat(vista(partida, TeamId.A).revealedRivalCards()).isEmpty();
+
+        partida.currentHalf().revealDefences();
+        assertThat(vista(partida, TeamId.A).revealedRivalCards())
+                .singleElement()
+                .satisfies(carta -> assertThat(carta.cardId()).isEqualTo("mfa"));
+        assertThat(vista(partida, TeamId.B).revealedRivalCards()).isEmpty();
     }
 
     @Test

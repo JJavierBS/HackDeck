@@ -50,7 +50,7 @@ class GameTest {
     void derribar_un_pilar_cierra_la_mitad_en_el_acto_aunque_queden_rondas() {
         Game partida = Partidas.enCurso();
 
-        partida.applyRoundResolution(DERRIBADA, List.of(), true, Map.of());
+        partida.applyRoundResolution(DERRIBADA, List.of(), true, Map.of(), false);
 
         assertThat(partida.currentHalf().number()).isEqualTo(Half.SECOND);
         assertThat(partida.halves().getFirst().takedownRound()).isEqualTo(1);
@@ -97,7 +97,7 @@ class GameTest {
 
     private static void terminarMitad(Game partida) {
         for (int ronda = 0; ronda < Partidas.AJUSTES.roundsPerHalf(); ronda++) {
-            partida.applyRoundResolution(TOCADA, List.of(), false, Map.of());
+            partida.applyRoundResolution(TOCADA, List.of(), false, Map.of(), false);
         }
     }
 }

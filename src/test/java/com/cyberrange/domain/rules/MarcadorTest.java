@@ -38,7 +38,7 @@ class MarcadorTest {
     void si_derriban_los_dos_gana_quien_tardo_menos_rondas() {
         Game partida = Partidas.enCurso();
         derribar(partida);
-        partida.applyRoundResolution(CiaState.intact(), List.of(), false, Map.of());
+        partida.applyRoundResolution(CiaState.intact(), List.of(), false, Map.of(), false);
         derribar(partida);
 
         MatchResult resultado = motor.scoreMatch(partida);
@@ -53,7 +53,7 @@ class MarcadorTest {
         Game partida = Partidas.enCurso();
         partida.applyRoundResolution(
                 CiaState.intact().withImpact(CiaPillar.CONFIDENTIALITY, -100).withImpact(CiaPillar.INTEGRITY, -50),
-                List.of(), true, Map.of());
+                List.of(), true, Map.of(), false);
         derribar(partida);
 
         MatchResult resultado = motor.scoreMatch(partida);
@@ -88,12 +88,12 @@ class MarcadorTest {
     }
 
     private static void derribar(Game partida) {
-        partida.applyRoundResolution(DERRIBADA, List.of(), true, Map.of());
+        partida.applyRoundResolution(DERRIBADA, List.of(), true, Map.of(), false);
     }
 
     private static void agotarMitad(Game partida, CiaState estadoFinal) {
         for (int ronda = 0; ronda < Partidas.AJUSTES.roundsPerHalf(); ronda++) {
-            partida.applyRoundResolution(estadoFinal, List.of(), false, Map.of());
+            partida.applyRoundResolution(estadoFinal, List.of(), false, Map.of(), false);
         }
     }
 }

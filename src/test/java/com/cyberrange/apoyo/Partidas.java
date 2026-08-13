@@ -46,4 +46,8 @@ public final class Partidas {
     public static ActionCatalog catalogo(ActionCard... cartas) {
         return new ActionCatalog(List.of(cartas));
     }
+
+    public static ActionCatalog catalogoVacio() {
+        return new ActionCatalog(List.of());
+    }
 }

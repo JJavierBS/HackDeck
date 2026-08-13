@@ -67,7 +67,7 @@ class CatchUpTest {
         var resultado = new DefaultRuleEngine(Partidas.catalogo(), AzarControlado.siempre())
                 .resolveRound(partida, partida.currentRound());
         partida.applyRoundResolution(
-                resultado.resultingState(), resultado.generatedEvents(), false, resultado.catchUpBonus());
+                resultado.resultingState(), resultado.generatedEvents(), false, resultado.catchUpBonus(), false);
 
         assertThat(partida.currentHalf().budgetOf(TeamId.A))
                 .isGreaterThan(antes + Partidas.AJUSTES.incomePerRound());
