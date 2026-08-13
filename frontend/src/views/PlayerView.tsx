@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { ApiRequestError, type GameStateDto, type RestClient } from "../api/restClient";
+import type { GameStateDto, RestClient } from "../api/restClient";
 import type { GameSession } from "../api/session";
 import { useCatalog } from "../api/useCatalog";
 import { ActiveLayers } from "../components/ActiveLayers";
+import { ErrorAlert } from "../components/ErrorAlert";
 import { RivalDefences } from "../components/RivalDefences";
 import { CardPicker } from "../components/CardPicker";
 import { CiaPanel } from "../components/CiaPanel";
@@ -29,7 +30,7 @@ interface PlayerViewProps {
 export function PlayerView({ client, session, state, onChange }: PlayerViewProps) {
   const { t } = useLanguage();
   const cards = useCatalog(client, session, state.halfNumber);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [pending, setPending] = useState(false);
   const attacking = state.yourSide === "ATTACKER";
 
@@ -50,7 +51,7 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
       .enqueueAction(session, { cardId, parameters })
       .then(onChange)
       .catch((cause: unknown) => {
-        setError(cause instanceof ApiRequestError ? cause.message : t("entry.error.network"));
+        setError(cause);
       })
       .finally(() => setPending(false));
   };
@@ -94,7 +95,7 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
           onClose={() => setRevealedRound(null)}
         />
       )}
-      {error !== null && <p className="error">{error}</p>}
+      <ErrorAlert error={error} />
 
       <div className="columnas">
         <div>

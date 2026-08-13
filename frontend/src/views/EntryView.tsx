@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { ApiRequestError, type GameSettingsDto, type RestClient } from "../api/restClient";
+import type { GameSettingsDto, RestClient } from "../api/restClient";
 import type { GameSession, TournamentSession } from "../api/session";
+import { ErrorAlert } from "../components/ErrorAlert";
 import { NumericStepper } from "../components/NumericStepper";
 import { useLanguage } from "../i18n/LanguageContext";
 
@@ -23,10 +24,9 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
   const [displayName, setDisplayName] = useState("");
   const [instructorKey, setInstructorKey] = useState("");
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
-  const fallo = (cause: unknown) =>
-    setError(cause instanceof ApiRequestError ? cause.message : t("entry.error.network"));
+  const fallo = (cause: unknown) => setError(cause);
 
   /** El equipo no sabe si el codigo es de una partida o de un torneo. */
   const entrar = () => {
@@ -65,6 +65,8 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
   return (
     <main>
       <h1>{t("app.title")}</h1>
+
+      <ErrorAlert error={error} />
 
       <div className="columnas">
         <section>
@@ -168,8 +170,6 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
           </div>
         </section>
       </div>
-
-      {error !== null && <p className="error">{error}</p>}
     </main>
   );
 }

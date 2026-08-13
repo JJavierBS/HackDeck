@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { ApiRequestError, type GameStateDto, type RestClient } from "../api/restClient";
+import type { GameStateDto, RestClient } from "../api/restClient";
 import type { GameSession } from "../api/session";
 import { useCatalog } from "../api/useCatalog";
 import { CiaPanel } from "../components/CiaPanel";
+import { ErrorAlert } from "../components/ErrorAlert";
 import { EventLog } from "../components/EventLog";
 import { ReplayPanel } from "../components/ReplayPanel";
 import { RoundControl } from "../components/RoundControl";
@@ -19,7 +20,7 @@ interface InstructorViewProps {
 export function InstructorView({ client, session, state, onChange }: InstructorViewProps) {
   const { t, fromServer } = useLanguage();
   const cards = useCatalog(client, session, state.halfNumber ?? 0);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [urls, setUrls] = useState<string[]>([]);
   useEffect(() => {
     client
@@ -33,7 +34,7 @@ export function InstructorView({ client, session, state, onChange }: InstructorV
   const run = (action: Promise<unknown>) => {
     setError(null);
     action.then(onChange).catch((cause: unknown) => {
-      setError(cause instanceof ApiRequestError ? cause.message : t("entry.error.network"));
+      setError(cause);
     });
   };
 
@@ -66,7 +67,7 @@ export function InstructorView({ client, session, state, onChange }: InstructorV
       </header>
 
       {state.result !== null && <MatchScoreboard state={state} />}
-      {error !== null && <p className="error">{error}</p>}
+      <ErrorAlert error={error} />
 
       <div className="columnas">
         <div>
