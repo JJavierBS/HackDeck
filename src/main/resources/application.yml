@@ -3,17 +3,17 @@ server:
 
 spring:
   application:
-    name: cyber-deck-backend
+    name: hack-deck-backend
 
-cyberdeck:
+hackdeck:
   security:
     # Vacia en local: se genera una clave aleatoria al arrancar y los tokens
     # caducan al reiniciar. En un servidor propio, fijala por entorno.
-    jwt-secret: ${CYBERDECK_JWT_SECRET:}
+    jwt-secret: ${HACKDECK_JWT_SECRET:}
     token-ttl: 8h
     # Necesaria para crear partidas desde fuera del propio servidor.
-    instructor-key: ${CYBERDECK_INSTRUCTOR_KEY:}
+    instructor-key: ${HACKDECK_INSTRUCTOR_KEY:}
     # Ponlo a false si hay un proxy inverso delante: el proxy se ve como
     # cliente local y todo el mundo quedaria exento de la clave.
-    allow-loopback-without-key: ${CYBERDECK_ALLOW_LOOPBACK:true}
-    cors-allowed-origins: ${CYBERDECK_CORS_ORIGINS:http://localhost:5173}
+    allow-loopback-without-key: ${HACKDECK_ALLOW_LOOPBACK:true}
+    cors-allowed-origins: ${HACKDECK_CORS_ORIGINS:http://localhost:5173}

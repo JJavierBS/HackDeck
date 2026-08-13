@@ -1,14 +1,14 @@
 services:
-  cyber-deck:
+  hack-deck:
     build: .
     ports:
       - "8080:8080"
     environment:
       # Sin clave fija, los tokens mueren en cada reinicio y echa a los equipos.
-      CYBERDECK_JWT_SECRET: ${CYBERDECK_JWT_SECRET:?pon una clave de al menos 32 caracteres}
-      CYBERDECK_INSTRUCTOR_KEY: ${CYBERDECK_INSTRUCTOR_KEY:?pon la clave con la que crearas partidas}
+      HACKDECK_JWT_SECRET: ${HACKDECK_JWT_SECRET:?pon una clave de al menos 32 caracteres}
+      HACKDECK_INSTRUCTOR_KEY: ${HACKDECK_INSTRUCTOR_KEY:?pon la clave con la que crearas partidas}
       # Para usar tu propio catalogo, montalo y apunta aqui.
-      # CYBERDECK_CATALOG_PATH: /catalogo/cartas.yaml
+      # HACKDECK_CATALOG_PATH: /catalogo/cartas.yaml
     # volumes:
     #   - ./mi-catalogo.yaml:/catalogo/cartas.yaml:ro
     restart: unless-stopped

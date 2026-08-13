@@ -16,7 +16,7 @@ RUN mvn -q package -DskipTests
 
 FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
-COPY --from=backend /app/target/cyber-deck-backend.jar app.jar
+COPY --from=backend /app/target/hack-deck-backend.jar app.jar
 EXPOSE 8080
 ENV SPRING_PROFILES_ACTIVE=cloud
 ENTRYPOINT ["java", "-jar", "app.jar"]

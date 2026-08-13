@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.cyberdeck</groupId>
-  <artifactId>cyber-deck-backend</artifactId>
+  <groupId>com.hackdeck</groupId>
+  <artifactId>hack-deck-backend</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>CyberDeck :: Backend</name>
+  <name>HackDeck :: Backend</name>
   <description>
-    Backend del juego CyberDeck.
+    Backend del juego HackDeck.
   </description>
 
   <properties>
@@ -70,7 +70,7 @@
   </dependencies>
 
   <build>
-    <finalName>cyber-deck-backend</finalName>
+    <finalName>hack-deck-backend</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -94,7 +94,7 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring-boot.version}</version>
         <configuration>
-          <mainClass>com.cyberdeck.CyberDeckApplication</mainClass>
+          <mainClass>com.hackdeck.HackDeckApplication</mainClass>
         </configuration>
         <executions>
           <execution>

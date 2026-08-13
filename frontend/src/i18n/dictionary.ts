@@ -4,7 +4,7 @@
  */
 export const DICTIONARY = {
   es: {
-    "app.title": "CyberDeck",
+    "app.title": "HackDeck",
     "app.language": "English",
     "app.leave": "Salir de la partida",
     "app.loading": "Cargando...",
@@ -173,7 +173,7 @@ export const DICTIONARY = {
   },
 
   en: {
-    "app.title": "CyberDeck",
+    "app.title": "HackDeck",
     "app.language": "Espanol",
     "app.leave": "Leave game",
     "app.loading": "Loading...",

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Construye el frontend, lo mete dentro del jar del backend y empaqueta todo
-# en un unico artefacto: target/cyber-deck-backend.jar sirve la API y la UI.
+# en un unico artefacto: target/hack-deck-backend.jar sirve la API y la UI.
 #
 # Se hace con un script y no con un plugin de Maven para no arrastrar una
 # dependencia de build ni descargar un Node aparte.
@@ -26,5 +26,5 @@ echo "==> Backend"
 mvn -q package "$@"
 
 echo
-echo "Listo: target/cyber-deck-backend.jar"
-echo "Arrancalo con: java -jar target/cyber-deck-backend.jar"
+echo "Listo: target/hack-deck-backend.jar"
+echo "Arrancalo con: java -jar target/hack-deck-backend.jar"

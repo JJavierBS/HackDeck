@@ -16,7 +16,7 @@ export interface TournamentSession {
   instructor: boolean;
 }
 
-const TOURNAMENT_KEY = "cyberdeck.tournament";
+const TOURNAMENT_KEY = "hackdeck.tournament";
 
 export function loadTournament(): TournamentSession | null {
   const raw = sessionStorage.getItem(TOURNAMENT_KEY);
@@ -39,7 +39,7 @@ export function clearTournament(): void {
   sessionStorage.removeItem(TOURNAMENT_KEY);
 }
 
-const STORAGE_KEY = "cyberdeck.session";
+const STORAGE_KEY = "hackdeck.session";
 
 /**
  * La sesion sobrevive a un F5 para que recargar no eche al equipo de la

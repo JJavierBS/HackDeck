@@ -1,8 +1,8 @@
-# Catalogo de cartas de CyberDeck.
+# Catalogo de cartas de HackDeck.
 #
 # Este fichero se puede editar sin recompilar nada: para usar otro, arranca
-# con -Dcyberdeck.catalog.path=/ruta/a/mi-catalogo.yaml (o la variable de
-# entorno CYBERDECK_CATALOG_PATH). Si algo esta mal escrito el backend no
+# con -Dhackdeck.catalog.path=/ruta/a/mi-catalogo.yaml (o la variable de
+# entorno HACKDECK_CATALOG_PATH). Si algo esta mal escrito el backend no
 # arranca y dice exactamente que carta y que campo falla.
 #
 # Valores admitidos:

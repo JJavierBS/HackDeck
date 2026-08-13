@@ -1,13 +1,13 @@
 # Perfil para un servidor publico detras de un proxy inverso.
-# Arrancalo con: java -jar cyber-deck-backend.jar --spring.profiles.active=cloud
+# Arrancalo con: java -jar hack-deck-backend.jar --spring.profiles.active=cloud
 
 server:
   # Sin esto, el proxy aparece como cliente y la exencion de clave por
   # loopback dejaria crear partidas a cualquiera.
   forward-headers-strategy: framework
 
-cyberdeck:
+hackdeck:
   security:
     allow-loopback-without-key: false
-    jwt-secret: ${CYBERDECK_JWT_SECRET}
-    instructor-key: ${CYBERDECK_INSTRUCTOR_KEY}
+    jwt-secret: ${HACKDECK_JWT_SECRET}
+    instructor-key: ${HACKDECK_INSTRUCTOR_KEY}
