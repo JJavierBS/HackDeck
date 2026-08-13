@@ -8,8 +8,9 @@ import java.util.Map;
  * su rol no debe conocer viajan a null: no se trata de que el cliente los
  * oculte, es que nunca salen del servidor.
  *
- * @param ciaLevels         valores exactos de la triada; solo instructor y defensor.
- * @param ciaStatus         lectura cualitativa de la triada; lo que ve el atacante.
+ * @param ciaLevels         valores exactos de la triada. El atacante tambien los
+ *                          recibe: ya ve el dano exacto de cada golpe suyo, asi que
+ *                          ocultarselos solo le obligaria a sumar.
  * @param budgets           presupuesto de los dos equipos; solo instructor.
  * @param attackingTeam     equipo que ataca en la mitad en curso.
  * @param roundDeadlineAt   cuando se agota el tiempo de la ronda en curso.
@@ -36,7 +37,6 @@ public record GameView(
         Integer yourBudget,
         Map<String, Integer> budgets,
         Map<String, Integer> ciaLevels,
-        Map<String, String> ciaStatus,
         String attackingTeam,
         String roundDeadlineAt,
         Boolean autoResolve,

@@ -1,6 +1,7 @@
 package com.cyberrange.application.service;
 
 import com.cyberrange.application.view.ActiveCardView;
+import com.cyberrange.application.view.EventDetailView;
 import com.cyberrange.application.view.EventView;
 import com.cyberrange.application.view.GameView;
 import com.cyberrange.application.view.MatchHistoryView;
@@ -11,12 +12,12 @@ import com.cyberrange.domain.model.ActionIntent;
 import com.cyberrange.domain.model.ActiveCard;
 import com.cyberrange.domain.model.CiaPillar;
 import com.cyberrange.domain.model.Game;
+import com.cyberrange.domain.model.EventDetail;
 import com.cyberrange.domain.model.GameEvent;
 import com.cyberrange.domain.model.GamePhase;
 import com.cyberrange.domain.model.Half;
 import com.cyberrange.domain.model.MatchResult;
 import com.cyberrange.domain.model.Participant;
-import com.cyberrange.domain.model.PillarStatus;
 import com.cyberrange.domain.model.Role;
 import com.cyberrange.domain.model.TeamId;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,6 @@ public final class GameViewProjector {
         Half half = started ? game.currentHalf() : null;
         TeamId viewerTeam = viewer.team();
         Role viewerSide = viewerTeam == null || half == null ? null : game.sideOf(viewerTeam);
-        boolean seesExactCia = viewer.isInstructor() || viewerSide == Role.DEFENDER;
 
         return new GameView(
                 game.id().toString(),
@@ -55,8 +55,7 @@ public final class GameViewProjector {
                 viewerSide == null ? null : viewerSide.name(),
                 viewerTeam == null || half == null ? null : half.budgetOf(viewerTeam),
                 viewer.isInstructor() && half != null ? budgetsOf(half) : null,
-                half != null && seesExactCia ? ciaLevelsOf(half) : null,
-                half != null && !seesExactCia ? ciaStatusOf(half) : null,
+                half == null ? null : ciaLevelsOf(half),
                 half == null ? null : half.attackingTeam().name(),
                 half == null ? null : game.roundDeadline().map(Instant::toString).orElse(null),
                 game.isAutoResolve(),
@@ -125,14 +124,6 @@ public final class GameViewProjector {
         return levels;
     }
 
-    private static Map<String, String> ciaStatusOf(Half half) {
-        Map<String, String> status = new LinkedHashMap<>();
-        for (CiaPillar pillar : CiaPillar.values()) {
-            status.put(pillar.name(), PillarStatus.of(half.ciaState().levelOf(pillar)).name());
-        }
-        return status;
-    }
-
     /**
      * Solo las propias: los turnos son simultaneos a ciegas y ver la cola
      * del rival antes de resolver arruinaria la ronda.
@@ -152,8 +143,26 @@ public final class GameViewProjector {
         return game.history().stream()
                 .filter(event -> half == null || event.halfNumber() == half.number())
                 .filter(event -> viewerSide == null || event.isVisibleTo(viewerSide))
-                .map(GameViewProjector::toEventView)
+                .map(event -> toEventView(adjustDetail(event, viewerSide)))
                 .toList();
+    }
+
+    /**
+     * Recorta el detalle segun quien mire. Al atacante se le dice que algo le
+     * freno, pero no que carta era: eso se averigua gastando una accion de
+     * reconocimiento. Y de una accion del rival no se ensena lo que le aporto
+     * a el, que es su progreso, no el nuestro.
+     */
+    private static GameEvent adjustDetail(GameEvent event, Role viewerSide) {
+        if (event.detail() == null || viewerSide == null) {
+            return event;
+        }
+        if (event.actor() != null && event.actor() != viewerSide) {
+            return event.withDetail(event.detail().asRivalAction());
+        }
+        return viewerSide == Role.ATTACKER
+                ? event.withDetail(event.detail().withoutCounterName())
+                : event;
     }
 
     /**
@@ -197,7 +206,29 @@ public final class GameViewProjector {
                 event.cardId(),
                 event.description(),
                 ciaAfter,
+                toDetailView(event.detail()),
                 event.occurredAt().toString());
+    }
+
+    private static EventDetailView toDetailView(EventDetail detail) {
+        if (detail == null) {
+            return null;
+        }
+        Map<String, Integer> impact = new LinkedHashMap<>();
+        for (CiaPillar pillar : CiaPillar.values()) {
+            if (detail.impact().containsKey(pillar)) {
+                impact.put(pillar.name(), detail.impact().get(pillar));
+            }
+        }
+        return new EventDetailView(
+                detail.success(),
+                detail.failureReason() == null ? null : detail.failureReason().name(),
+                impact,
+                detail.mitigated(),
+                detail.unlocked(),
+                detail.boosts(),
+                detail.detected(),
+                detail.counteredBy());
     }
 
     private static MatchResultView resultOf(MatchResult result) {
