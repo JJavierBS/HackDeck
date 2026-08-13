@@ -30,6 +30,10 @@ export function App() {
   const projected = useMemo(() => projectionSession(), []);
   const projectedTournament = useMemo(() => tournamentProjection(), []);
 
+  useEffect(() => {
+    document.title = "HackDeck";
+  }, []);
+
   if (projectedTournament !== null) {
     return <TournamentProjectionView client={client} session={projectedTournament} />;
   }

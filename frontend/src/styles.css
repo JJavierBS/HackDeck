@@ -899,6 +899,19 @@ ul {
   color: var(--acento);
 }
 
+.landing-cta-box {
+  text-align: center;
+  padding: 3rem 2rem;
+  margin-bottom: 3.5rem;
+}
+
+.landing-cta-box h3 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--texto-fuerte);
+  margin: 0 0 0.8rem;
+}
+
 @media (max-width: 640px) {
   main {
     padding: 1.25rem 1rem 3rem;

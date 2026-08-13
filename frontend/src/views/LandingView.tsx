@@ -14,13 +14,7 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
   return (
     <main>
       <header className="landing-hero">
-        <div className="eyebrow-badge">
-          <span className="dot" />
-          {t("landing.hero.eyebrow")}
-        </div>
-        <h1 className="landing-title">
-          {t("landing.hero.title1")} <span className="acento-texto">{t("landing.hero.title2")}</span>
-        </h1>
+        <h1 className="landing-title">{t("landing.hero.title1")}</h1>
         <p className="landing-lede">{t("landing.hero.lede")}</p>
         <div className="grupo-botones">
           <button onClick={onEnterGame}>{t("landing.hero.cta.play")}</button>
@@ -70,7 +64,6 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
       </section>
 
       <section className="seccion-landing">
-        <h2>{t("landing.shots.kicker")}</h2>
         <div className="grid-tres">
           <div className="placeholder-captura">
             <span className="placeholder-captura-icono">🖥️</span>
@@ -105,8 +98,8 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
         </article>
       </section>
 
-      <section className="seccion-landing" style={{ textAlign: "center", padding: "2rem 0" }}>
-        <h2>{t("landing.cta.title")}</h2>
+      <section className="tarjeta-landing landing-cta-box">
+        <h3>{t("landing.cta.title")}</h3>
         <p className="landing-lede" style={{ margin: "0 auto 1.5rem" }}>
           {t("landing.cta.lede")}
         </p>
