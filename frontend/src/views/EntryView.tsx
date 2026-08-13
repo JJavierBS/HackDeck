@@ -25,12 +25,17 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
   const [instructorKey, setInstructorKey] = useState("");
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [error, setError] = useState<unknown>(null);
+  const [loading, setLoading] = useState<"joining" | "creating" | null>(null);
 
-  const fallo = (cause: unknown) => setError(cause);
+  const fallo = (cause: unknown) => {
+    setLoading(null);
+    setError(cause);
+  };
 
   /** El equipo no sabe si el codigo es de una partida o de un torneo. */
   const entrar = () => {
     setError(null);
+    setLoading("joining");
     client
       .joinGame(code, displayName)
       .then((respuesta) => {
@@ -53,9 +58,29 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
       .catch(fallo);
   };
 
-  const run = (action: Promise<GameSession>) => {
+  const crearPartida = () => {
     setError(null);
-    action.then(onSession).catch(fallo);
+    setLoading("creating");
+    client
+      .createGame(settings, instructorKey || undefined)
+      .then(onSession)
+      .catch(fallo);
+  };
+
+  const crearTorneo = () => {
+    setError(null);
+    setLoading("creating");
+    client
+      .createTournament(settings, instructorKey || undefined)
+      .then((respuesta) =>
+        onTournament({
+          tournamentId: respuesta.tournamentId,
+          joinCode: respuesta.joinCode,
+          token: respuesta.token,
+          instructor: true,
+        }),
+      )
+      .catch(fallo);
   };
 
   const updateSetting = (field: keyof GameSettingsDto, val: number) => {
@@ -64,7 +89,16 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
 
   return (
     <main>
-      <h1>{t("app.title")}</h1>
+      <h1>
+        Hack<span className="acento-texto">Deck</span>
+      </h1>
+
+      {loading !== null && (
+        <div className="indicador-carga">
+          <span className="spinner-mono" />
+          {t(loading === "creating" ? "entry.creating" : "entry.joining")}
+        </div>
+      )}
 
       <ErrorAlert error={error} />
 
@@ -78,6 +112,7 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
               onChange={(event) => setCode(event.target.value.toUpperCase())}
               maxLength={6}
               autoCapitalize="characters"
+              disabled={loading !== null}
             />
           </label>
           <label>
@@ -86,10 +121,11 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
               maxLength={24}
+              disabled={loading !== null}
             />
           </label>
           <button
-            disabled={code.length < 6 || displayName.trim().length === 0}
+            disabled={loading !== null || code.length < 6 || displayName.trim().length === 0}
             onClick={entrar}
           >
             {t("entry.team.join")}
@@ -106,6 +142,7 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
                 onChange={(val) => updateSetting("roundsPerHalf", val)}
                 min={1}
                 max={20}
+                disabled={loading !== null}
               />
             </label>
             <label>
@@ -116,6 +153,7 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
                 min={10}
                 max={600}
                 step={5}
+                disabled={loading !== null}
               />
             </label>
             <label>
@@ -125,6 +163,7 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
                 onChange={(val) => updateSetting("initialBudget", val)}
                 min={0}
                 max={100}
+                disabled={loading !== null}
               />
             </label>
             <label>
@@ -134,6 +173,7 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
                 onChange={(val) => updateSetting("incomePerRound", val)}
                 min={0}
                 max={50}
+                disabled={loading !== null}
               />
             </label>
           </div>
@@ -143,28 +183,14 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
               type="password"
               value={instructorKey}
               onChange={(event) => setInstructorKey(event.target.value)}
+              disabled={loading !== null}
             />
           </label>
           <div className="grupo-botones">
-            <button onClick={() => run(client.createGame(settings, instructorKey || undefined))}>
+            <button disabled={loading !== null} onClick={crearPartida}>
               {t("entry.instructor.create")}
             </button>
-            <button
-              onClick={() => {
-                setError(null);
-                client
-                  .createTournament(settings, instructorKey || undefined)
-                  .then((respuesta) =>
-                    onTournament({
-                      tournamentId: respuesta.tournamentId,
-                      joinCode: respuesta.joinCode,
-                      token: respuesta.token,
-                      instructor: true,
-                    }),
-                  )
-                  .catch(fallo);
-              }}
-            >
+            <button disabled={loading !== null} onClick={crearTorneo}>
               {t("tournament.create")}
             </button>
           </div>

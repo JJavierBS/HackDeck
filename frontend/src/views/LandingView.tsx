@@ -14,7 +14,9 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
   return (
     <main>
       <header className="landing-hero">
-        <h1 className="landing-title">{t("landing.hero.title1")}</h1>
+        <h1 className="landing-title">
+          Hack<span className="acento-texto">Deck</span>
+        </h1>
         <p className="landing-lede">{t("landing.hero.lede")}</p>
         <div className="grupo-botones">
           <button onClick={onEnterGame}>{t("landing.hero.cta.play")}</button>
