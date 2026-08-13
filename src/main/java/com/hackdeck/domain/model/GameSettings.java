@@ -22,7 +22,7 @@ public record GameSettings(int roundsPerHalf, Duration roundTimeout, int initial
     // Se declara despues de los limites: el constructor los valida y en Java
     // los estaticos se inicializan en orden de declaracion.
     public static final GameSettings DEFAULTS =
-            new GameSettings(6, Duration.ofSeconds(90), 20, 10);
+            new GameSettings(6, Duration.ofSeconds(180), 20, 10);
 
     public GameSettings {
         if (roundsPerHalf < 1 || roundsPerHalf > MAX_ROUNDS_PER_HALF) {

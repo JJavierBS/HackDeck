@@ -13,7 +13,7 @@ interface EntryViewProps {
 
 const DEFAULT_SETTINGS: Required<GameSettingsDto> = {
   roundsPerHalf: 6,
-  roundTimeoutSeconds: 90,
+  roundTimeoutSeconds: 180,
   initialBudget: 20,
   incomePerRound: 10,
 };

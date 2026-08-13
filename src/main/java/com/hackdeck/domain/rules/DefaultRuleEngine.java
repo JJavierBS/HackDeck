@@ -89,6 +89,9 @@ public final class DefaultRuleEngine implements RuleEngine {
     @Override
     public ActionCard playableCard(Game game, Role side, String cardId) {
         ActionCard card = cardFor(side, cardId);
+        if (side == Role.ATTACKER && card.phase() != null && !game.currentHalf().isUnlocked(card.phase())) {
+            throw new MissingRequirementException("Necesitas haber desbloqueado la fase previa en la Kill Chain");
+        }
         for (String requisito : card.requires()) {
             if (!game.currentHalf().isActive(requisito)) {
                 throw new MissingRequirementException(

@@ -81,6 +81,7 @@ export function CardPicker({ cards, state, onPlay, pending }: CardPickerProps) {
                       <label>
                         {t("block.choose")}
                         <select
+                          className="select-cert"
                           value={anticipado}
                           onChange={(evento) => setAnticipado(evento.target.value)}
                           disabled={detectados.length === 0}
@@ -97,15 +98,26 @@ export function CardPicker({ cards, state, onPlay, pending }: CardPickerProps) {
                       </label>
                       <p className="tenue">{t("block.hint")}</p>
                       <button
-                        disabled={!affordable || pending || anticipado === ""}
+                        disabled={!affordable || pending || phaseLocked || anticipado === ""}
                         onClick={() => onPlay(card.id, { blocks: anticipado })}
                       >
-                        {affordable ? t("card.play") : t("card.noBudget")}
+                        {phaseLocked
+                          ? t("card.phaseLocked")
+                          : affordable
+                            ? t("card.play")
+                            : t("card.noBudget")}
                       </button>
                     </>
                   ) : (
-                    <button disabled={!affordable || pending} onClick={() => onPlay(card.id, {})}>
-                      {affordable ? t("card.play") : t("card.noBudget")}
+                    <button
+                      disabled={!affordable || pending || phaseLocked}
+                      onClick={() => onPlay(card.id, {})}
+                    >
+                      {phaseLocked
+                        ? t("card.phaseLocked")
+                        : affordable
+                          ? t("card.play")
+                          : t("card.noBudget")}
                     </button>
                   )}
                 </article>
