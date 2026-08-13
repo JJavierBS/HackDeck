@@ -11,12 +11,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Registro de conexiones abiertas por partida, con el participante de cada
- * una. Pura contabilidad de conexiones, sin logica de negocio: lo usan el
- * handler (para registrar y desregistrar), el broadcaster (para saber a
- * quien enviar y con que rol) y el heartbeat (para limpiar las muertas).
- */
 @Component
 public final class WebSocketSessionRegistry {
 

@@ -28,10 +28,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Construye la vista de la partida que corresponde a cada participante.
- * Es el unico sitio donde se decide quien ve que, tanto para el REST como
- * para la difusion en tiempo real, para que las dos vias no puedan acabar
- * filtrando cosas distintas.
+ * Unico sitio donde se decide quien ve que, para el REST y para la difusion
+ * por igual: dos caminos distintos acabarian filtrando cosas distintas.
  */
 @Service
 public final class GameViewProjector {
@@ -96,10 +94,6 @@ public final class GameViewProjector {
         return half.unlockedPhases().stream().map(KillChainPhase::name).sorted().toList();
     }
 
-    /**
-     * Cada bando ve sus propias capas; el instructor las ve todas. Saber que
-     * defensas tiene el rival es justo lo que cuesta una carta de recon.
-     */
     private static List<ActiveCardView> activeCardsFor(Half half, Role viewerSide) {
         List<ActiveCard> visible = viewerSide == null ? half.activeCards() : half.activeCardsOf(viewerSide);
         return visible.stream()
@@ -135,10 +129,6 @@ public final class GameViewProjector {
                 .toList();
     }
 
-    /**
-     * Durante la partida solo se ensena la mitad en curso: el historial
-     * completo del match es cosa del debriefing, no del tablero.
-     */
     private static List<EventView> eventsFor(Game game, Half half, Role viewerSide) {
         return game.history().stream()
                 .filter(event -> half == null || event.halfNumber() == half.number())
@@ -148,10 +138,8 @@ public final class GameViewProjector {
     }
 
     /**
-     * Recorta el detalle segun quien mire. Al atacante se le dice que algo le
-     * freno, pero no que carta era: eso se averigua gastando una accion de
-     * reconocimiento. Y de una accion del rival no se ensena lo que le aporto
-     * a el, que es su progreso, no el nuestro.
+     * Al atacante se le dice que algo le freno, pero no que carta era. De una
+     * accion del rival no se ensena lo que a el le aporto.
      */
     private static GameEvent adjustDetail(GameEvent event, Role viewerSide) {
         if (event.detail() == null || viewerSide == null) {
@@ -166,9 +154,8 @@ public final class GameViewProjector {
     }
 
     /**
-     * Historial completo, sin filtrar por rol: al acabar el match ya no hay
-     * niebla de guerra que proteger y la gracia del debriefing es justo ver
-     * lo que el rival hacia sin que te enterases.
+     * Sin filtrar por rol: al acabar ya no hay niebla que proteger y la gracia
+     * del debriefing es ver lo que el rival hacia sin que te enterases.
      */
     public MatchHistoryView history(Game game) {
         return new MatchHistoryView(

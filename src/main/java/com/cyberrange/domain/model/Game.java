@@ -11,10 +11,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * Raiz de agregado: un match completo, sus dos mitades y quien lo juega.
- * El servidor es la unica fuente de verdad del estado del juego.
- */
 public final class Game {
 
     private final GameId id;
@@ -113,10 +109,6 @@ public final class Game {
         return currentHalf().rounds();
     }
 
-    /**
-     * Bando que juega un equipo en la mitad en curso. Cambia al pasar a la
-     * segunda mitad.
-     */
     public Role sideOf(TeamId team) {
         return team == currentHalf().attackingTeam() ? Role.ATTACKER : Role.DEFENDER;
     }
@@ -145,9 +137,6 @@ public final class Game {
         recordAtCurrentRound(GameEventType.TEAM_JOINED, player.displayName() + " se une como equipo " + player.team());
     }
 
-    /**
-     * Cierra el lobby y arranca la primera mitad, con el equipo A atacando.
-     */
     public void startMatch() {
         if (phase != GamePhase.PREPARATION) {
             throw new IllegalStateException("La partida ya ha salido de la fase de preparacion");
@@ -194,10 +183,6 @@ public final class Game {
         }
     }
 
-    /**
-     * Los twists no los compra nadie: los pone el instructor sobre la mitad
-     * en curso y afectan a los dos bandos por igual.
-     */
     public void launchTwist(String cardId, int rounds, Map<TeamId, Integer> budgetChange) {
         requireInProgress();
         Half half = currentHalf();
@@ -244,9 +229,6 @@ public final class Game {
         this.autoResolve = enabled;
     }
 
-    /**
-     * Momento en el que se agota el tiempo de la ronda en curso.
-     */
     public Optional<Instant> roundDeadline() {
         if (phase != GamePhase.IN_PROGRESS) {
             return Optional.empty();
@@ -277,9 +259,6 @@ public final class Game {
         endHalf();
     }
 
-    /**
-     * Cierre de emergencia del match entero, para cuando se acaba la clase.
-     */
     public void closeMatch() {
         requireInProgress();
         currentHalf().finish();

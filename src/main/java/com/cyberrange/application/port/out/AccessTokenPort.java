@@ -4,11 +4,6 @@ import com.cyberrange.domain.model.ParticipantSession;
 
 import java.util.Optional;
 
-/**
- * Puerto de salida: emision y verificacion de las credenciales con las que
- * un participante prueba quien es en cada peticion. La tecnica concreta
- * (hoy un JWT firmado con clave simetrica) es un detalle del adaptador.
- */
 public interface AccessTokenPort {
 
     String issue(ParticipantSession session);

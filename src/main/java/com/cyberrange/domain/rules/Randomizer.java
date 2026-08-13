@@ -6,8 +6,5 @@ package com.cyberrange.domain.rules;
  */
 public interface Randomizer {
 
-    /**
-     * @return true con la probabilidad indicada (0 nunca, 1 siempre).
-     */
     boolean chance(double probability);
 }

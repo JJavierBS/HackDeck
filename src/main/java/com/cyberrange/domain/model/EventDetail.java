@@ -6,16 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Consecuencias mecanicas de una accion, aparte del texto. Sirven para
- * contarle a quien la jugo que ha pasado de verdad con ella y por que.
- *
- * @param impact      cambio por pilar; negativo hace dano y positivo repara.
- * @param mitigated   cuanto absorbieron las defensas del golpe.
- * @param unlocked    fases de kill chain que abre al acertar.
- * @param boosts      cartas propias cuya probabilidad sube a partir de ahora.
- * @param counteredBy carta del rival que lo freno. El proyector se la oculta
- *                    al atacante: averiguar las defensas del rival es lo que
- *                    se paga con una carta de reconocimiento.
+ * Consecuencias mecanicas de una accion, para contarle a quien la jugo que
+ * ha pasado y por que. counteredBy no le llega al atacante: averiguar las
+ * defensas del rival es lo que se paga con una carta de reconocimiento.
  */
 public record EventDetail(
         Boolean success,
@@ -57,7 +50,6 @@ public record EventDetail(
         return new EventDetail(true, null, repaired, 0, List.of(), List.of(), null, null);
     }
 
-    /** Sin la carta que lo freno: es lo que no debe ver el atacante. */
     public EventDetail withoutCounterName() {
         return new EventDetail(success, failureReason, impact, mitigated, unlocked, boosts, detected, null);
     }

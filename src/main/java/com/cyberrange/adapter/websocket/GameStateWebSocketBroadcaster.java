@@ -17,11 +17,6 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Difunde el estado por WebSocket proyectado para cada conexion: el
- * atacante, el defensor y el instructor reciben mensajes distintos de la
- * misma ronda.
- */
 @Component
 public final class GameStateWebSocketBroadcaster implements GameStateBroadcaster {
 
@@ -48,9 +43,6 @@ public final class GameStateWebSocketBroadcaster implements GameStateBroadcaster
         }
     }
 
-    /**
-     * Estado inicial para una conexion recien abierta, sin molestar al resto.
-     */
     public void sendStateTo(ConnectedParticipant connection, Game game) {
         send(connection.socket(), game.id(), projector.project(game, connection.session().participant()));
     }

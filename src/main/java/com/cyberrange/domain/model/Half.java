@@ -13,9 +13,8 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Una mitad del match. Cada mitad arranca limpia (triada a 100 y
- * presupuestos al valor inicial) y con los bandos cambiados respecto a la
- * anterior, para que las dos sean comparables al puntuar.
+ * Arranca limpia (triada a 100 y presupuestos al inicial) y con los bandos
+ * cambiados respecto a la anterior, para que las dos sean comparables.
  */
 public final class Half {
 
@@ -88,10 +87,6 @@ public final class Half {
         return finished;
     }
 
-    /**
-     * Suma de los tres pilares tal como quedaron: lo que defendio el equipo
-     * defensor de esta mitad.
-     */
     public int defendedCia() {
         int total = 0;
         for (CiaPillar pillar : CiaPillar.values()) {
@@ -156,10 +151,6 @@ public final class Half {
         return currentRound().number() >= settings.roundsPerHalf();
     }
 
-    /**
-     * @param catchUpBonus presupuesto extra que el motor concede al bando que
-     *                     va perdiendo, ademas del ingreso normal.
-     */
     public void advanceRound(Map<TeamId, Integer> catchUpBonus) {
         rounds.add(new Round(currentRound().number() + 1));
         // El presupuesto no gastado se acumula: ahorrar para una accion cara

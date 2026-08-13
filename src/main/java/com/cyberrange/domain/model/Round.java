@@ -7,11 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * Una ronda de la partida: las acciones que ambos bandos han encolado. Lo
- * que ocurre al resolverla no se guarda aqui sino en el historial del
- * match, que es una unica linea temporal ordenada.
- */
+/** Lo que ocurre al resolverla no se guarda aqui sino en Game.history. */
 public final class Round {
 
     private final int number;

@@ -8,11 +8,9 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 /**
- * Gestiona el ciclo de vida de las conexiones WebSocket de una partida.
- * Cada cliente se conecta a /ws/games/{gameId}?token=...
- *
- * El canal es de solo difusion: los comandos van por REST. Los mensajes
- * entrantes se ignoran para no abrir una via alternativa sin autorizar.
+ * El canal es de solo difusion: los comandos van por REST y los mensajes
+ * entrantes se ignoran, para no abrir una via que no pase por la
+ * autorizacion.
  */
 public final class GameWebSocketHandler extends TextWebSocketHandler {
 

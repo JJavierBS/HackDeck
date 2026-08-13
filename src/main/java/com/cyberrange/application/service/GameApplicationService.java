@@ -36,11 +36,6 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Orquesta los casos de uso apoyandose en el dominio y en los puertos de
- * salida. No contiene reglas de juego (eso vive en RuleEngine);
- * solo coordina persistencia, motor de reglas, credenciales y difusion.
- */
 @Service
 public final class GameApplicationService implements
         CreateGameUseCase, JoinGameUseCase, StartGameUseCase, LaunchTwistUseCase,

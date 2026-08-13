@@ -5,9 +5,6 @@ export interface RealtimeMessage {
   [key: string]: unknown;
 }
 
-/**
- * Cliente de tiempo real hacia el backend (WebSocket)
- */
 export interface RealtimeClient {
   connect(session: GameSession): void;
   disconnect(): void;

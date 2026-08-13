@@ -22,11 +22,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 
-/**
- * Emite y verifica JWT firmados con HMAC-SHA256. La clave no sale nunca del
- * backend: el cliente solo transporta el token y no puede alterar su equipo
- * ni ascenderse a instructor sin invalidar la firma.
- */
 @Component
 public final class JwtAccessTokenAdapter implements AccessTokenPort {
 

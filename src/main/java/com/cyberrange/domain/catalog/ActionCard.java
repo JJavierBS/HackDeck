@@ -9,22 +9,12 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Definicion de una carta tal y como viene del catalogo externo. Es un dato
- * de configuracion, no estado de partida: describe lo que la carta puede
- * hacer, y es el motor de reglas quien decide que ocurre al jugarla.
+ * Carta tal y como viene del catalogo externo: describe lo que puede hacer,
+ * no lo que ocurre al jugarla.
  *
- * @param side       bando que puede jugarla; vacio en las cartas del instructor.
- * @param phase      fase de kill chain a la que pertenece (solo atacante).
- * @param category   capa defensiva a la que pertenece (solo defensor).
- * @param impact     delta por pilar; negativo hace dano y positivo repara.
- * @param mitigation reduccion generica de dano que aporta mientras dure.
- * @param detection  cuanto sube el nivel de deteccion del defensor.
- * @param counters   carta rival -> multiplicador que le queda tras el contra.
- *                   Contra una carta de IMPACT recorta el dano; contra el
- *                   resto, la probabilidad de acierto.
- * @param requires   cartas propias que deben estar activas para poder jugarla.
- * @param unlocks    fases de kill chain que habilita al tener exito.
- * @param bonus      cuanto sube la probabilidad de acierto de otras cartas.
+ * En impact, negativo hace dano y positivo repara. counters va de carta rival
+ * al multiplicador que le queda tras el contra: contra una carta de IMPACT
+ * recorta el dano y contra el resto la probabilidad de acierto.
  */
 public record ActionCard(
         String id,

@@ -50,10 +50,6 @@ public class ApiExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "peticion_invalida", e.getMessage());
     }
 
-    /**
-     * El esqueleto todavia tiene partes sin implementar (motor de reglas):
-     * mejor un 501 explicito que un 500 que parezca un fallo.
-     */
     @ExceptionHandler(UnsupportedOperationException.class)
     public ResponseEntity<ApiErrorResponse> handleNotImplemented(UnsupportedOperationException e) {
         return build(HttpStatus.NOT_IMPLEMENTED, "no_implementado", e.getMessage());

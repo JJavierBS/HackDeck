@@ -38,33 +38,24 @@ import java.util.Objects;
  */
 public final class DefaultRuleEngine implements RuleEngine {
 
-    /**
-     * Lo que le queda a un ataque lanzado sin haber recorrido la kill chain.
-     * Atacar directamente esta permitido, pero sale caro en probabilidad:
-     * es lo que empuja a pasar por reconocimiento y acceso.
-     */
+    /** Lo que le queda a un ataque lanzado sin recorrer la kill chain. */
     static final double KILL_CHAIN_PENALTY = 0.30;
 
-    /** Dano que siempre atraviesa: defenderse reduce el golpe, no lo anula. */
     static final int MIN_DAMAGE = 3;
 
-    /** Probabilidad de que la deteccion salga al reves de lo esperado. */
     static final double DETECTION_LUCK = 0.15;
 
     /**
-     * Cuanto hace falta sumar entre el ruido de la accion y la capacidad de
-     * deteccion del defensor para que se vea. Un DDoS se nota aunque no haya
-     * nadie mirando; una exfiltracion sigilosa solo si hay con que mirar.
+     * Ruido mas deteccion hacen falta para ver una accion: un DDoS se nota
+     * aunque no haya nadie mirando; lo sigiloso solo si hay con que mirar.
      */
     static final int DETECTION_THRESHOLD = 3;
 
-    /** Descuento de las cartas de respuesta cuando hay plan de respuesta. */
     static final double RESPONSE_DISCOUNT = 0.5;
 
     /** Dano por ronda que se considera "normal" para medir quien va perdiendo. */
     static final int EXPECTED_DAMAGE_PER_ROUND = 25;
 
-    /** Parte del presupuesto ahorrado que se lleva un recorte. */
     static final double BUDGET_CUT_RATE = 0.3;
 
     static final double CATCH_UP_RATE = 0.2;
@@ -236,10 +227,8 @@ public final class DefaultRuleEngine implements RuleEngine {
     }
 
     /**
-     * Los counters recortan la probabilidad de acierto de todo lo que no sea
-     * un impacto. Contra un impacto no evitas que ocurra, asi que lo que
-     * recortan es el dano (ver applyAttack): un backup no impide el
-     * ransomware, lo vuelve soportable.
+     * Contra un impacto el counter recorta el dano y no la probabilidad (ver
+     * applyAttack): un backup no impide el ransomware, lo vuelve soportable.
      */
     private double successChance(Half half, ActionCard card, boolean ignoresCounters) {
         double chance = card.successRate();
@@ -254,13 +243,8 @@ public final class DefaultRuleEngine implements RuleEngine {
     }
 
     /**
-     * Deteccion mixta: umbral determinista mas un modificador de suerte que
-     * deja pasar algo ruidoso de vez en cuando y descubre algo silencioso.
-     *
-     * El ruido suma a favor de que se vea, no en contra: cuanto mas escandalosa
-     * es la accion, menos capacidad de deteccion hace falta para pillarla. Lo
-     * que no hace ruido en absoluto no se detecta nunca, porque ocurre fuera
-     * de la red del defensor.
+     * El ruido suma a favor de que se vea, no en contra. Lo que no hace ruido
+     * en absoluto no se detecta nunca: ocurre fuera de la red del defensor.
      */
     private boolean detected(NoiseLevel noise, int detection, boolean silenced) {
         if (silenced || noise == NoiseLevel.NONE) {
@@ -459,7 +443,6 @@ public final class DefaultRuleEngine implements RuleEngine {
         return counteredBy == null ? FailureReason.BAD_LUCK : FailureReason.COUNTERED;
     }
 
-    /** Primera carta activa del defensor que contrarresta a esta. */
     private String counterAgainst(Half half, String cardId) {
         return half.activeCardsOf(Role.DEFENDER).stream()
                 .filter(active -> card(active.cardId()).counters().containsKey(cardId))

@@ -4,24 +4,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Lo que un participante concreto puede ver de la partida. Los campos que
- * su rol no debe conocer viajan a null: no se trata de que el cliente los
- * oculte, es que nunca salen del servidor.
- *
- * @param ciaLevels         valores exactos de la triada. El atacante tambien los
- *                          recibe: ya ve el dano exacto de cada golpe suyo, asi que
- *                          ocultarselos solo le obligaria a sumar.
- * @param budgets           presupuesto de los dos equipos; solo instructor.
- * @param attackingTeam     equipo que ataca en la mitad en curso.
- * @param roundDeadlineAt   cuando se agota el tiempo de la ronda en curso.
- * @param autoResolve       si el instructor tiene puesto el cierre automatico.
- * @param readyTeams        equipos que ya han declarado su jugada.
- * @param queuedBySide      colas de ambos bandos; solo para el instructor y
- *                          solo en su panel, nunca en la pantalla proyectada.
- * @param yourKillChain     fases que el atacante lleva desbloqueadas.
- * @param yourActiveCards   capas y persistencias propias que siguen en pie.
- * @param yourQueuedActions lo que uno mismo lleva encolado esta ronda.
- * @param events            eventos que ese rol ha llegado a percibir.
+ * Lo que un participante concreto puede ver. Los campos que su rol no debe
+ * conocer viajan a null: no es que el cliente los oculte, es que nunca salen
+ * del servidor.
  */
 public record GameView(
         String gameId,

@@ -2,10 +2,6 @@ package com.cyberrange.domain.model;
 
 import java.util.Objects;
 
-/**
- * Quien participa en una partida. El instructor arbitra y no tiene equipo;
- * un jugador representa a su equipo entero (un dispositivo por equipo).
- */
 public record Participant(
         PlayerId id,
         ParticipantKind kind,

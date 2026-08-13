@@ -12,12 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Devuelve las cartas que ese participante puede jugar. El atacante no
- * recibe el catalogo defensivo ni al reves: saber que cartas existen es
- * distinto de saber cuales ha comprado el rival, pero enviar solo lo suyo
- * evita tentaciones.
- */
+/** Cada bando recibe solo su mitad del catalogo; el instructor, todo. */
 @RestController
 @RequestMapping("/api/v1/catalog")
 public class CatalogController {

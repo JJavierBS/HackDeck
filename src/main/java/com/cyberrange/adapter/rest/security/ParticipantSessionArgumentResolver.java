@@ -10,11 +10,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-/**
- * Convierte la cabecera Authorization en la identidad verificada del
- * peticionario. Cualquier endpoint que declare un ParticipantSession queda
- * cerrado a quien no traiga un token valido.
- */
 @Component
 public final class ParticipantSessionArgumentResolver implements HandlerMethodArgumentResolver {
 

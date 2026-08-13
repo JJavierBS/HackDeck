@@ -5,20 +5,9 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Entrada del historial de la partida. Se guarda pensando en reproducir el
- * match despues con los alumnos, asi que lleva de que ronda y mitad es, que
- * clase de suceso fue y que carta lo provoco, ademas del texto.
- *
- * "actor" es el bando responsable, o vacio si es un suceso de la partida que
- * ven todos. "visibleToDefender" modela que solo las acciones detectadas
- * aparecen para el defensor mientras se juega; el historial completo es del
- * instructor.
- *
- * @param ciaAfter foto de la triada al cerrar la ronda, solo en
- *                 ROUND_RESOLVED. Es lo que permite rebobinar la partida sin
- *                 tener que recalcularla.
- * @param detail   consecuencias mecanicas de la accion, para poder explicarle
- *                 a quien la jugo que ha pasado con ella.
+ * Entrada del historial. ciaAfter solo viene en ROUND_RESOLVED y es lo que
+ * permite rebobinar el match sin recalcularlo; actor vacio significa suceso
+ * de partida, que ven todos.
  */
 public record GameEvent(
         int halfNumber,

@@ -61,11 +61,7 @@ function projectionSession(): GameSession | null {
   return { gameId, joinCode: "", team: null, token };
 }
 
-/**
- * Unico punto que se suscribe al estado: las vistas lo reciben ya resuelto.
- * El bando tampoco lo decide el cliente, viene del servidor, que es quien
- * sabe que mitad se esta jugando.
- */
+/** Unico punto que se suscribe al estado; las vistas lo reciben resuelto. */
 function GameRouter({ client, session }: { client: RestClient; session: GameSession }) {
   const { t } = useLanguage();
   const { state, refresh } = useGameState(client, session);

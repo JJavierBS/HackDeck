@@ -4,10 +4,6 @@ import com.cyberrange.domain.model.GameSettings;
 
 import java.time.Duration;
 
-/**
- * Configuracion que el instructor elige al crear la partida. Todo campo
- * omitido cae al valor por defecto.
- */
 public record CreateGameRequest(
         Integer roundsPerHalf,
         Integer roundTimeoutSeconds,

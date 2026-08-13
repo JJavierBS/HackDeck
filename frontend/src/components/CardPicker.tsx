@@ -12,11 +12,6 @@ interface CardPickerProps {
 const ATTACK_GROUPS = ["RECON", "ACCESS", "ESCALATION", "IMPACT"] as const;
 const DEFENCE_GROUPS = ["HYGIENE", "ARCHITECTURE", "DETECTION", "RESPONSE"] as const;
 
-/**
- * Catalogo agrupado por fase de kill chain o por capa defensiva. Cada carta
- * dice lo que cuesta, cuanto ruido hace y que probabilidad tiene, que es lo
- * que hace falta para decidir sin tener que memorizar nada.
- */
 export function CardPicker({ cards, state, onPlay, pending }: CardPickerProps) {
   const { t, fromServer } = useLanguage();
   const attacking = state.yourSide === "ATTACKER";

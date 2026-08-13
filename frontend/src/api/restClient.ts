@@ -70,7 +70,6 @@ export interface QueuedActionDto {
   parameters: Record<string, string>;
 }
 
-/** Carta del catalogo. El coste, el ruido y el efecto los fija el servidor. */
 export interface CardDto {
   id: string;
   type: "ACTION" | "POWERUP" | "TWIST";
@@ -86,7 +85,6 @@ export interface CardDto {
   counters: Record<string, number>;
 }
 
-/** Lo que le paso a una accion, para contarselo a quien la jugo. */
 export interface EventDetailDto {
   success: boolean | null;
   failureReason: "KILL_CHAIN" | "COUNTERED" | "BAD_LUCK" | null;

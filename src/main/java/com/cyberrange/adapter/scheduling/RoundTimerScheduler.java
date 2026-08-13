@@ -7,12 +7,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * El reloj de la ronda es del servidor, no del navegador: en el aula hay
- * varias mesas y los relojes de sus dispositivos no coinciden.
- *
- * Solo cierra rondas de partidas con el modo automatico puesto; con el
- * modo manual el tiempo se agota y no pasa nada hasta que el instructor
- * decide.
+ * Solo cierra rondas de partidas con el modo automatico puesto; en manual el
+ * tiempo se agota y no pasa nada hasta que el instructor decide.
  */
 @Component
 public class RoundTimerScheduler {

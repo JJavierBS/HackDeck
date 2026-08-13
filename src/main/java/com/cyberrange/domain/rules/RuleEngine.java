@@ -17,18 +17,12 @@ import java.util.Map;
  */
 public interface RuleEngine {
 
-    /**
-     * Carta que ese bando puede jugar con ese id, o excepcion si no existe
-     * o no es suya.
-     */
     ActionCard cardFor(Role side, String cardId);
 
     int costOf(Game game, ActionCard card);
 
-    /** Carta de escenario que el instructor puede lanzar. */
     ActionCard twistFor(String cardId);
 
-    /** Cambio de presupuesto que provoca el twist al lanzarlo, si lo provoca. */
     Map<TeamId, Integer> twistBudgetChange(Game game, ActionCard twist);
 
     RoundResolution resolveRound(Game game, Round round);

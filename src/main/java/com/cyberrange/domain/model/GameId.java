@@ -3,9 +3,6 @@ package com.cyberrange.domain.model;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Identificador unico de una partida.
- */
 public record GameId(UUID value) {
 
     public GameId {

@@ -1,9 +1,5 @@
 package com.cyberrange.domain.catalog;
 
-/**
- * Efectos especiales que una carta puede tener ademas de su impacto. El
- * motor de reglas los interpreta; el catalogo solo declara cuales trae.
- */
 public enum CardEffect {
     REVEALS_DEFENCES,
     REVEALS_ROUND,
