@@ -120,3 +120,16 @@ solo sitio (`GameViewProjector`) para el REST y para el WebSocket por igual: lo 
 equipo no debe saber no sale del servidor.
 
 Los detalles del dominio, las reglas y el roadmap están en `CLAUDE.md`.
+
+## Contribuir
+
+Las convenciones del proyecto están en [CONTRIBUTING.md](CONTRIBUTING.md). En resumen: una
+rama por tarea, commits atómicos, español en el código e inglés y español en la interfaz, y
+consultar antes de añadir librerías.
+
+Para reequilibrar el juego no hace falta tocar código: el catálogo es un YAML.
+
+## Licencia
+
+[MIT](LICENSE). Puedes usarlo, modificarlo y redistribuirlo, incluso con fines comerciales,
+**manteniendo el aviso de copyright** en las copias o derivados.
