@@ -167,11 +167,15 @@ public final class Game {
             CiaState resolvedState,
             List<GameEvent> events,
             boolean takedown,
-            Map<TeamId, Integer> catchUpBonus) {
+            Map<TeamId, Integer> catchUpBonus,
+            boolean revealPreviousRound) {
         requireInProgress();
         Half half = currentHalf();
         half.applyResolvedState(resolvedState);
         events.forEach(this::record);
+        if (revealPreviousRound) {
+            revealToDefender(half.number(), half.currentRound().number() - 1);
+        }
 
         if (takedown) {
             half.recordTakedown();
@@ -197,6 +201,17 @@ public final class Game {
                 "El instructor lanza un evento",
                 true,
                 null));
+    }
+
+    /**
+     * Revisar los registros descubre a posteriori lo que paso, incluso lo que
+     * en su momento no se detecto.
+     */
+    private void revealToDefender(int halfNumber, int roundNumber) {
+        history.replaceAll(evento ->
+                evento.halfNumber() == halfNumber && evento.roundNumber() == roundNumber
+                        ? evento.revealedToDefender()
+                        : evento);
     }
 
     public void recordResult(MatchResult matchResult) {

@@ -5,6 +5,7 @@ import com.cyberrange.domain.exception.InsufficientBudgetException;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
@@ -29,9 +30,12 @@ public final class Half {
     private final List<ActiveCard> activeCards = new ArrayList<>();
     /** El atacante empieza pudiendo hacer reconocimiento y nada mas. */
     private final EnumSet<KillChainPhase> unlockedPhases = EnumSet.of(KillChainPhase.RECON);
+    /** Ataque anticipado -> carta con la que se anticipo. */
+    private final Map<String, String> blockedAttacks = new HashMap<>();
     private CiaState ciaState = CiaState.intact();
     private Integer takedownRound;
     private boolean finished;
+    private boolean defencesRevealed;
 
     public Half(int number, TeamId attackingTeam, GameSettings settings) {
         this.number = number;
@@ -125,6 +129,32 @@ public final class Half {
 
     public Set<KillChainPhase> unlockedPhases() {
         return Set.copyOf(unlockedPhases);
+    }
+
+    /** El atacante ha averiguado que defensas hay puestas. */
+    public boolean areDefencesRevealed() {
+        return defencesRevealed;
+    }
+
+    public void revealDefences() {
+        this.defencesRevealed = true;
+    }
+
+    /** El defensor anticipa un ataque concreto, que fallara cuando llegue. */
+    public void blockAttack(String attackId, String withCardId) {
+        blockedAttacks.put(attackId, withCardId);
+    }
+
+    public boolean isBlocked(String cardId) {
+        return blockedAttacks.containsKey(cardId);
+    }
+
+    public String blockedBy(String cardId) {
+        return blockedAttacks.get(cardId);
+    }
+
+    public String consumeBlock(String cardId) {
+        return blockedAttacks.remove(cardId);
     }
 
     public void addBudget(TeamId team, int amount) {

@@ -11,7 +11,8 @@ public record RoundResolution(
         CiaState resultingState,
         List<GameEvent> generatedEvents,
         boolean takedown,
-        Map<TeamId, Integer> catchUpBonus) {
+        Map<TeamId, Integer> catchUpBonus,
+        boolean revealsPreviousRound) {
 
     public RoundResolution {
         generatedEvents = generatedEvents == null ? List.of() : List.copyOf(generatedEvents);

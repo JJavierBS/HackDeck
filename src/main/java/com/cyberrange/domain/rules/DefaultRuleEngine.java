@@ -8,6 +8,7 @@ import com.cyberrange.domain.catalog.CardType;
 import com.cyberrange.domain.catalog.DefenseCategory;
 import com.cyberrange.domain.catalog.KillChainPhase;
 import com.cyberrange.domain.catalog.NoiseLevel;
+import com.cyberrange.domain.exception.MissingRequirementException;
 import com.cyberrange.domain.exception.UnknownCardException;
 import com.cyberrange.domain.model.ActionIntent;
 import com.cyberrange.domain.model.ActiveCard;
@@ -51,6 +52,9 @@ public final class DefaultRuleEngine implements RuleEngine {
      */
     static final int DETECTION_THRESHOLD = 3;
 
+    /** Lo que queda de una capa de perimetro cuando todo el mundo teletrabaja. */
+    static final double WEAKENED_PERIMETER = 0.5;
+
     static final double RESPONSE_DISCOUNT = 0.5;
 
     /** Dano por ronda que se considera "normal" para medir quien va perdiendo. */
@@ -62,6 +66,7 @@ public final class DefaultRuleEngine implements RuleEngine {
     static final int CATCH_UP_MAX = 10;
 
     private static final String PILLAR_PARAMETER = "pillar";
+    private static final String BLOCKED_PARAMETER = "blocks";
 
     private final ActionCatalog catalog;
     private final Randomizer randomizer;
@@ -77,6 +82,18 @@ public final class DefaultRuleEngine implements RuleEngine {
                 .orElseThrow(() -> new UnknownCardException("No existe ninguna carta con el id '" + cardId + "'"));
         if (!card.isPlayableBy(side)) {
             throw new UnknownCardException("La carta '" + cardId + "' no la puede jugar el bando " + side);
+        }
+        return card;
+    }
+
+    @Override
+    public ActionCard playableCard(Game game, Role side, String cardId) {
+        ActionCard card = cardFor(side, cardId);
+        for (String requisito : card.requires()) {
+            if (!game.currentHalf().isActive(requisito)) {
+                throw new MissingRequirementException(
+                        "'" + card.nameIn("es") + "' necesita tener antes '" + card(requisito).nameIn("es") + "'");
+            }
         }
         return card;
     }
@@ -137,10 +154,16 @@ public final class DefaultRuleEngine implements RuleEngine {
 
         for (ActionIntent intent : intentsOf(round, Role.ATTACKER)) {
             ActionCard card = cardFor(Role.ATTACKER, intent.cardId());
-            String counteredBy = ignoresCounters ? null : counterAgainst(half, card.id());
+            boolean anticipado = half.isBlocked(card.id());
+            String counteredBy = anticipado
+                    ? half.blockedBy(card.id())
+                    : (ignoresCounters ? null : counterAgainst(half, card.id()));
             boolean phaseLocked = card.phase() != null && !half.isUnlocked(card.phase());
             double chance = successChance(half, card, ignoresCounters);
-            boolean success = randomizer.chance(chance);
+            boolean success = !anticipado && randomizer.chance(chance);
+            if (anticipado) {
+                half.consumeBlock(card.id());
+            }
 
             Map<CiaPillar, Integer> impact = Map.of();
             int mitigated = 0;
@@ -148,6 +171,9 @@ public final class DefaultRuleEngine implements RuleEngine {
             if (success) {
                 unlocked = card.unlocks().stream().filter(phase -> !half.isUnlocked(phase)).toList();
                 unlocked.forEach(half::unlock);
+                if (card.hasEffect(CardEffect.REVEALS_DEFENCES)) {
+                    half.revealDefences();
+                }
                 activateIfLasting(half, card, Role.ATTACKER);
                 CiaState before = state;
                 state = applyAttack(half, state, card, ignoresCounters, doubleImpact);
@@ -163,7 +189,7 @@ public final class DefaultRuleEngine implements RuleEngine {
                     detected,
                     EventDetail.attack(
                             success,
-                            success ? null : failureReason(phaseLocked, counteredBy),
+                            success ? null : failureReason(anticipado, phaseLocked, counteredBy),
                             impact,
                             mitigated,
                             unlocked,
@@ -176,7 +202,12 @@ public final class DefaultRuleEngine implements RuleEngine {
 
         events.add(roundResolvedEvent(half, round, state));
         boolean takedown = firstDownedPillar(state) != null;
-        return new RoundResolution(state, events, takedown, catchUpBonus(game, half, state, round));
+        return new RoundResolution(
+                state,
+                events,
+                takedown,
+                catchUpBonus(game, half, state, round),
+                anyHasEffect(defences, CardEffect.REVEALS_PREVIOUS_ROUND));
     }
 
     private CiaState applyDefence(
@@ -189,6 +220,12 @@ public final class DefaultRuleEngine implements RuleEngine {
         }
         if (card.hasEffect(CardEffect.EXTRA_BUDGET)) {
             half.addBudget(half.defendingTeam(), CATCH_UP_MAX);
+        }
+        if (card.hasEffect(CardEffect.BLOCKS_CHOSEN_ATTACK)) {
+            String elegido = intent.parameters().get(BLOCKED_PARAMETER);
+            if (elegido != null) {
+                half.blockAttack(elegido, card.id());
+            }
         }
         CiaState repaired = state;
         for (Map.Entry<CiaPillar, Integer> entry : targetedImpact(card, intent).entrySet()) {
@@ -344,10 +381,20 @@ public final class DefaultRuleEngine implements RuleEngine {
         return bonus;
     }
 
+    /**
+     * El teletrabajo amplia el perimetro, asi que las capas de arquitectura
+     * valen la mitad mientras dure.
+     */
     private int mitigation(Half half) {
-        return half.activeCardsOf(Role.DEFENDER).stream()
-                .mapToInt(active -> card(active.cardId()).mitigation())
-                .sum();
+        boolean perimetroDebil = half.activeCards().stream()
+                .anyMatch(active -> hasEffect(active.cardId(), CardEffect.WEAKENS_PERIMETER));
+        double total = 0;
+        for (ActiveCard active : half.activeCardsOf(Role.DEFENDER)) {
+            ActionCard carta = card(active.cardId());
+            boolean debilitada = perimetroDebil && carta.category() == DefenseCategory.ARCHITECTURE;
+            total += debilitada ? carta.mitigation() * WEAKENED_PERIMETER : carta.mitigation();
+        }
+        return (int) Math.round(total);
     }
 
     private int detectionLevel(Half half, List<ActionCard> playedThisRound) {
@@ -436,7 +483,14 @@ public final class DefaultRuleEngine implements RuleEngine {
                 EventDetail.defence(repaired));
     }
 
-    private static FailureReason failureReason(boolean phaseLocked, String counteredBy) {
+    /**
+     * Un ataque anticipado ni siquiera llega a tirar, asi que ese es el motivo
+     * aunque ademas le faltara la fase previa.
+     */
+    private static FailureReason failureReason(boolean anticipado, boolean phaseLocked, String counteredBy) {
+        if (anticipado) {
+            return FailureReason.COUNTERED;
+        }
         if (phaseLocked) {
             return FailureReason.KILL_CHAIN;
         }

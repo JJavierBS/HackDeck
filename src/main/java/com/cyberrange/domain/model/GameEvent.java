@@ -56,6 +56,11 @@ public record GameEvent(
                 Instant.now());
     }
 
+    public GameEvent revealedToDefender() {
+        return new GameEvent(
+                halfNumber, roundNumber, type, actor, cardId, description, true, ciaAfter, detail, occurredAt);
+    }
+
     public GameEvent withDetail(EventDetail newDetail) {
         return new GameEvent(
                 halfNumber, roundNumber, type, actor, cardId, description, visibleToDefender, ciaAfter, newDetail,

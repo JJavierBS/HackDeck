@@ -98,7 +98,7 @@ public final class GameApplicationService implements
             throw new AccessDeniedException("El instructor arbitra, no encola acciones");
         }
         Role side = game.sideOf(participant.team());
-        ActionCard card = ruleEngine.cardFor(side, command.cardId());
+        ActionCard card = ruleEngine.playableCard(game, side, command.cardId());
         ActionIntent action = new ActionIntent(UUID.randomUUID(), side, card.id(), command.parameters());
         game.enqueue(action, ruleEngine.costOf(game, card));
         gameRepository.save(game);
@@ -198,7 +198,8 @@ public final class GameApplicationService implements
                 resolution.resultingState(),
                 resolution.generatedEvents(),
                 resolution.takedown(),
-                resolution.catchUpBonus());
+                resolution.catchUpBonus(),
+                resolution.revealsPreviousRound());
         finishIfOver(game);
 
         gameRepository.save(game);

@@ -19,6 +19,9 @@ public interface RuleEngine {
 
     ActionCard cardFor(Role side, String cardId);
 
+    /** Como cardFor, pero exigiendo ademas las cartas propias que requiera. */
+    ActionCard playableCard(Game game, Role side, String cardId);
+
     int costOf(Game game, ActionCard card);
 
     ActionCard twistFor(String cardId);
