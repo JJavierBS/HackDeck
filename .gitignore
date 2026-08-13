@@ -1,6 +1,9 @@
 # Backend (Maven)
 target/
 
+# El frontend construido se copia aqui al empaquetar (ver build.sh)
+src/main/resources/static/
+
 # Frontend (Node/Vite)
 frontend/node_modules/
 frontend/dist/
