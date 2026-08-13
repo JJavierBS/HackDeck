@@ -8,6 +8,7 @@ public record EventView(
         String type,
         String actor,
         String cardId,
+        Map<String, String> cardName,
         String description,
         Map<String, Integer> ciaAfter,
         EventDetailView detail,

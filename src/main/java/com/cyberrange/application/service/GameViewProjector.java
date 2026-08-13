@@ -1,5 +1,6 @@
 package com.cyberrange.application.service;
 
+import com.cyberrange.application.port.out.ActionCatalogPort;
 import com.cyberrange.application.view.ActiveCardView;
 import com.cyberrange.application.view.EventDetailView;
 import com.cyberrange.application.view.EventView;
@@ -7,6 +8,7 @@ import com.cyberrange.application.view.GameView;
 import com.cyberrange.application.view.MatchHistoryView;
 import com.cyberrange.application.view.MatchResultView;
 import com.cyberrange.application.view.QueuedActionView;
+import com.cyberrange.domain.catalog.ActionCard;
 import com.cyberrange.domain.catalog.KillChainPhase;
 import com.cyberrange.domain.model.ActionIntent;
 import com.cyberrange.domain.model.ActiveCard;
@@ -33,6 +35,12 @@ import java.util.Map;
  */
 @Service
 public final class GameViewProjector {
+
+    private final ActionCatalogPort catalogPort;
+
+    public GameViewProjector(ActionCatalogPort catalogPort) {
+        this.catalogPort = catalogPort;
+    }
 
     public GameView project(Game game, Participant viewer) {
         boolean started = game.phase() != GamePhase.PREPARATION;
@@ -61,6 +69,7 @@ public final class GameViewProjector {
                 viewer.isInstructor() && half != null ? queuedBySide(half) : null,
                 half == null || viewerSide != Role.ATTACKER ? List.of() : killChainOf(half),
                 half == null ? List.of() : activeCardsFor(half, viewerSide),
+                defensasDescubiertas(half, viewerSide),
                 half == null || viewerSide == null ? List.of() : queuedActionsOf(half, viewerSide),
                 eventsFor(game, half, viewerSide),
                 resultOf(game.result()));
@@ -72,6 +81,16 @@ public final class GameViewProjector {
             game.playerOf(team).ifPresent(player -> teams.put(team.name(), player.displayName()));
         }
         return teams;
+    }
+
+    /**
+     * Las defensas del rival solo se ven si se ha pagado por averiguarlas.
+     */
+    private List<ActiveCardView> defensasDescubiertas(Half half, Role viewerSide) {
+        if (half == null || viewerSide != Role.ATTACKER || !half.areDefencesRevealed()) {
+            return List.of();
+        }
+        return toActiveCardViews(half.activeCardsOf(Role.DEFENDER));
     }
 
     private static List<String> readyTeamsOf(Half half) {
@@ -94,11 +113,15 @@ public final class GameViewProjector {
         return half.unlockedPhases().stream().map(KillChainPhase::name).sorted().toList();
     }
 
-    private static List<ActiveCardView> activeCardsFor(Half half, Role viewerSide) {
-        List<ActiveCard> visible = viewerSide == null ? half.activeCards() : half.activeCardsOf(viewerSide);
-        return visible.stream()
+    private List<ActiveCardView> activeCardsFor(Half half, Role viewerSide) {
+        return toActiveCardViews(viewerSide == null ? half.activeCards() : half.activeCardsOf(viewerSide));
+    }
+
+    private List<ActiveCardView> toActiveCardViews(List<ActiveCard> cards) {
+        return cards.stream()
                 .map(card -> new ActiveCardView(
                         card.cardId(),
+                        nombreDe(card.cardId()),
                         card.side() == null ? null : card.side().name(),
                         card.isPermanent() ? null : card.roundsRemaining()))
                 .toList();
@@ -129,7 +152,7 @@ public final class GameViewProjector {
                 .toList();
     }
 
-    private static List<EventView> eventsFor(Game game, Half half, Role viewerSide) {
+    private List<EventView> eventsFor(Game game, Half half, Role viewerSide) {
         return game.history().stream()
                 .filter(event -> half == null || event.halfNumber() == half.number())
                 .filter(event -> viewerSide == null || event.isVisibleTo(viewerSide))
@@ -168,7 +191,7 @@ public final class GameViewProjector {
                         game.settings().initialBudget(),
                         game.settings().incomePerRound()),
                 teamsOf(game),
-                game.history().stream().map(GameViewProjector::toEventView).toList(),
+                game.history().stream().map(this::toEventView).toList(),
                 resultOf(game.result()));
     }
 
@@ -176,7 +199,7 @@ public final class GameViewProjector {
         return new QueuedActionView(action.cardId(), action.parameters());
     }
 
-    private static EventView toEventView(GameEvent event) {
+    private EventView toEventView(GameEvent event) {
         // Siempre en el orden de la triada: Map.copyOf no conserva ninguno y
         // los pilares saldrian barajados de un evento a otro.
         Map<String, Integer> ciaAfter = new LinkedHashMap<>();
@@ -191,10 +214,17 @@ public final class GameViewProjector {
                 event.type().name(),
                 event.actor() == null ? null : event.actor().name(),
                 event.cardId(),
+                nombreDe(event.cardId()),
                 event.description(),
                 ciaAfter,
                 toDetailView(event.detail()),
                 event.occurredAt().toString());
+    }
+
+    private Map<String, String> nombreDe(String cardId) {
+        return cardId == null
+                ? null
+                : catalogPort.catalog().find(cardId).map(ActionCard::name).orElse(null);
     }
 
     private static EventDetailView toDetailView(EventDetail detail) {

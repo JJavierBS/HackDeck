@@ -29,6 +29,7 @@ public record GameView(
         Map<String, List<QueuedActionView>> queuedBySide,
         List<String> yourKillChain,
         List<ActiveCardView> yourActiveCards,
+        List<ActiveCardView> revealedRivalCards,
         List<QueuedActionView> yourQueuedActions,
         List<EventView> events,
         MatchResultView result) {
