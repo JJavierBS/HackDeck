@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ApiRequestError, type GameSettingsDto, type RestClient } from "../api/restClient";
 import type { GameSession, TournamentSession } from "../api/session";
+import { NumericStepper } from "../components/NumericStepper";
 import { useLanguage } from "../i18n/LanguageContext";
 
 interface EntryViewProps {
@@ -57,12 +58,9 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
     action.then(onSession).catch(fallo);
   };
 
-  const numberField = (field: keyof GameSettingsDto) => ({
-    type: "number",
-    value: settings[field],
-    onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
-      setSettings({ ...settings, [field]: Number(event.target.value) }),
-  });
+  const updateSetting = (field: keyof GameSettingsDto, val: number) => {
+    setSettings({ ...settings, [field]: val });
+  };
 
   return (
     <main>
@@ -98,25 +96,52 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
 
         <section>
           <h2>{t("entry.instructor.title")}</h2>
-          <label>
-            {t("entry.instructor.rounds")}
-            <input {...numberField("roundsPerHalf")} />
-          </label>
-          <label>
-            {t("entry.instructor.timeout")}
-            <input {...numberField("roundTimeoutSeconds")} />
-          </label>
-          <label>
-            {t("entry.instructor.budget")}
-            <input {...numberField("initialBudget")} />
-          </label>
-          <label>
-            {t("entry.instructor.income")}
-            <input {...numberField("incomePerRound")} />
-          </label>
+          <div className="grid-configuracion">
+            <label>
+              {t("entry.instructor.rounds")}
+              <NumericStepper
+                value={settings.roundsPerHalf}
+                onChange={(val) => updateSetting("roundsPerHalf", val)}
+                min={1}
+                max={20}
+              />
+            </label>
+            <label>
+              {t("entry.instructor.timeout")}
+              <NumericStepper
+                value={settings.roundTimeoutSeconds}
+                onChange={(val) => updateSetting("roundTimeoutSeconds", val)}
+                min={10}
+                max={600}
+                step={5}
+              />
+            </label>
+            <label>
+              {t("entry.instructor.budget")}
+              <NumericStepper
+                value={settings.initialBudget}
+                onChange={(val) => updateSetting("initialBudget", val)}
+                min={0}
+                max={100}
+              />
+            </label>
+            <label>
+              {t("entry.instructor.income")}
+              <NumericStepper
+                value={settings.incomePerRound}
+                onChange={(val) => updateSetting("incomePerRound", val)}
+                min={0}
+                max={50}
+              />
+            </label>
+          </div>
           <label>
             {t("entry.instructor.key")}
-            <input value={instructorKey} onChange={(event) => setInstructorKey(event.target.value)} />
+            <input
+              type="password"
+              value={instructorKey}
+              onChange={(event) => setInstructorKey(event.target.value)}
+            />
           </label>
           <div className="grupo-botones">
             <button onClick={() => run(client.createGame(settings, instructorKey || undefined))}>

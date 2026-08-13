@@ -144,7 +144,8 @@ button:disabled {
 
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
+select:focus-visible,
+.stepper:focus-within {
   outline: 2px solid var(--acento);
   outline-offset: 2px;
 }
@@ -157,14 +158,103 @@ select {
   background: var(--neutral-900);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
-  padding: 0.6rem 0.75rem;
+  padding: 0.65rem 0.85rem;
   width: 100%;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a3a3a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 0.85rem;
+  padding-right: 2.2rem;
+  cursor: pointer;
+}
+
+select option {
+  background-color: var(--neutral-900);
+  color: var(--texto-fuerte);
+  padding: 0.6rem;
+}
+
+input:hover:not(:disabled),
+select:hover:not(:disabled) {
+  border-color: var(--borde-fuerte);
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--neutral-900);
+  overflow: hidden;
   transition: border-color 0.3s ease;
 }
 
-input:hover,
-select:hover {
+.stepper:hover:not(.desactivado) {
   border-color: var(--borde-fuerte);
+}
+
+.stepper-btn {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--acento);
+  background: var(--neutral-950);
+  border: none;
+  border-right: 1px solid var(--borde);
+  padding: 0.55rem 0.95rem;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.stepper-btn:last-child {
+  border-right: none;
+  border-left: 1px solid var(--borde);
+}
+
+.stepper-btn:hover:not(:disabled) {
+  background: var(--neutral-800);
+  color: var(--texto-fuerte);
+}
+
+.stepper-btn:disabled {
+  color: var(--neutral-600);
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.stepper-input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  text-align: center;
+  font-family: var(--mono);
+  font-weight: 600;
+  padding: 0.6rem 0.5rem;
+  margin: 0;
+  width: 100%;
+}
+
+.stepper-input:focus {
+  outline: none !important;
 }
 
 label {
@@ -178,7 +268,8 @@ label {
 }
 
 label > input,
-label > select {
+label > select,
+label > .stepper {
   margin-top: 0.4rem;
 }
 
