@@ -12,6 +12,7 @@ import {
 } from "./api/session";
 import { useGameState } from "./api/useGameState";
 import { useLanguage } from "./i18n/LanguageContext";
+import { EntryView } from "./views/EntryView";
 import { LandingView } from "./views/LandingView";
 import { TournamentView } from "./views/TournamentView";
 import { TournamentPlayerView } from "./views/TournamentPlayerView";
@@ -25,6 +26,7 @@ export function App() {
   const client = useMemo(() => createRestClient(), []);
   const [session, setSession] = useState<GameSession | null>(() => loadSession());
   const [tournament, setTournament] = useState<TournamentSession | null>(() => loadTournament());
+  const [showEntryScreen, setShowEntryScreen] = useState(false);
   const projected = useMemo(() => projectionSession(), []);
   const projectedTournament = useMemo(() => tournamentProjection(), []);
 
@@ -42,6 +44,9 @@ export function App() {
     <>
       <nav className="barra-superior">
         <button onClick={toggle}>{t("app.language")}</button>
+        {session === null && tournament === null && showEntryScreen && (
+          <button onClick={() => setShowEntryScreen(false)}>{t("landing.back")}</button>
+        )}
         {(session !== null || tournament !== null) && (
           <button
             onClick={() => {
@@ -74,8 +79,11 @@ export function App() {
           return <TournamentView client={client} session={tournament} />;
         }
         if (session === null) {
+          if (!showEntryScreen) {
+            return <LandingView onEnterGame={() => setShowEntryScreen(true)} />;
+          }
           return (
-            <LandingView
+            <EntryView
               client={client}
               onSession={(nueva) => {
                 saveSession(nueva);

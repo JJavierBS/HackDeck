@@ -1,15 +1,10 @@
-import type { RestClient } from "../api/restClient";
-import type { GameSession, TournamentSession } from "../api/session";
 import { useLanguage } from "../i18n/LanguageContext";
-import { EntryView } from "./EntryView";
 
 interface LandingViewProps {
-  client: RestClient;
-  onSession: (session: GameSession) => void;
-  onTournament: (session: TournamentSession) => void;
+  onEnterGame: () => void;
 }
 
-export function LandingView({ client, onSession, onTournament }: LandingViewProps) {
+export function LandingView({ onEnterGame }: LandingViewProps) {
   const { t } = useLanguage();
 
   const scrollToSection = (id: string) => {
@@ -24,30 +19,14 @@ export function LandingView({ client, onSession, onTournament }: LandingViewProp
           {t("landing.hero.eyebrow")}
         </div>
         <h1 className="landing-title">
-          {t("landing.hero.title1")} <span className="acento-texto">{t("landing.hero.title2")}</span>{" "}
-          {t("landing.hero.title3")}
+          {t("landing.hero.title1")} <span className="acento-texto">{t("landing.hero.title2")}</span>
         </h1>
         <p className="landing-lede">{t("landing.hero.lede")}</p>
         <div className="grupo-botones">
-          <button onClick={() => scrollToSection("jugar")}>{t("landing.hero.cta.play")}</button>
+          <button onClick={onEnterGame}>{t("landing.hero.cta.play")}</button>
           <button onClick={() => scrollToSection("mecanicas")}>{t("landing.hero.cta.learn")}</button>
         </div>
         <p className="tenue">{t("landing.hero.note")}</p>
-
-        <div className="landing-stats">
-          <div className="landing-stat">
-            <span className="landing-stat-val">6</span>
-            <span className="landing-stat-lbl">{t("landing.stats.rounds")}</span>
-          </div>
-          <div className="landing-stat">
-            <span className="landing-stat-val">44</span>
-            <span className="landing-stat-lbl">{t("landing.stats.cards")}</span>
-          </div>
-          <div className="landing-stat">
-            <span className="landing-stat-val">100%</span>
-            <span className="landing-stat-lbl">{t("landing.stats.browser")}</span>
-          </div>
-        </div>
       </header>
 
       <section id="mecanicas" className="seccion-landing">
@@ -83,16 +62,47 @@ export function LandingView({ client, onSession, onTournament }: LandingViewProp
       </section>
 
       <section className="seccion-landing">
-        <h2>{t("landing.classroom.kicker")}</h2>
+        <h2>{t("landing.shots.kicker")}</h2>
+        <div className="grid-tres">
+          <div className="placeholder-captura">
+            <span className="placeholder-captura-icono">🖥️</span>
+            <p>{t("landing.shots.p1")}</p>
+          </div>
+          <div className="placeholder-captura">
+            <span className="placeholder-captura-icono">🎛️</span>
+            <p>{t("landing.shots.p2")}</p>
+          </div>
+          <div className="placeholder-captura">
+            <span className="placeholder-captura-icono">📊</span>
+            <p>{t("landing.shots.p3")}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="seccion-landing">
+        <h2>{t("landing.about.kicker")}</h2>
         <article className="tarjeta-landing">
-          <h3>{t("landing.classroom.title")}</h3>
-          <p>{t("landing.classroom.desc")}</p>
+          <h3>{t("landing.about.title")}</h3>
+          <p>{t("landing.about.desc")}</p>
+          <div className="grupo-botones" style={{ marginTop: "1rem" }}>
+            <a
+              href="https://josejavierbravo.com"
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: "var(--acento)", fontFamily: "var(--mono)", fontSize: "0.85rem" }}
+            >
+              {t("landing.about.link")}
+            </a>
+          </div>
         </article>
       </section>
 
-      <section id="jugar" className="seccion-landing">
+      <section className="seccion-landing" style={{ textAlign: "center", padding: "2rem 0" }}>
         <h2>{t("landing.cta.title")}</h2>
-        <EntryView client={client} onSession={onSession} onTournament={onTournament} />
+        <p className="landing-lede" style={{ margin: "0 auto 1.5rem" }}>
+          {t("landing.cta.lede")}
+        </p>
+        <button onClick={onEnterGame}>{t("landing.hero.cta.play")}</button>
       </section>
 
       <footer className="landing-footer">
