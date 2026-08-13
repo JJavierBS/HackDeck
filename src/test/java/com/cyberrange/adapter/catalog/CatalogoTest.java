@@ -23,6 +23,16 @@ class CatalogoTest {
     }
 
     @Test
+    void el_catalogo_conserva_el_orden_del_fichero() {
+        ActionCatalog catalogo = catalogoEmpaquetado();
+
+        assertThat(catalogo.all()).first()
+                .satisfies(carta -> assertThat(carta.id()).isEqualTo("escaneo-puertos"));
+        assertThat(catalogo.playableBy(Role.ATTACKER)).first()
+                .satisfies(carta -> assertThat(carta.id()).isEqualTo("escaneo-puertos"));
+    }
+
+    @Test
     void el_catalogo_que_se_distribuye_carga_y_tiene_cartas_de_los_dos_bandos() {
         ActionCatalog catalogo = catalogoEmpaquetado();
 

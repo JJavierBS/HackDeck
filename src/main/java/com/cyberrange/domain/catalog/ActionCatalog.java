@@ -2,6 +2,7 @@ package com.cyberrange.domain.catalog;
 
 import com.cyberrange.domain.model.Role;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,9 @@ public final class ActionCatalog {
         for (ActionCard card : cards) {
             byId.put(card.id(), card);
         }
-        this.cardsById = Map.copyOf(byId);
+        // Se conserva el orden del catalogo: Map.copyOf no respeta ninguno y
+        // las cartas saldrian barajadas de un arranque a otro.
+        this.cardsById = Collections.unmodifiableMap(byId);
     }
 
     public Optional<ActionCard> find(String id) {
