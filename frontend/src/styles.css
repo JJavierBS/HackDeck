@@ -1,23 +1,41 @@
-/*
- * Prioridad: legible a tres metros en la pantalla del instructor y usable
- * en el movil de un equipo. Sin librerias de estilos.
- *
- * Los bandos no se distinguen solo por color (rojo/azul): cada vista lleva
- * su rotulo y sus iconos, para no dejar fuera a quien no distinga colores.
- */
 
 :root {
-  --fondo: #10131a;
-  --panel: #1a1f2b;
-  --panel-claro: #232a38;
-  --borde: #333c4e;
-  --texto: #eef1f6;
-  --texto-tenue: #a4adbd;
-  --rojo: #ff6b5e;
-  --azul: #5aa9ff;
-  --verde: #4fd18b;
-  --ambar: #ffc857;
-  --radio: 10px;
+  /* Escala neutra unica. Los nombres siguen la de Tailwind del portfolio. */
+  --neutral-950: #0a0a0a;
+  --neutral-900: #171717;
+  --neutral-800: #262626;
+  --neutral-700: #404040;
+  --neutral-600: #525252;
+  --neutral-500: #737373;
+  --neutral-400: #a3a3a3;
+  --neutral-300: #d4d4d4;
+  --neutral-100: #f5f5f5;
+
+  /* Alias semanticos: el resto de la hoja habla en estos terminos. */
+  --fondo: var(--neutral-950);
+  --panel: var(--neutral-950);
+  --panel-claro: var(--neutral-900);
+  --borde: var(--neutral-800);
+  --borde-fuerte: var(--neutral-700);
+  --texto: var(--neutral-300);
+  --texto-fuerte: var(--neutral-100);
+  --texto-tenue: var(--neutral-400);
+  --texto-meta: var(--neutral-500);
+
+  /* Acento unico del sitio. Cambiar aqui lo cambia en todas partes. */
+  --acento: #fbbf24;
+  --acento-tenue: #f59e0b;
+
+  /* Colores funcionales: bandos y salud de la triada. Se mantienen porque
+     codifican informacion, pero atenuados para no romper el monocromo. */
+  --rojo: #f87171;
+  --azul: #60a5fa;
+  --verde: #4ade80;
+  --ambar: var(--acento);
+
+  --radio: 0;
+  --mono: ui-monospace, "Geist Mono", SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 * {
@@ -28,76 +46,144 @@ body {
   margin: 0;
   background: var(--fondo);
   color: var(--texto);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--sans);
   font-size: 17px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 main {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 1rem 1rem 4rem;
+  padding: 2.5rem 1.5rem 5rem;
 }
 
 h1 {
   font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--texto-fuerte);
   margin: 0.2rem 0;
 }
 
+/* Cabecera de seccion editorial: rotulo mono + linea fina que ocupa el resto
+   del ancho. Es el gesto que mas identifica al portfolio. */
 h2 {
-  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--texto-tenue);
-  margin: 0 0 0.6rem;
+  letter-spacing: 0.16em;
+  color: var(--texto-meta);
+  margin: 0 0 1.1rem;
 }
 
+h2::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--borde);
+}
+
+p {
+  color: var(--texto-tenue);
+}
+
+/* ----------------------------------------------------------------------
+   Controles
+   ---------------------------------------------------------------------- */
+
+/* Boton fantasma: borde de un pixel, fondo transparente, texto mono. El peso
+   visual lo da el borde al iluminarse, no un relleno solido. */
 button {
-  font: inherit;
-  font-weight: 600;
-  color: var(--fondo);
-  background: var(--texto);
-  border: none;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--texto);
+  background: transparent;
+  border: 1px solid var(--borde);
   border-radius: var(--radio);
-  padding: 0.6rem 1rem;
+  padding: 0.65rem 1.25rem;
   cursor: pointer;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--borde-fuerte);
+  color: var(--texto-fuerte);
+}
+
+/* La accion principal de cada tarjeta se marca con el acento, no con relleno. */
+.carta > button,
+.resumen button {
+  color: var(--acento);
+  border-color: color-mix(in srgb, var(--acento) 40%, transparent);
+}
+
+.carta > button:hover:not(:disabled),
+.resumen button:hover:not(:disabled) {
+  border-color: var(--acento);
+  color: var(--acento);
+  filter: brightness(1.15);
 }
 
 button:disabled {
-  background: var(--panel-claro);
-  color: var(--texto-tenue);
+  background: transparent;
+  border-color: var(--borde);
+  color: var(--neutral-600);
   cursor: not-allowed;
 }
 
 button:focus-visible,
-input:focus-visible {
-  outline: 3px solid var(--ambar);
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--acento);
   outline-offset: 2px;
 }
 
-input {
+input,
+select {
   font: inherit;
-  color: var(--texto);
-  background: var(--panel-claro);
+  font-size: 0.95rem;
+  color: var(--texto-fuerte);
+  background: var(--neutral-900);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
-  padding: 0.55rem 0.7rem;
+  padding: 0.6rem 0.75rem;
   width: 100%;
+  transition: border-color 0.3s ease;
+}
+
+input:hover,
+select:hover {
+  border-color: var(--borde-fuerte);
 }
 
 label {
   display: block;
-  margin-bottom: 0.6rem;
-  color: var(--texto-tenue);
-  font-size: 0.9rem;
+  margin-bottom: 0.9rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--texto-meta);
+}
+
+label > input,
+label > select {
+  margin-top: 0.4rem;
 }
 
 section {
   background: var(--panel);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
-  padding: 1rem;
-  margin-bottom: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 ul {
@@ -106,52 +192,68 @@ ul {
   padding: 0;
 }
 
+/* ----------------------------------------------------------------------
+   Cabecera de partida y marcadores
+   ---------------------------------------------------------------------- */
+
 .barra-superior {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.5rem;
   align-items: center;
   justify-content: space-between;
-  padding: 0.8rem 0;
+  padding: 0 0 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--borde);
 }
 
 .marcas {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.2rem;
+  gap: 2rem;
 }
 
 .marca-valor {
+  font-family: var(--mono);
   font-size: 1.5rem;
   font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--texto-fuerte);
 }
 
 .marca-etiqueta {
-  font-size: 0.75rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--texto-tenue);
+  letter-spacing: 0.16em;
+  color: var(--texto-meta);
+  margin-bottom: 0.3rem;
 }
 
+/* Codigo de sala: el unico elemento que puede gritar. */
 .codigo {
+  font-family: var(--mono);
   font-size: 2.4rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.35em;
-  color: var(--ambar);
+  color: var(--acento);
 }
 
+/* Bandos: filete de color a la izquierda, no un bloque tenido. */
 .rol-atacante {
-  border-left: 6px solid var(--rojo);
+  border-left: 2px solid var(--rojo);
+  padding-left: 1.25rem;
 }
 
 .rol-defensor {
-  border-left: 6px solid var(--azul);
+  border-left: 2px solid var(--azul);
+  padding-left: 1.25rem;
 }
 
 .columnas {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-  gap: 1rem;
+  gap: 1.5rem;
   align-items: start;
 }
 
@@ -161,26 +263,36 @@ ul {
   }
 }
 
+/* ----------------------------------------------------------------------
+   Triada CIA
+   ---------------------------------------------------------------------- */
+
 .pilar {
-  margin-bottom: 0.7rem;
+  margin-bottom: 1rem;
 }
 
 .pilar-cabecera {
   display: flex;
   justify-content: space-between;
-  font-size: 0.95rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--texto-tenue);
+  margin-bottom: 0.4rem;
 }
 
 .pilar-barra {
-  height: 12px;
-  border-radius: 6px;
-  background: var(--panel-claro);
+  height: 6px;
+  border-radius: var(--radio);
+  background: var(--neutral-900);
+  border: 1px solid var(--borde);
   overflow: hidden;
 }
 
 .pilar-relleno {
   height: 100%;
-  background: var(--verde);
+  background: var(--neutral-300);
+  transition: width 0.4s ease, background-color 0.4s ease;
 }
 
 .pilar-relleno.tocado {
@@ -191,77 +303,103 @@ ul {
   background: var(--rojo);
 }
 
+/* ----------------------------------------------------------------------
+   Cartas y chips
+   ---------------------------------------------------------------------- */
+
 .carta {
   border: 1px solid var(--borde);
   border-radius: var(--radio);
-  padding: 0.7rem;
-  margin-bottom: 0.6rem;
-  background: var(--panel-claro);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  background: var(--neutral-950);
+  transition: border-color 0.3s ease;
+}
+
+.carta:hover {
+  border-color: var(--borde-fuerte);
 }
 
 .carta-cabecera {
   display: flex;
   justify-content: space-between;
-  gap: 0.6rem;
+  gap: 0.75rem;
   align-items: baseline;
+  margin-bottom: 0.5rem;
 }
 
 .carta-nombre {
+  font-size: 1.05rem;
   font-weight: 700;
+  color: var(--texto-fuerte);
 }
 
 .carta-descripcion {
   color: var(--texto-tenue);
   font-size: 0.9rem;
-  margin: 0.3rem 0 0.6rem;
+  line-height: 1.6;
+  margin: 0 0 0.9rem;
 }
 
 .etiquetas {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin-bottom: 0.6rem;
+  margin-bottom: 1rem;
 }
 
+/* Chip recto de un pixel, en mono y minusculas de dato. */
 .etiqueta {
-  font-size: 0.78rem;
-  border: 1px solid var(--borde);
-  border-radius: 999px;
-  padding: 0.1rem 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: -0.01em;
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--radio);
+  padding: 0.15rem 0.5rem;
   color: var(--texto-tenue);
+  white-space: nowrap;
 }
 
 .etiqueta.coste {
-  color: var(--ambar);
-  border-color: var(--ambar);
+  color: var(--acento);
+  border-color: color-mix(in srgb, var(--acento) 50%, transparent);
 }
+
+/* ----------------------------------------------------------------------
+   Kill chain y registro
+   ---------------------------------------------------------------------- */
 
 .fase {
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
-  margin-bottom: 0.8rem;
+  margin-bottom: 1rem;
 }
 
 .fase-paso {
   flex: 1 1 120px;
   border: 1px solid var(--borde);
   border-radius: var(--radio);
-  padding: 0.4rem 0.6rem;
-  font-size: 0.85rem;
-  color: var(--texto-tenue);
+  padding: 0.5rem 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--neutral-600);
+  transition: border-color 0.3s ease, color 0.3s ease;
 }
 
 .fase-paso.abierta {
-  border-color: var(--verde);
-  color: var(--texto);
+  border-color: color-mix(in srgb, var(--acento) 50%, transparent);
+  color: var(--acento);
 }
 
 .evento {
-  border-left: 3px solid var(--borde);
-  padding: 0.2rem 0 0.2rem 0.6rem;
-  margin-bottom: 0.4rem;
-  font-size: 0.92rem;
+  border-left: 1px solid var(--borde);
+  padding: 0.25rem 0 0.25rem 0.85rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--texto-tenue);
 }
 
 .evento.de-atacante {
@@ -273,19 +411,26 @@ ul {
 }
 
 .tenue {
-  color: var(--texto-tenue);
+  color: var(--texto-meta);
+  font-size: 0.85rem;
 }
 
 .error {
+  font-family: var(--mono);
+  font-size: 0.85rem;
   color: var(--rojo);
-  font-weight: 600;
+  border-left: 2px solid var(--rojo);
+  padding-left: 0.85rem;
 }
 
-/* Pantalla de proyeccion: se lee desde el fondo del aula, asi que todo va
-   varias tallas por encima de lo normal. */
+/* ----------------------------------------------------------------------
+   Pantalla de proyeccion: se lee desde el fondo del aula, asi que todo va
+   varias tallas por encima de lo normal.
+   ---------------------------------------------------------------------- */
+
 .proyeccion {
   max-width: none;
-  padding: 2rem 3rem;
+  padding: 3rem;
 }
 
 .proyeccion-cabecera {
@@ -294,7 +439,9 @@ ul {
   gap: 2rem;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--borde);
 }
 
 .codigo-gigante {
@@ -303,23 +450,24 @@ ul {
 }
 
 .proyeccion .marca-etiqueta {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
+/* Rejilla de filete compartido: el hueco de un pixel deja ver el fondo y hace
+   de separador, en vez de que cada tarjeta lleve su propio borde. */
 .proyeccion-equipos {
   display: flex;
-  gap: 2rem;
-  background: none;
-  border: none;
+  gap: 1px;
+  background: var(--borde);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
   padding: 0;
 }
 
 .proyeccion-equipos > div {
   flex: 1;
-  background: var(--panel);
-  border: 1px solid var(--borde);
-  border-radius: var(--radio);
-  padding: 1rem 1.5rem;
+  background: var(--neutral-950);
+  padding: 1.5rem 2rem;
 }
 
 .proyeccion-equipos .marca-valor {
@@ -327,19 +475,22 @@ ul {
 }
 
 .proyeccion-triada .pilar-cabecera {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
 }
 
 .pilar-barra-gorda {
-  height: 34px;
-  border-radius: 17px;
+  height: 20px;
+  border-radius: var(--radio);
 }
 
 .proyeccion-aviso {
-  font-size: 2.2rem;
-  font-weight: 700;
+  font-family: var(--mono);
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   text-align: center;
-  padding: 2rem;
+  color: var(--texto-fuerte);
+  padding: 3rem;
 }
 
 .agotado {
@@ -347,22 +498,46 @@ ul {
 }
 
 /* Resumen de ronda: tiene que robar la atencion, porque es donde el equipo
-   entiende por que le ha ido bien o mal. */
+   entiende por que le ha ido bien o mal. Aqui el acento hace de subrayado. */
 .resumen {
-  border: 2px solid var(--ambar);
-  background: var(--panel-claro);
+  border: 1px solid color-mix(in srgb, var(--acento) 40%, transparent);
+  background: var(--neutral-900);
+}
+
+.resumen h2 {
+  color: var(--acento);
+}
+
+.resumen h2::after {
+  background: color-mix(in srgb, var(--acento) 25%, transparent);
 }
 
 .resumen li {
-  padding: 0.2rem 0;
+  padding: 0.3rem 0;
+  font-size: 0.92rem;
 }
 
 .acierto {
   color: var(--verde);
 }
 
+/* Mesas del torneo: misma rejilla de filete compartido. */
 .rejilla-mesas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1rem;
+  gap: 1px;
+  background: var(--borde);
+  border: 1px solid var(--borde);
+}
+
+.rejilla-mesas > section {
+  border: none;
+  margin: 0;
+  background: var(--neutral-950);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
 }
