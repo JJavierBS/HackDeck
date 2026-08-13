@@ -38,7 +38,7 @@ export function RoundControl({ client, session, state, cards, run }: RoundContro
         </div>
       </div>
 
-      <div className="etiquetas">
+      <div className="grupo-botones">
         <button onClick={() => run(client.setAutoResolve(session, !state.autoResolve))}>
           {state.autoResolve ? t("control.autoOn") : t("control.autoOff")}
         </button>

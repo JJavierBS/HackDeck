@@ -118,7 +118,7 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
             {t("entry.instructor.key")}
             <input value={instructorKey} onChange={(event) => setInstructorKey(event.target.value)} />
           </label>
-          <div className="etiquetas">
+          <div className="grupo-botones">
             <button onClick={() => run(client.createGame(settings, instructorKey || undefined))}>
               {t("entry.instructor.create")}
             </button>

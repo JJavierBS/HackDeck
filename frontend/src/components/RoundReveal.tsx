@@ -104,7 +104,7 @@ export function RoundReveal({ events, cards, mySide, onClose }: RoundRevealProps
         )}
       </ul>
 
-      <div className="etiquetas">
+      <div className="grupo-botones">
         <button disabled={index === 0} onClick={() => setIndex(index - 1)}>
           {t("reveal.previous")}
         </button>

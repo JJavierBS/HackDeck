@@ -87,7 +87,7 @@ export function InstructorView({ client, session, state, onChange }: InstructorV
                 ))}
               </ul>
             )}
-            <div className="etiquetas">
+            <div className="grupo-botones">
               <button
                 disabled={state.phase !== "PREPARATION" || teams.length < 2}
                 onClick={() => run(client.startGame(session))}

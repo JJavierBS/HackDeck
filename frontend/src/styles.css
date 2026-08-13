@@ -78,7 +78,11 @@ h2 {
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: var(--texto-meta);
-  margin: 0 0 1.1rem;
+  margin: 1.5rem 0 1.1rem;
+}
+
+h2:first-child {
+  margin-top: 0;
 }
 
 h2::after {
@@ -348,6 +352,21 @@ ul {
   margin-bottom: 1rem;
 }
 
+.grupo-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.grid-configuracion {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.25rem 1rem;
+  margin-bottom: 1rem;
+}
+
 /* Chip recto de un pixel, en mono y minusculas de dato. */
 .etiqueta {
   font-family: var(--mono);
@@ -534,6 +553,12 @@ ul {
   border: none;
   margin: 0;
   background: var(--neutral-950);
+}
+
+@media (max-width: 640px) {
+  main {
+    padding: 1.25rem 1rem 3rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -72,7 +72,7 @@ export function TournamentView({ client, session }: TournamentViewProps) {
       )}
 
       <section>
-        <div className="etiquetas">
+        <div className="grupo-botones">
           <button
             disabled={torneo.phase !== "LOBBY" || torneo.standings.length < 2}
             onClick={() => accion(client.startTournament(comoPartida, session.tournamentId))}
