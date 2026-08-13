@@ -148,6 +148,8 @@ export const DICTIONARY = {
     "reveal.repaired": "Recuperas",
     "reveal.damage": "Dano",
     "reveal.detectedAttack": "Ataque detectado",
+    "connection.title": "Los equipos entran por",
+    "connection.hint": "Si no llegan, abre el puerto en el cortafuegos de este equipo",
   },
 
   en: {
@@ -295,6 +297,8 @@ export const DICTIONARY = {
     "reveal.repaired": "You recover",
     "reveal.damage": "Damage",
     "reveal.detectedAttack": "Attack detected",
+    "connection.title": "Teams connect at",
+    "connection.hint": "If they cannot reach it, open the port in this machine's firewall",
   },
 } as const;
 

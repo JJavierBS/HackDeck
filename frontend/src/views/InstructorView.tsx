@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ApiRequestError, type GameStateDto, type RestClient } from "../api/restClient";
 import type { GameSession } from "../api/session";
 import { useCatalog } from "../api/useCatalog";
@@ -20,6 +20,13 @@ export function InstructorView({ client, session, state, onChange }: InstructorV
   const { t, fromServer } = useLanguage();
   const cards = useCatalog(client, session, state.halfNumber ?? 0);
   const [error, setError] = useState<string | null>(null);
+  const [urls, setUrls] = useState<string[]>([]);
+  useEffect(() => {
+    client
+      .getConnectionInfo()
+      .then((info) => setUrls(info.urls))
+      .catch(() => {});
+  }, [client]);
   const teams = Object.entries(state.teams);
   const twists = cards.filter((card) => card.type === "TWIST");
 
@@ -96,6 +103,17 @@ export function InstructorView({ client, session, state, onChange }: InstructorV
               </button>
             </div>
             {teams.length < 2 && <p className="tenue">{t("lobby.needTeams")}</p>}
+            {state.phase === "PREPARATION" && urls.length > 0 && (
+              <>
+                <h2>{t("connection.title")}</h2>
+                <ul>
+                  {urls.map((url) => (
+                    <li key={url}>{url}</li>
+                  ))}
+                </ul>
+                <p className="tenue">{t("connection.hint")}</p>
+              </>
+            )}
           </section>
 
           {state.phase === "IN_PROGRESS" && (

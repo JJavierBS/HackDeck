@@ -140,6 +140,10 @@ export interface GameStateDto {
   result: MatchResultDto | null;
 }
 
+export interface ConnectionInfoDto {
+  urls: string[];
+}
+
 export interface GameSettingsDto {
   roundsPerHalf?: number;
   roundTimeoutSeconds?: number;
@@ -166,6 +170,7 @@ export interface RestClient {
   setAutoResolve(session: GameSession, enabled: boolean): Promise<void>;
   closeHalf(session: GameSession): Promise<void>;
   closeMatch(session: GameSession): Promise<void>;
+  getConnectionInfo(): Promise<ConnectionInfoDto>;
 }
 
 /**
@@ -214,6 +219,8 @@ export function createRestClient(): RestClient {
     closeHalf: (session) => request<void>("POST", `/api/v1/games/${session.gameId}/half/close`, { session }),
 
     closeMatch: (session) => request<void>("POST", `/api/v1/games/${session.gameId}/close`, { session }),
+
+    getConnectionInfo: () => request<ConnectionInfoDto>("GET", "/api/v1/connection"),
   };
 }
 
