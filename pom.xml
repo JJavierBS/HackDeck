@@ -21,6 +21,7 @@
     <spring-boot.version>4.1.0</spring-boot.version>
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <jjwt.version>0.12.6</jjwt.version>
+    <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -61,6 +62,11 @@
       <version>${jjwt.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -76,6 +82,12 @@
                @PathVariable y @RequestParam sin repetirlos a mano. -->
           <parameters>true</parameters>
         </configuration>
+      </plugin>
+      <!-- El Surefire que trae Maven por defecto no ejecuta JUnit 5. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
       </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
