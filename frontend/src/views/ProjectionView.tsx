@@ -1,6 +1,7 @@
 import { createRestClient, type GameStateDto } from "../api/restClient";
 import type { GameSession } from "../api/session";
 import { useGameState } from "../api/useGameState";
+import { Loading } from "../components/Loading";
 import { RoundTimer } from "../components/RoundTimer";
 import { useLanguage } from "../i18n/LanguageContext";
 import type { TranslationKey } from "../i18n/dictionary";
@@ -19,7 +20,7 @@ export function ProjectionView({ session }: { session: GameSession }) {
   if (state === null) {
     return (
       <main className="proyeccion">
-        <p className="tenue">{t("app.loading")}</p>
+        <Loading big />
       </main>
     );
   }
@@ -52,39 +53,11 @@ export function ProjectionView({ session }: { session: GameSession }) {
       {state.phase === "PREPARATION" ? (
         <p className="proyeccion-aviso">{t("projection.waiting")}</p>
       ) : (
-        <>
-          <Equipos state={state} />
-          <section className="proyeccion-triada">
-            {Object.entries(state.ciaLevels ?? {}).map(([pillar, level]) => (
-              <div className="pilar" key={pillar}>
-                <div className="pilar-cabecera">
-                  <span>{t(`cia.${pillar}` as TranslationKey)}</span>
-                  <span className="codigo">{level}</span>
-                </div>
-                <div className="pilar-barra pilar-barra-gorda">
-                  <div
-                    className={`pilar-relleno ${level < 40 ? "critico" : level < 80 ? "tocado" : ""}`}
-                    style={{ width: `${level}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </section>
-          {state.previousHalf !== null && (
-            <section className="proyeccion-anterior">
-              <span className="marca-etiqueta">
-                {t("previousHalf.title")} {state.previousHalf.number} ·{" "}
-                {state.teams[state.previousHalf.defendingTeam]}
-              </span>
-              <span className="codigo">{state.previousHalf.defendedCia}</span>
-              <span className="marca-etiqueta">{t("previousHalf.toBeat")}</span>
-            </section>
-          )}
-        </>
+        <Marcador state={state} />
       )}
 
       {state.result !== null && (
-        <section className="proyeccion-aviso">
+        <section className="proyeccion-aviso proyeccion-resultado">
           {state.result.winner === null
             ? t("result.draw")
             : `${t("result.winner")} ${state.teams[state.result.winner]}`}
@@ -94,16 +67,76 @@ export function ProjectionView({ session }: { session: GameSession }) {
   );
 }
 
-function Equipos({ state }: { state: GameStateDto }) {
+const PILARES_VACIOS: [string, null][] = [
+  ["CONFIDENTIALITY", null],
+  ["INTEGRITY", null],
+  ["AVAILABILITY", null],
+];
+
+/**
+ * Las dos defensas a la vez, que es lo que se compara para ganar el match:
+ * la del que defiende ahora en vivo y la que ya cerro el otro equipo.
+ */
+function Marcador({ state }: { state: GameStateDto }) {
   const { t } = useLanguage();
+  const previous = state.previousHalf;
+
   return (
-    <section className="proyeccion-equipos">
+    <section className="proyeccion-marcador">
       {Object.entries(state.teams).map(([team, name]) => {
-        const attacking = team === state.attackingTeam;
+        const defendiendo = team !== state.attackingTeam;
+        const cerrada = previous !== null && previous.defendingTeam === team;
+        const levels = defendiendo ? state.ciaLevels : cerrada ? previous.ciaLevels : null;
+        const total =
+          levels === null ? null : Object.values(levels).reduce((suma, nivel) => suma + nivel, 0);
+
         return (
-          <div key={team} className={attacking ? "rol-atacante" : "rol-defensor"}>
-            <div className="marca-etiqueta">{attacking ? t("role.attacker") : t("role.defender")}</div>
-            <div className="marca-valor">{name}</div>
+          <div key={team} className={defendiendo ? "rol-defensor" : "rol-atacante"}>
+            <div className="proyeccion-marcador-cabecera">
+              <div>
+                <div className="marca-etiqueta">
+                  {defendiendo ? t("projection.defendingNow") : t("projection.attackingNow")}
+                </div>
+                <div className="marca-valor">{name}</div>
+              </div>
+              {total !== null && (
+                <div className="proyeccion-total">
+                  <span className="codigo">{total}</span>
+                  <span className="marca-etiqueta">{t("projection.defendedTotal")}</span>
+                </div>
+              )}
+            </div>
+
+            {/* En la primera mitad el atacante aun no ha defendido: se dibujan
+                los pilares vacios para que las dos columnas midan igual en la
+                pared y se vea donde va a aparecer su marca. */}
+            <div className={levels === null ? "triada-pendiente" : cerrada ? "triada-cerrada" : undefined}>
+              {(levels === null ? PILARES_VACIOS : Object.entries(levels)).map(([pillar, level]) => (
+                <div className="pilar" key={pillar}>
+                  <div className="pilar-cabecera">
+                    <span>{t(`cia.${pillar}` as TranslationKey)}</span>
+                    <span className="codigo">{level === null ? "—" : level}</span>
+                  </div>
+                  <div className="pilar-barra pilar-barra-gorda">
+                    {level !== null && (
+                      <div
+                        className={`pilar-relleno ${level < 40 ? "critico" : level < 80 ? "tocado" : ""}`}
+                        style={{ width: `${level}%` }}
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {levels === null && <p className="tenue">{t("projection.notYetDefended")}</p>}
+
+            <div className="marca-etiqueta proyeccion-pie">
+              {defendiendo
+                ? `${t("previousHalf.title")} ${state.halfNumber}`
+                : cerrada
+                  ? `${t("previousHalf.title")} ${previous.number} · ${t("projection.closed")}`
+                  : ""}
+            </div>
           </div>
         );
       })}
