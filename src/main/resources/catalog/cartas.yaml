@@ -58,7 +58,7 @@ cards:
     description:
       es: "Investiga a las personas fuera de la red del rival: lo que publican es municion."
       en: "Researches people outside the rival network: what they post is ammunition."
-    cost: 3
+    cost: 5
     # Ruido nulo porque ocurre fuera de la red del defensor: no hay nada que detectar.
     noise: NONE
     successRate: 1.0
@@ -75,9 +75,9 @@ cards:
     description:
       es: "Llama haciendose pasar por soporte para sacar informacion. El telefono tambien es un vector."
       en: "Calls posing as support to extract information. The phone is a vector too."
-    cost: 6
+    cost: 4
     noise: MEDIUM
-    successRate: 0.8
+    successRate: 0.90
     duration: INSTANT
     unlocks: [ACCESS]
     bonus:
@@ -128,9 +128,9 @@ cards:
     description:
       es: "Prueba contrasenas hasta acertar. Barata, escandalosa y muerta frente al doble factor."
       en: "Tries passwords until one works. Cheap, loud and dead against MFA."
-    cost: 6
+    cost: 5
     noise: HIGH
-    successRate: 0.45
+    successRate: 0.55
     duration: INSTANT
     unlocks: [ESCALATION]
 
@@ -158,7 +158,7 @@ cards:
       en: "Drops USB sticks in the car park. Skips the whole perimeter if someone bites."
     cost: 5
     noise: NONE
-    successRate: 0.35
+    successRate: 0.50
     duration: INSTANT
     unlocks: [ESCALATION]
 
@@ -243,8 +243,8 @@ cards:
     successRate: 0.70
     duration: PERMANENT
     impact:
-      AVAILABILITY: -35
-      INTEGRITY: -20
+      AVAILABILITY: -50
+      INTEGRITY: -30
 
   - id: exfiltracion-datos
     type: ACTION
@@ -259,7 +259,7 @@ cards:
     successRate: 0.70
     duration: PERMANENT
     impact:
-      CONFIDENTIALITY: -30
+      CONFIDENTIALITY: -45
 
   - id: defacement
     type: ACTION
@@ -274,7 +274,7 @@ cards:
     successRate: 0.75
     duration: PERMANENT
     impact:
-      INTEGRITY: -20
+      INTEGRITY: -35
 
   - id: ddos
     type: ACTION
@@ -287,11 +287,11 @@ cards:
     cost: 14
     noise: HIGH
     successRate: 0.85
-    # Unico impacto temporal del catalogo: ensena que no todo ataque deja dano permanente.
+    # Impacto temporal del catalogo: ensena que no todo ataque deja dano permanente.
     duration: ROUNDS
-    rounds: 2
+    rounds: 3
     impact:
-      AVAILABILITY: -30
+      AVAILABILITY: -45
 
   # ---------------------------------------------------------------------
   # DEFENSOR - HIGIENE BASICA
@@ -323,14 +323,14 @@ cards:
     description:
       es: "Tapa los fallos conocidos hasta hoy. Hay que repetirlo: parchear no se acaba nunca."
       en: "Closes the flaws known so far. Must be repeated: patching never ends."
-    cost: 9
+    cost: 10
     noise: NONE
     successRate: 1.0
     # Caduca a proposito: obliga a volver a gastar en ello cada dos rondas.
     duration: ROUNDS
     rounds: 2
     counters:
-      explotar-vulnerabilidad: 0.10
+      explotar-vulnerabilidad: 0.30
 
   - id: formacion-usuarios
     type: ACTION
@@ -362,7 +362,7 @@ cards:
     successRate: 1.0
     duration: PERMANENT
     counters:
-      usb-infectado: 0.0
+      usb-infectado: 0.15
 
   # ---------------------------------------------------------------------
   # DEFENSOR - ARQUITECTURA
@@ -393,11 +393,11 @@ cards:
     description:
       es: "Filtra lo que entra por el perimetro. La capa clasica."
       en: "Filters what comes through the perimeter. The classic layer."
-    cost: 15
+    cost: 18
     noise: NONE
     successRate: 1.0
     duration: PERMANENT
-    mitigation: 5
+    mitigation: 4
     counters:
       ddos: 0.50
       defacement: 0.50
@@ -418,7 +418,7 @@ cards:
     duration: PERMANENT
     counters:
       # No impide el robo, lo vuelve inutil: recorta el dano, no el acierto.
-      exfiltracion-datos: 0.20
+      exfiltracion-datos: 0.40
 
   - id: minimo-privilegio
     type: ACTION
@@ -523,7 +523,7 @@ cards:
     successRate: 1.0
     duration: PERMANENT
     counters:
-      ransomware: 0.35
+      ransomware: 0.55
 
   - id: restaurar-copia
     type: ACTION
@@ -549,14 +549,14 @@ cards:
     description:
       es: "El boton de emergencia: corta el ataque de esta ronda pero no repara nada."
       en: "The emergency button: cuts this round's attack but repairs nothing."
-    cost: 5
+    cost: 8
     noise: NONE
     successRate: 1.0
     # La mitigacion solo cuenta mientras la carta este activa, y con INSTANT no
     # llegaba a estarlo: una ronda es justo lo que dura el boton de emergencia.
     duration: ROUNDS
     rounds: 1
-    mitigation: 15
+    mitigation: 8
 
   - id: plan-respuesta
     type: ACTION
@@ -566,7 +566,7 @@ cards:
     description:
       es: "No hace nada por si sola: abarata el resto de respuestas. Preparar el incendio antes del fuego."
       en: "Does nothing alone: makes every other response cheaper. Prepare before the fire."
-    cost: 17
+    cost: 13
     noise: NONE
     successRate: 1.0
     duration: PERMANENT

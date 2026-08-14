@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import java.util.concurrent.CopyOnWriteArrayList;
+
 /**
  * Arranca limpia (triada a 100 y presupuestos al inicial) y con los bandos
  * cambiados respecto a la anterior, para que las dos sean comparables.
@@ -27,7 +29,7 @@ public final class Half {
     private final GameSettings settings;
     private final List<Round> rounds = new ArrayList<>();
     private final Map<TeamId, Integer> budgets = new EnumMap<>(TeamId.class);
-    private final List<ActiveCard> activeCards = new ArrayList<>();
+    private final List<ActiveCard> activeCards = new CopyOnWriteArrayList<>();
     /** El atacante empieza pudiendo hacer reconocimiento y nada mas. */
     private final EnumSet<KillChainPhase> unlockedPhases = EnumSet.of(KillChainPhase.RECON);
     /** Ataque anticipado -> carta con la que se anticipo. */
