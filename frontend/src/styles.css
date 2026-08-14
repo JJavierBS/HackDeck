@@ -647,6 +647,67 @@ ul {
   font-size: 2.4rem;
 }
 
+/* Las dos defensas enfrentadas: es la comparacion que decide el match, asi
+   que ocupan la pantalla a partes iguales. */
+.proyeccion-marcador {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--borde);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0;
+}
+
+.proyeccion-marcador > div {
+  background: var(--neutral-950);
+  padding: 1.5rem 2rem 1rem;
+}
+
+.proyeccion-marcador .marca-valor {
+  font-size: 2.4rem;
+}
+
+.proyeccion-marcador .pilar-cabecera {
+  font-size: 1.3rem;
+}
+
+.proyeccion-marcador-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.proyeccion-total {
+  text-align: right;
+}
+
+.proyeccion-total .codigo {
+  font-size: 2.8rem;
+  letter-spacing: 0.08em;
+  display: block;
+}
+
+/* La mitad ya cerrada no compite con la que se esta jugando. */
+.triada-cerrada {
+  opacity: 0.75;
+}
+
+.triada-pendiente {
+  opacity: 0.35;
+}
+
+.triada-cerrada .pilar-relleno {
+  background: var(--neutral-600);
+}
+
+.proyeccion-pie {
+  margin-top: 0.75rem;
+  min-height: 1rem;
+}
+
 .proyeccion-triada .pilar-cabecera {
   font-size: 1.5rem;
 }
@@ -1037,6 +1098,111 @@ ul {
   }
 }
 
+/* Espera a pantalla completa: mismo spinner, centrado y sin caja, para que no
+   parezca un error cuando lo unico que pasa es que aun no hay estado. */
+.carga-pantalla {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  color: var(--texto-meta);
+  padding: 3rem 0;
+  animation: entrar-tenue 0.6s ease both;
+}
+
+.carga-pantalla-grande {
+  min-height: 60vh;
+  font-size: 1.1rem;
+}
+
+.carga-pantalla-grande .spinner-mono {
+  width: 28px;
+  height: 28px;
+}
+
+/* Aparece con retardo: si la respuesta llega rapido no llega a verse, y asi
+   no da un parpadeo por cada peticion corta. */
+@keyframes entrar-tenue {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Desenlace del match
+   ---------------------------------------------------------------------- */
+
+.resultado {
+  animation: entrar-resultado 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.resultado-titular {
+  font-family: var(--mono);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0.5rem 0;
+  color: var(--texto-fuerte);
+}
+
+/* La victoria se celebra y la derrota no: el filete y el latido solo salen
+   ganando, y al perder el panel se queda apagado a proposito. */
+.resultado-victoria {
+  border-color: color-mix(in srgb, var(--verde) 45%, transparent);
+  animation:
+    entrar-resultado 0.5s cubic-bezier(0.16, 1, 0.3, 1) both,
+    latido-victoria 2.4s ease-in-out 0.5s 3;
+}
+
+.resultado-victoria .resultado-titular {
+  color: var(--verde);
+}
+
+.resultado-derrota {
+  border-color: color-mix(in srgb, var(--rojo) 35%, transparent);
+}
+
+.resultado-derrota .resultado-titular {
+  color: var(--rojo);
+}
+
+.resultado-empate .resultado-titular {
+  color: var(--acento);
+}
+
+@keyframes entrar-resultado {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes latido-victoria {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--verde) 22%, transparent);
+  }
+}
+
+.proyeccion-resultado {
+  animation:
+    entrar-resultado 0.6s cubic-bezier(0.16, 1, 0.3, 1) both,
+    latido-victoria 2.4s ease-in-out 0.6s 3;
+  border-color: color-mix(in srgb, var(--acento) 45%, transparent);
+}
+
 /* ----------------------------------------------------------------------
    Lista de cola interactiva (retirar y reordenar)
    ---------------------------------------------------------------------- */
@@ -1133,5 +1299,9 @@ ul {
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
+    /* El estado final se conserva (both/forwards): quitar el movimiento no
+       puede dejar un panel invisible ni un spinner congelado a medias. */
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
