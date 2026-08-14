@@ -22,7 +22,10 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
         </div>
         <p className="landing-lede">{t("landing.hero.lede")}</p>
         <div className="grupo-botones">
-          <button onClick={onEnterGame}>{t("landing.hero.cta.play")}</button>
+          <button className="boton-principal-destacado" onClick={onEnterGame}>
+            <span>{t("landing.hero.cta.play")}</span>
+            <span className="boton-icono" aria-hidden="true">→</span>
+          </button>
           <button onClick={() => scrollToSection("mecanicas")}>{t("landing.hero.cta.learn")}</button>
           <a
             href="https://github.com/JJavierBS/HackDeck"
@@ -69,18 +72,65 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
       </section>
 
       <section className="seccion-landing">
-        <div className="grid-tres">
-          <div className="placeholder-captura">
-            <span className="placeholder-captura-icono">🖥️</span>
-            <p>{t("landing.shots.p1")}</p>
+        <h2>{t("landing.shots.kicker")}</h2>
+        <div className="galeria-capturas">
+          <div className="tarjeta-captura tarjeta-captura-destacada">
+            <div className="captura-marco">
+              <img
+                src="/capturas/proyector.png"
+                alt={t("landing.shots.proyector.title")}
+                className="captura-img"
+                loading="lazy"
+              />
+            </div>
+            <div className="captura-info">
+              <h4>{t("landing.shots.proyector.title")}</h4>
+              <p>{t("landing.shots.proyector.desc")}</p>
+            </div>
           </div>
-          <div className="placeholder-captura">
-            <span className="placeholder-captura-icono">🎛️</span>
-            <p>{t("landing.shots.p2")}</p>
-          </div>
-          <div className="placeholder-captura">
-            <span className="placeholder-captura-icono">📊</span>
-            <p>{t("landing.shots.p3")}</p>
+          <div className="grid-tres-capturas">
+            <div className="tarjeta-captura">
+              <div className="captura-marco">
+                <img
+                  src="/capturas/atack.png"
+                  alt={t("landing.shots.atack.title")}
+                  className="captura-img"
+                  loading="lazy"
+                />
+              </div>
+              <div className="captura-info">
+                <h4>{t("landing.shots.atack.title")}</h4>
+                <p>{t("landing.shots.atack.desc")}</p>
+              </div>
+            </div>
+            <div className="tarjeta-captura">
+              <div className="captura-marco">
+                <img
+                  src="/capturas/deffend.png"
+                  alt={t("landing.shots.deffend.title")}
+                  className="captura-img"
+                  loading="lazy"
+                />
+              </div>
+              <div className="captura-info">
+                <h4>{t("landing.shots.deffend.title")}</h4>
+                <p>{t("landing.shots.deffend.desc")}</p>
+              </div>
+            </div>
+            <div className="tarjeta-captura">
+              <div className="captura-marco">
+                <img
+                  src="/capturas/instructor.png"
+                  alt={t("landing.shots.instructor.title")}
+                  className="captura-img"
+                  loading="lazy"
+                />
+              </div>
+              <div className="captura-info">
+                <h4>{t("landing.shots.instructor.title")}</h4>
+                <p>{t("landing.shots.instructor.desc")}</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -108,7 +158,10 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
         <p className="landing-lede" style={{ margin: "0 auto 1.5rem" }}>
           {t("landing.cta.lede")}
         </p>
-        <button onClick={onEnterGame}>{t("landing.hero.cta.play")}</button>
+        <button className="boton-principal-destacado" onClick={onEnterGame}>
+          <span>{t("landing.hero.cta.play")}</span>
+          <span className="boton-icono" aria-hidden="true">→</span>
+        </button>
       </section>
 
       <footer className="landing-footer">

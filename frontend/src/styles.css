@@ -954,32 +954,124 @@ ul {
   border-color: var(--acento) !important;
 }
 
-.placeholder-captura {
-  background: var(--neutral-900);
-  border: 1px dashed var(--borde-fuerte);
-  border-radius: var(--radio);
-  padding: 3rem 1.5rem;
-  text-align: center;
-  color: var(--texto-meta);
-  font-family: var(--mono);
-  font-size: 0.85rem;
+/* Boton CTA principal destacado (Landing) */
+.boton-principal-destacado {
+  background: var(--acento);
+  color: var(--neutral-950) !important;
+  font-weight: 700;
+  border: 1px solid var(--acento);
+  padding: 0.75rem 1.75rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, background 0.2s ease;
+}
+
+.boton-principal-destacado:hover:not(:disabled) {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: var(--neutral-950) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4);
+  filter: brightness(1.05);
+}
+
+.boton-principal-destacado .boton-icono {
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.boton-principal-destacado:hover .boton-icono {
+  transform: translateX(4px);
+}
+
+/* ----------------------------------------------------------------------
+   Galeria de Capturas (Landing)
+   ---------------------------------------------------------------------- */
+
+.galeria-capturas {
   display: flex;
   flex-direction: column;
+  gap: 1.75rem;
+  margin-bottom: 3.5rem;
+}
+
+.grid-tres-capturas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.tarjeta-captura {
+  background: var(--panel-claro);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tarjeta-captura:hover {
+  border-color: var(--borde-fuerte);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transform: translateY(-3px);
+}
+
+.tarjeta-captura-destacada {
+  border-color: color-mix(in srgb, var(--acento) 35%, var(--borde));
+  background: color-mix(in srgb, var(--panel-claro) 96%, var(--acento));
+}
+
+.tarjeta-captura-destacada:hover {
+  border-color: var(--acento);
+}
+
+.captura-marco {
+  width: 100%;
+  background: var(--neutral-950);
+  border-bottom: 1px solid var(--borde);
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  min-height: 220px;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
+  overflow: hidden;
 }
 
-.placeholder-captura:hover {
-  border-color: var(--acento);
-  background: var(--neutral-950);
+.captura-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.4s ease, filter 0.4s ease;
 }
 
-.placeholder-captura-icono {
-  font-size: 1.8rem;
-  color: var(--acento);
+.tarjeta-captura:hover .captura-img {
+  transform: scale(1.015);
+}
+
+.captura-info {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.captura-info h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--texto-fuerte);
+  margin: 0;
+}
+
+.captura-info p {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--texto-tenue);
+  margin: 0;
 }
 
 .landing-cta-box {
