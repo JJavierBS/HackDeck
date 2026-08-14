@@ -111,7 +111,12 @@ public final class Half {
         return activeCards.stream().anyMatch(card -> card.cardId().equals(cardId));
     }
 
+    /**
+     * Una carta no se apila consigo misma: volver a desplegarla renueva su
+     * duracion en lugar de duplicar su mitigacion y multiplicar su counter.
+     */
     public void activate(ActiveCard card) {
+        deactivate(card.cardId());
         activeCards.add(card);
     }
 
