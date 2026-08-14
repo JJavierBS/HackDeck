@@ -22,6 +22,7 @@ public record GameView(
         Integer yourBudget,
         Map<String, Integer> budgets,
         Map<String, Integer> ciaLevels,
+        HalfSummaryView previousHalf,
         String attackingTeam,
         String roundDeadlineAt,
         Boolean autoResolve,

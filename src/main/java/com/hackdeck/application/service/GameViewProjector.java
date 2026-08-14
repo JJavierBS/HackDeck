@@ -5,6 +5,7 @@ import com.hackdeck.application.view.ActiveCardView;
 import com.hackdeck.application.view.EventDetailView;
 import com.hackdeck.application.view.EventView;
 import com.hackdeck.application.view.GameView;
+import com.hackdeck.application.view.HalfSummaryView;
 import com.hackdeck.application.view.MatchHistoryView;
 import com.hackdeck.application.view.MatchResultView;
 import com.hackdeck.application.view.QueuedActionView;
@@ -62,6 +63,7 @@ public final class GameViewProjector {
                 viewerTeam == null || half == null ? null : half.budgetOf(viewerTeam),
                 viewer.isInstructor() && half != null ? budgetsOf(half) : null,
                 half == null ? null : ciaLevelsOf(half),
+                previousHalfOf(game),
                 half == null ? null : half.attackingTeam().name(),
                 half == null ? null : game.roundDeadline().map(Instant::toString).orElse(null),
                 game.isAutoResolve(),
@@ -131,6 +133,25 @@ public final class GameViewProjector {
         Map<String, Integer> budgets = new LinkedHashMap<>();
         half.budgets().forEach((team, budget) -> budgets.put(team.name(), budget));
         return budgets;
+    }
+
+    /**
+     * La mitad anterior se ve entera y sin filtrar: al cerrarse ya no queda
+     * niebla que proteger, y su triada es la marca que hay que batir.
+     */
+    private static HalfSummaryView previousHalfOf(Game game) {
+        List<Half> halves = game.halves();
+        if (halves.size() < 2) {
+            return null;
+        }
+        Half previous = halves.get(halves.size() - 2);
+        return new HalfSummaryView(
+                previous.number(),
+                previous.attackingTeam().name(),
+                previous.defendingTeam().name(),
+                ciaLevelsOf(previous),
+                previous.defendedCia(),
+                previous.takedownRound());
     }
 
     private static Map<String, Integer> ciaLevelsOf(Half half) {

@@ -8,6 +8,7 @@ import { RivalDefences } from "../components/RivalDefences";
 import { CardPicker } from "../components/CardPicker";
 import { PowerUpPicker } from "../components/PowerUpPicker";
 import { CiaPanel } from "../components/CiaPanel";
+import { PreviousHalfPanel } from "../components/PreviousHalfPanel";
 import { EventLog } from "../components/EventLog";
 import { GameHeader } from "../components/GameHeader";
 import { RoundTimer } from "../components/RoundTimer";
@@ -128,6 +129,7 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
         </div>
         <div>
           <CiaPanel state={state} />
+          <PreviousHalfPanel state={state} />
           {attacking && <KillChainPanel unlocked={state.yourKillChain} />}
           {state.phase === "IN_PROGRESS" && (
             <PowerUpPicker cards={cards} state={state} onPlay={play} pending={pending} />

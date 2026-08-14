@@ -70,6 +70,16 @@ export function ProjectionView({ session }: { session: GameSession }) {
               </div>
             ))}
           </section>
+          {state.previousHalf !== null && (
+            <section className="proyeccion-anterior">
+              <span className="marca-etiqueta">
+                {t("previousHalf.title")} {state.previousHalf.number} ·{" "}
+                {state.teams[state.previousHalf.defendingTeam]}
+              </span>
+              <span className="codigo">{state.previousHalf.defendedCia}</span>
+              <span className="marca-etiqueta">{t("previousHalf.toBeat")}</span>
+            </section>
+          )}
         </>
       )}
 

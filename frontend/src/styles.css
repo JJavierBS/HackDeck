@@ -398,6 +398,28 @@ ul {
   background: var(--rojo);
 }
 
+/* La mitad ya jugada: misma forma que la triada viva pero apagada, para que
+   se comparen sin competir. */
+
+.mitad-anterior .pilar-relleno {
+  background: var(--neutral-600);
+}
+
+.mitad-anterior .marca-valor {
+  margin: 0.75rem 0 0;
+}
+
+.proyeccion-anterior {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.proyeccion-anterior .codigo {
+  font-size: 3rem;
+  letter-spacing: 0.1em;
+}
+
 /* ----------------------------------------------------------------------
    Cartas y chips
    ---------------------------------------------------------------------- */

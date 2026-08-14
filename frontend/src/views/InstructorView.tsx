@@ -3,6 +3,7 @@ import type { GameStateDto, RestClient } from "../api/restClient";
 import type { GameSession } from "../api/session";
 import { useCatalog } from "../api/useCatalog";
 import { CiaPanel } from "../components/CiaPanel";
+import { PreviousHalfPanel } from "../components/PreviousHalfPanel";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { EventLog } from "../components/EventLog";
 import { ReplayPanel } from "../components/ReplayPanel";
@@ -150,6 +151,7 @@ export function InstructorView({ client, session, state, onChange }: InstructorV
         </div>
         <div>
           <CiaPanel state={state} />
+          <PreviousHalfPanel state={state} />
           {state.phase === "FINISHED" ? (
             <ReplayPanel client={client} session={session} cards={cards} />
           ) : (

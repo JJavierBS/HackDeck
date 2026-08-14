@@ -118,11 +118,22 @@ export interface GameEventDto {
  * corresponden llegan a null: no es que se oculten al pintar, es que no
  * vienen en la respuesta.
  */
+export interface HalfSummaryDto {
+  number: number;
+  attackingTeam: "A" | "B";
+  defendingTeam: "A" | "B";
+  ciaLevels: Record<string, number>;
+  defendedCia: number;
+  takedownRound: number | null;
+}
+
 export interface GameStateDto {
   gameId: string;
   joinCode: string;
   phase: "PREPARATION" | "IN_PROGRESS" | "FINISHED";
   ciaLevels: Record<string, number> | null;
+  /** Como quedo la mitad ya cerrada: la marca que hay que batir. */
+  previousHalf: HalfSummaryDto | null;
   halfNumber: number | null;
   currentRoundNumber: number;
   roundsPerHalf: number;
