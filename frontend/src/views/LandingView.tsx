@@ -1,15 +1,68 @@
+import { useState, useEffect } from "react";
 import { useLanguage } from "../i18n/LanguageContext";
 
 interface LandingViewProps {
   onEnterGame: () => void;
 }
 
+interface CapturaInfo {
+  id: string;
+  src: string;
+  titulo: string;
+  desc: string;
+  destacada: boolean;
+}
+
 export function LandingView({ onEnterGame }: LandingViewProps) {
   const { t } = useLanguage();
+  const [imagenAmpliada, setImagenAmpliada] = useState<CapturaInfo | null>(null);
+
+  useEffect(() => {
+    if (!imagenAmpliada) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setImagenAmpliada(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [imagenAmpliada]);
+
+  const capturas: CapturaInfo[] = [
+    {
+      id: "proyector",
+      src: "/capturas/proyector.png",
+      titulo: t("landing.shots.proyector.title"),
+      desc: t("landing.shots.proyector.desc"),
+      destacada: true,
+    },
+    {
+      id: "atack",
+      src: "/capturas/atack.png",
+      titulo: t("landing.shots.atack.title"),
+      desc: t("landing.shots.atack.desc"),
+      destacada: false,
+    },
+    {
+      id: "deffend",
+      src: "/capturas/deffend.png",
+      titulo: t("landing.shots.deffend.title"),
+      desc: t("landing.shots.deffend.desc"),
+      destacada: false,
+    },
+    {
+      id: "instructor",
+      src: "/capturas/instructor.png",
+      titulo: t("landing.shots.instructor.title"),
+      desc: t("landing.shots.instructor.desc"),
+      destacada: false,
+    },
+  ];
 
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const proyectorCaptura = capturas.find((c) => c.destacada)!;
+  const restoCapturas = capturas.filter((c) => !c.destacada);
 
   return (
     <main>
@@ -73,64 +126,80 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
 
       <section className="seccion-landing">
         <h2>{t("landing.shots.kicker")}</h2>
+        <p className="seccion-landing-hint">
+          <span aria-hidden="true">🔍</span>
+          <span>{t("landing.shots.hint")}</span>
+        </p>
         <div className="galeria-capturas">
-          <div className="tarjeta-captura tarjeta-captura-destacada">
+          <div
+            className="tarjeta-captura tarjeta-captura-destacada"
+            onClick={() => setImagenAmpliada(proyectorCaptura)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setImagenAmpliada(proyectorCaptura);
+              }
+            }}
+            aria-label={`${proyectorCaptura.titulo} - ${t("landing.shots.expand")}`}
+          >
             <div className="captura-marco">
               <img
-                src="/capturas/proyector.png"
-                alt={t("landing.shots.proyector.title")}
+                src={proyectorCaptura.src}
+                alt={proyectorCaptura.titulo}
                 className="captura-img"
                 loading="lazy"
               />
+              <div className="captura-zoom-badge" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                </svg>
+                <span>{t("landing.shots.expand")}</span>
+              </div>
             </div>
             <div className="captura-info">
-              <h4>{t("landing.shots.proyector.title")}</h4>
-              <p>{t("landing.shots.proyector.desc")}</p>
+              <h4>{proyectorCaptura.titulo}</h4>
+              <p>{proyectorCaptura.desc}</p>
             </div>
           </div>
+
           <div className="grid-tres-capturas">
-            <div className="tarjeta-captura">
-              <div className="captura-marco">
-                <img
-                  src="/capturas/atack.png"
-                  alt={t("landing.shots.atack.title")}
-                  className="captura-img"
-                  loading="lazy"
-                />
+            {restoCapturas.map((cap) => (
+              <div
+                key={cap.id}
+                className="tarjeta-captura"
+                onClick={() => setImagenAmpliada(cap)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setImagenAmpliada(cap);
+                  }
+                }}
+                aria-label={`${cap.titulo} - ${t("landing.shots.expand")}`}
+              >
+                <div className="captura-marco">
+                  <img
+                    src={cap.src}
+                    alt={cap.titulo}
+                    className="captura-img"
+                    loading="lazy"
+                  />
+                  <div className="captura-zoom-badge" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                    </svg>
+                    <span>{t("landing.shots.expand")}</span>
+                  </div>
+                </div>
+                <div className="captura-info">
+                  <h4>{cap.titulo}</h4>
+                  <p>{cap.desc}</p>
+                </div>
               </div>
-              <div className="captura-info">
-                <h4>{t("landing.shots.atack.title")}</h4>
-                <p>{t("landing.shots.atack.desc")}</p>
-              </div>
-            </div>
-            <div className="tarjeta-captura">
-              <div className="captura-marco">
-                <img
-                  src="/capturas/deffend.png"
-                  alt={t("landing.shots.deffend.title")}
-                  className="captura-img"
-                  loading="lazy"
-                />
-              </div>
-              <div className="captura-info">
-                <h4>{t("landing.shots.deffend.title")}</h4>
-                <p>{t("landing.shots.deffend.desc")}</p>
-              </div>
-            </div>
-            <div className="tarjeta-captura">
-              <div className="captura-marco">
-                <img
-                  src="/capturas/instructor.png"
-                  alt={t("landing.shots.instructor.title")}
-                  className="captura-img"
-                  loading="lazy"
-                />
-              </div>
-              <div className="captura-info">
-                <h4>{t("landing.shots.instructor.title")}</h4>
-                <p>{t("landing.shots.instructor.desc")}</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -203,6 +272,42 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
           </a>
         </div>
       </footer>
+
+      {imagenAmpliada && (
+        <div
+          className="lightbox-overlay"
+          onClick={() => setImagenAmpliada(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={imagenAmpliada.titulo}
+        >
+          <div
+            className="lightbox-contenedor"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="lightbox-cerrar"
+              onClick={() => setImagenAmpliada(null)}
+              aria-label={t("landing.shots.close")}
+            >
+              <span>✕</span>
+              <span>{t("landing.shots.close")}</span>
+            </button>
+            <div className="lightbox-imagen-marco">
+              <img
+                src={imagenAmpliada.src}
+                alt={imagenAmpliada.titulo}
+                className="lightbox-img"
+              />
+            </div>
+            <div className="lightbox-pie">
+              <h4>{imagenAmpliada.titulo}</h4>
+              <p>{imagenAmpliada.desc}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
