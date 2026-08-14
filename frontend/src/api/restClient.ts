@@ -83,6 +83,7 @@ export interface CardDto {
   cost: number;
   noise: "NONE" | "LOW" | "MEDIUM" | "HIGH";
   successRate: number;
+  duration: "INSTANT" | "ROUNDS" | "PERMANENT";
   impact: Record<string, number>;
   counters: Record<string, number>;
   effects: string[];

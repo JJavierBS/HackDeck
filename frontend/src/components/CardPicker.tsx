@@ -31,6 +31,21 @@ export function CardPicker({ cards, state, onPlay, pending }: CardPickerProps) {
   const groupOf = (card: CardDto) =>
     card.type === "POWERUP" ? "POWERUP" : ((attacking ? card.phase : card.category) ?? "POWERUP");
 
+  /**
+   * Espeja la regla del servidor: una capa que dura no se refuerza repitiendola,
+   * asi que mas vale que el equipo lo vea antes de gastar el clic.
+   */
+  const alreadyDeployed = (card: CardDto): TranslationKey | null => {
+    if (attacking || card.duration === "INSTANT") {
+      return null;
+    }
+    if (state.yourQueuedActions.some((action) => action.cardId === card.id)) {
+      return "card.queued";
+    }
+    const active = state.yourActiveCards.some((layer) => layer.cardId === card.id);
+    return card.duration === "PERMANENT" && active ? "card.deployed" : null;
+  };
+
   return (
     <>
       {[...groups, "POWERUP"].map((group) => {
@@ -51,6 +66,15 @@ export function CardPicker({ cards, state, onPlay, pending }: CardPickerProps) {
               const affordable = card.cost <= budget;
               const phaseLocked =
                 attacking && card.phase !== null && !state.yourKillChain.includes(card.phase);
+              const deployed = alreadyDeployed(card);
+              const blocked = !affordable || pending || phaseLocked || deployed !== null;
+              const label = phaseLocked
+                ? t("card.phaseLocked")
+                : deployed !== null
+                  ? t(deployed)
+                  : affordable
+                    ? t("card.play")
+                    : t("card.noBudget");
               return (
                 <article className="carta" key={card.id}>
                   <div className="carta-cabecera">
@@ -75,6 +99,7 @@ export function CardPicker({ cards, state, onPlay, pending }: CardPickerProps) {
                       </>
                     )}
                     {phaseLocked && <span className="etiqueta">{t("card.phaseLocked")}</span>}
+                    {deployed !== null && <span className="etiqueta">{t(deployed)}</span>}
                   </div>
                   {card.effects.includes("BLOCKS_CHOSEN_ATTACK") ? (
                     <>
@@ -98,26 +123,15 @@ export function CardPicker({ cards, state, onPlay, pending }: CardPickerProps) {
                       </label>
                       <p className="tenue">{t("block.hint")}</p>
                       <button
-                        disabled={!affordable || pending || phaseLocked || anticipado === ""}
+                        disabled={blocked || anticipado === ""}
                         onClick={() => onPlay(card.id, { blocks: anticipado })}
                       >
-                        {phaseLocked
-                          ? t("card.phaseLocked")
-                          : affordable
-                            ? t("card.play")
-                            : t("card.noBudget")}
+                        {label}
                       </button>
                     </>
                   ) : (
-                    <button
-                      disabled={!affordable || pending || phaseLocked}
-                      onClick={() => onPlay(card.id, {})}
-                    >
-                      {phaseLocked
-                        ? t("card.phaseLocked")
-                        : affordable
-                          ? t("card.play")
-                          : t("card.noBudget")}
+                    <button disabled={blocked} onClick={() => onPlay(card.id, {})}>
+                      {label}
                     </button>
                   )}
                 </article>
