@@ -7,8 +7,9 @@ devuelve ya el estado nuevo con lo que paso. Una llamada = una ronda.
 
 Uso (con HD_API, HD_GAME y HD_TOKEN en el entorno):
     hd.py estado
-    hd.py jugar mfa parcheo      # encolar y cerrar la ronda
-    hd.py jugar                  # pasar sin gastar
+    hd.py jugar mfa parcheo              # encolar y cerrar la ronda
+    hd.py jugar aviso-cert:blocks=ddos   # carta con parametro
+    hd.py jugar                          # pasar sin gastar
 """
 import json
 import os
@@ -113,6 +114,23 @@ def pinta(vista, ronda_anterior=None):
     return "\n".join(lineas)
 
 
+def descompone(carta):
+    """`aviso-cert:blocks=ddos` -> ("aviso-cert", {"blocks": "ddos"}).
+
+    Sin esto las cartas con parametro no funcionan y el agente cree que la
+    carta esta rota, cuando lo que falla es el cliente.
+    """
+    if ":" not in carta:
+        return carta, {}
+    nombre, resto = carta.split(":", 1)
+    parametros = {}
+    for pareja in resto.split(","):
+        if "=" in pareja:
+            clave, valor = pareja.split("=", 1)
+            parametros[clave] = valor
+    return nombre, parametros
+
+
 def jugar(cartas):
     antes = estado()
     if antes.get("_error"):
@@ -126,9 +144,10 @@ def jugar(cartas):
     mitad = antes.get("halfNumber")
     fallos = []
     for carta in cartas:
-        respuesta = pide("POST", f"/games/{GAME}/actions", {"cardId": carta, "parameters": {}})
+        nombre, parametros = descompone(carta)
+        respuesta = pide("POST", f"/games/{GAME}/actions", {"cardId": nombre, "parameters": parametros})
         if respuesta and respuesta.get("_error"):
-            fallos.append(f"  {carta}: {respuesta['_error']}")
+            fallos.append(f"  {nombre}: {respuesta['_error']}")
 
     pide("POST", f"/games/{GAME}/rounds/ready")
 

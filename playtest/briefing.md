@@ -22,6 +22,13 @@ cd /home/jose-javier/workspace/HackDeck && HD_API=$HD_API HD_GAME=$HD_GAME HD_TO
 Encola esas cartas, confirma tu jugada, espera a que el rival confirme la suya y te
 devuelve **ya el estado nuevo** con lo que pasó. `jugar` sin cartas = pasar y ahorrar.
 
+Dos cartas necesitan parámetro, y sin él no hacen nada:
+
+- `aviso-cert:blocks=<id-del-ataque>` — el ataque que anticipas (solo vale uno que
+  hayas detectado antes).
+- `restaurar-copia:pillar=<CONFIDENTIALITY|INTEGRITY|AVAILABILITY>` — qué pilar
+  reparas; sin esto repara el suyo por defecto.
+
 Empieza con `... playtest/hd.py estado` y repite `jugar` hasta que la salida empiece
 por `FIN`. Los turnos son simultáneos y a ciegas: no verás la jugada del rival hasta
 que la ronda se resuelva, y solo si la detectas.

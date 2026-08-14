@@ -15,7 +15,11 @@ import urllib.error
 import urllib.request
 
 API = os.environ.get("HD_API", "http://localhost:8080/api/v1")
-AJUSTES = {"roundsPerHalf": 8, "roundTimeoutSeconds": 600, "initialBudget": 150, "incomePerRound": 40}
+# Los del juego (GameSettings.DEFAULTS), salvo el reloj: un agente tarda mas
+# que una persona en decidir y no interesa que la ronda se cierre sola a medias.
+# Tocar el presupuesto invalida la tanda entera: con mas dinero se compra el
+# catalogo completo y desaparecen las decisiones que se quieren medir.
+AJUSTES = {"roundsPerHalf": 6, "roundTimeoutSeconds": 600, "initialBudget": 20, "incomePerRound": 10}
 
 
 def pide(metodo, ruta, cuerpo=None, token=None):
