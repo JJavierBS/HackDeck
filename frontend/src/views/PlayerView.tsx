@@ -6,6 +6,7 @@ import { ActiveLayers } from "../components/ActiveLayers";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { RivalDefences } from "../components/RivalDefences";
 import { CardPicker } from "../components/CardPicker";
+import { PowerUpPicker } from "../components/PowerUpPicker";
 import { CiaPanel } from "../components/CiaPanel";
 import { EventLog } from "../components/EventLog";
 import { GameHeader } from "../components/GameHeader";
@@ -128,6 +129,9 @@ export function PlayerView({ client, session, state, onChange }: PlayerViewProps
         <div>
           <CiaPanel state={state} />
           {attacking && <KillChainPanel unlocked={state.yourKillChain} />}
+          {state.phase === "IN_PROGRESS" && (
+            <PowerUpPicker cards={cards} state={state} onPlay={play} pending={pending} />
+          )}
           <QueuePanel
             state={state}
             cards={cards}
