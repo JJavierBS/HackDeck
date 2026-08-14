@@ -552,7 +552,10 @@ cards:
     cost: 5
     noise: NONE
     successRate: 1.0
-    duration: INSTANT
+    # La mitigacion solo cuenta mientras la carta este activa, y con INSTANT no
+    # llegaba a estarlo: una ronda es justo lo que dura el boton de emergencia.
+    duration: ROUNDS
+    rounds: 1
     mitigation: 15
 
   - id: plan-respuesta
