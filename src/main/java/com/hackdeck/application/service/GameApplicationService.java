@@ -116,7 +116,9 @@ public final class GameApplicationService implements
         Role side = game.sideOf(participant.team());
         ActionIntent intent = game.dequeue(intentId, side);
         if (intent != null) {
-            ActionCard card = ruleEngine.playableCard(game, side, intent.cardId());
+            // Para devolver el dinero basta con saber lo que costo: revalidar si
+            // la carta sigue siendo jugable dejaria acciones imposibles de retirar.
+            ActionCard card = ruleEngine.cardFor(side, intent.cardId());
             int cost = ruleEngine.costOf(game, card);
             game.refund(participant.team(), cost);
             gameRepository.save(game);

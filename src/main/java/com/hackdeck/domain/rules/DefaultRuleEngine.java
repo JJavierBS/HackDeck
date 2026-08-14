@@ -8,6 +8,7 @@ import com.hackdeck.domain.catalog.CardType;
 import com.hackdeck.domain.catalog.DefenseCategory;
 import com.hackdeck.domain.catalog.KillChainPhase;
 import com.hackdeck.domain.catalog.NoiseLevel;
+import com.hackdeck.domain.exception.AlreadyDeployedException;
 import com.hackdeck.domain.exception.MissingRequirementException;
 import com.hackdeck.domain.exception.UnknownCardException;
 import com.hackdeck.domain.model.ActionIntent;
@@ -98,7 +99,34 @@ public final class DefaultRuleEngine implements RuleEngine {
                         "'" + card.nameIn("es") + "' necesita tener antes '" + card(requisito).nameIn("es") + "'");
             }
         }
+        requireNotDeployed(game, side, card);
         return card;
+    }
+
+    /**
+     * Una defensa que dura no se vuelve a desplegar mientras siga en pie: su
+     * efecto es pasivo, asi que repetirla solo serviria para apilar mitigacion
+     * y counters hasta volver la triada intocable, que es justo lo contrario de
+     * la defensa en profundidad. Las de ROUNDS si se pueden renovar (parchear
+     * no se acaba nunca), pero no dos veces en la misma ronda.
+     *
+     * El atacante no tiene este limite: repetir un ataque vuelve a aplicar su
+     * impacto, asi que paga otra vez por golpear otra vez.
+     */
+    private void requireNotDeployed(Game game, Role side, ActionCard card) {
+        if (side != Role.DEFENDER || card.duration() == CardDuration.INSTANT) {
+            return;
+        }
+        boolean encolada = game.currentRound().queuedActions().stream()
+                .anyMatch(intent -> intent.team() == side && intent.cardId().equals(card.id()));
+        if (encolada) {
+            throw new AlreadyDeployedException(
+                    "Ya has encolado '" + card.nameIn("es") + "' esta ronda");
+        }
+        if (card.duration() == CardDuration.PERMANENT && game.currentHalf().isActive(card.id())) {
+            throw new AlreadyDeployedException(
+                    "'" + card.nameIn("es") + "' ya esta desplegada y no se refuerza repitiendola");
+        }
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.hackdeck.adapter.rest;
 import com.hackdeck.adapter.rest.dto.ApiErrorResponse;
 import com.hackdeck.adapter.rest.security.UnauthenticatedException;
 import com.hackdeck.application.exception.AccessDeniedException;
+import com.hackdeck.domain.exception.AlreadyDeployedException;
 import com.hackdeck.domain.exception.GameNotFoundException;
 import com.hackdeck.domain.exception.GameNotJoinableException;
 import com.hackdeck.domain.exception.InsufficientBudgetException;
@@ -44,6 +45,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MissingRequirementException.class)
     public ResponseEntity<ApiErrorResponse> handleMissingRequirement(MissingRequirementException e) {
         return build(HttpStatus.CONFLICT, "falta_requisito", e.getMessage());
+    }
+
+    @ExceptionHandler(AlreadyDeployedException.class)
+    public ResponseEntity<ApiErrorResponse> handleAlreadyDeployed(AlreadyDeployedException e) {
+        return build(HttpStatus.CONFLICT, "carta_ya_desplegada", e.getMessage());
     }
 
     @ExceptionHandler(UnknownCardException.class)
