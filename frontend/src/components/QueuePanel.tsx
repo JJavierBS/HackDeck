@@ -70,7 +70,7 @@ export function QueuePanel({ state, cards, disabled = false, onRemove, onReorder
                     onClick={() => onRemove?.(action.intentId)}
                     title={t("queue.remove")}
                   >
-                    ✕
+                    x
                   </button>
                 </div>
               )}

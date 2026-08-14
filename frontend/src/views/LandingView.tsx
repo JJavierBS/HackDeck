@@ -127,7 +127,6 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
       <section className="seccion-landing">
         <h2>{t("landing.shots.kicker")}</h2>
         <p className="seccion-landing-hint">
-          <span aria-hidden="true">🔍</span>
           <span>{t("landing.shots.hint")}</span>
         </p>
         <div className="galeria-capturas">
@@ -291,7 +290,6 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
               onClick={() => setImagenAmpliada(null)}
               aria-label={t("landing.shots.close")}
             >
-              <span>✕</span>
               <span>{t("landing.shots.close")}</span>
             </button>
             <div className="lightbox-imagen-marco">
