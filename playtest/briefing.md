@@ -57,45 +57,45 @@ positivo repara.
 
 ```
 [ATTACKER ACCESS]
-phishing c10 | 55% | ruido:medium | abre:ESCALATION
-fuerza-bruta c6 | 45% | ruido:high | abre:ESCALATION
-explotar-vulnerabilidad c12 | 60% | ruido:low | abre:ESCALATION
-usb-infectado c5 | 35% | ruido:none | abre:ESCALATION
+phishing c10 | 65% | ruido:medium | abre:ESCALATION
+fuerza-bruta c5 | 60% | ruido:high | abre:ESCALATION
+explotar-vulnerabilidad c12 | 70% | ruido:low | abre:ESCALATION
+usb-infectado c5 | 55% | ruido:none | abre:ESCALATION
 [ATTACKER ESCALATION]
-robo-credenciales c14 | 55% | ruido:medium | abre:IMPACT | dura:fija | efecto:AMPLIFIES_IMPACT
-movimiento-lateral c10 | 60% | ruido:medium | abre:IMPACT
-puerta-trasera c11 | 65% | ruido:low | abre:IMPACT | dura:fija | efecto:PERSISTENCE
-permisos-mal-configurados c5 | 75% | ruido:low | abre:IMPACT
+robo-credenciales c14 | 70% | ruido:medium | abre:IMPACT | dura:fija | efecto:AMPLIFIES_IMPACT
+movimiento-lateral c10 | 75% | ruido:medium | abre:IMPACT
+puerta-trasera c11 | 75% | ruido:low | abre:IMPACT | dura:fija | efecto:PERSISTENCE
+permisos-mal-configurados c5 | 80% | ruido:low | abre:IMPACT
 [ATTACKER IMPACT]
-ransomware c22 | 70% | ruido:high | I-20 D-35 | dura:fija
-exfiltracion-datos c16 | 70% | ruido:low | C-30 | dura:fija
-defacement c12 | 75% | ruido:high | I-20 | dura:fija
-ddos c14 | 85% | ruido:high | D-30 | dura:2r
+ransomware c22 | 70% | ruido:high | D-50 I-30 | dura:fija
+exfiltracion-datos c16 | 70% | ruido:low | C-45 | dura:fija
+defacement c12 | 75% | ruido:high | I-35 | dura:fija
+ddos c14 | 85% | ruido:high | D-45 | dura:3r
 [ATTACKER RECON]
 escaneo-puertos c4 | 100% | ruido:high | abre:ACCESS | mejora:explotar-vulnerabilidad(+0.2)
-osint-redes c3 | 100% | ruido:none | abre:ACCESS | mejora:phishing(+0.3)
-vishing c6 | 80% | ruido:medium | abre:ACCESS | mejora:phishing(+0.15),fuerza-bruta(+0.15)
+osint-redes c5 | 100% | ruido:none | abre:ACCESS | mejora:phishing(+0.3)
+vishing c4 | 90% | ruido:medium | abre:ACCESS | mejora:phishing(+0.15),fuerza-bruta(+0.15)
 escaneo-vulnerabilidades c7 | 100% | ruido:high | abre:ACCESS | mejora:explotar-vulnerabilidad(+0.25) | efecto:REVEALS_DEFENCES
 [DEFENDER ARCHITECTURE]
 segmentacion-red c20 | mitiga8 | frena:movimiento-lateral(0.15) | dura:fija
-cortafuegos-waf c15 | mitiga5 | frena:ddos(0.5),defacement(0.5),escaneo-puertos(0.5),escaneo-vulnerabilidades(0.5) | dura:fija
-cifrado-datos c14 | frena:exfiltracion-datos(0.2) | dura:fija
-minimo-privilegio c18 | mitiga4 | frena:permisos-mal-configurados(0.0),robo-credenciales(0.5) | dura:fija
+cortafuegos-waf c18 | mitiga4 | frena:escaneo-vulnerabilidades(0.5),ddos(0.5),defacement(0.5),escaneo-puertos(0.5) | dura:fija
+cifrado-datos c14 | frena:exfiltracion-datos(0.4) | dura:fija
+minimo-privilegio c18 | mitiga4 | frena:robo-credenciales(0.5),permisos-mal-configurados(0.0) | dura:fija
 [DEFENDER DETECTION]
 monitorizacion-ids c13 | detecta2 | dura:fija
 revision-logs c5 | detecta3 | efecto:REVEALS_PREVIOUS_ROUND
 antivirus-edr c12 | detecta1 | frena:puerta-trasera(0.4),ransomware(0.6) | dura:fija
 caza-amenazas c16 | detecta2 | frena:puerta-trasera(0.0) | efecto:REMOVES_PERSISTENCE
 [DEFENDER HYGIENE]
-mfa c10 | frena:fuerza-bruta(0.1),phishing(0.7) | dura:fija
-parcheo c9 | frena:explotar-vulnerabilidad(0.1) | dura:2r
-formacion-usuarios c7 | frena:vishing(0.65),phishing(0.65) | dura:fija
-bloqueo-usb c4 | frena:usb-infectado(0.0) | dura:fija
+mfa c10 | frena:fuerza-bruta(0.2),phishing(0.7) | dura:fija
+parcheo c10 | frena:explotar-vulnerabilidad(0.3) | dura:2r
+formacion-usuarios c7 | frena:phishing(0.65),vishing(0.65) | dura:fija
+bloqueo-usb c4 | frena:usb-infectado(0.15) | dura:fija
 [DEFENDER RESPONSE]
-copias-seguridad c13 | frena:ransomware(0.35) | dura:fija
+copias-seguridad c13 | frena:ransomware(0.55) | dura:fija
 restaurar-copia c6 | D+25 | necesita:copias-seguridad
-aislar-equipo c5 | mitiga15 | dura:1r
-plan-respuesta c17 | dura:fija | efecto:CHEAPER_RESPONSE
+aislar-equipo c8 | mitiga8 | dura:1r
+plan-respuesta c13 | dura:fija | efecto:CHEAPER_RESPONSE
 [ESPECIALES ATTACKER]
 exploit-dia-cero c30 | 100% | ruido:none | efecto:IGNORES_COUNTERS
 botnet-alquilada c28 | 100% | ruido:none | efecto:DOUBLE_IMPACT

@@ -116,7 +116,7 @@ cards:
       en: "Email with a malicious link. Much better if recon was done first."
     cost: 10
     noise: MEDIUM
-    successRate: 0.55
+    successRate: 0.65
     duration: INSTANT
     unlocks: [ESCALATION]
 
@@ -130,7 +130,7 @@ cards:
       en: "Tries passwords until one works. Cheap, loud and dead against MFA."
     cost: 5
     noise: HIGH
-    successRate: 0.55
+    successRate: 0.60
     duration: INSTANT
     unlocks: [ESCALATION]
 
@@ -144,7 +144,7 @@ cards:
       en: "Abuses an unpatched flaw. Quiet and effective unless the rival patched."
     cost: 12
     noise: LOW
-    successRate: 0.60
+    successRate: 0.70
     duration: INSTANT
     unlocks: [ESCALATION]
 
@@ -158,7 +158,7 @@ cards:
       en: "Drops USB sticks in the car park. Skips the whole perimeter if someone bites."
     cost: 5
     noise: NONE
-    successRate: 0.50
+    successRate: 0.55
     duration: INSTANT
     unlocks: [ESCALATION]
 
@@ -177,7 +177,7 @@ cards:
       en: "Turns any foothold into admin access and multiplies later damage."
     cost: 14
     noise: MEDIUM
-    successRate: 0.55
+    successRate: 0.70
     duration: PERMANENT
     unlocks: [IMPACT]
     effects: [AMPLIFIES_IMPACT]
@@ -192,7 +192,7 @@ cards:
       en: "Hops from the compromised machine to a juicier one. Segmentation nearly kills it."
     cost: 10
     noise: MEDIUM
-    successRate: 0.60
+    successRate: 0.75
     duration: INSTANT
     unlocks: [IMPACT]
 
@@ -206,7 +206,7 @@ cards:
       en: "Deals no damage: keeps access even after cleanup. Evicting is not locking the door."
     cost: 11
     noise: LOW
-    successRate: 0.65
+    successRate: 0.75
     duration: PERMANENT
     unlocks: [IMPACT]
     effects: [PERSISTENCE]
@@ -221,7 +221,7 @@ cards:
       en: "Abuses what nobody reviewed. Almost always works, except against least privilege."
     cost: 5
     noise: LOW
-    successRate: 0.75
+    successRate: 0.80
     duration: INSTANT
     unlocks: [IMPACT]
 
@@ -311,8 +311,8 @@ cards:
     successRate: 1.0
     duration: PERMANENT
     counters:
-      # Una contrasena robada deja de bastar: la fuerza bruta muere.
-      fuerza-bruta: 0.10
+      # Una contrasena robada deja de bastar: la fuerza bruta muere casi del todo.
+      fuerza-bruta: 0.20
       phishing: 0.70
 
   - id: parcheo
