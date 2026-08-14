@@ -40,9 +40,6 @@ import java.util.Objects;
  */
 public final class DefaultRuleEngine implements RuleEngine {
 
-    /** Lo que le queda a un ataque lanzado sin recorrer la kill chain. */
-    static final double KILL_CHAIN_PENALTY = 0.30;
-
     static final int MIN_DAMAGE = 3;
 
     static final double DETECTION_LUCK = 0.15;
@@ -90,6 +87,9 @@ public final class DefaultRuleEngine implements RuleEngine {
     @Override
     public ActionCard playableCard(Game game, Role side, String cardId) {
         ActionCard card = cardFor(side, cardId);
+        // La kill chain es un candado duro y no una penalizacion: sin la fase
+        // previa la carta no se encola. Consecuencia buscada: no se pueden
+        // encadenar dos fases en la misma ronda, hay que ganarselas una a una.
         if (side == Role.ATTACKER && card.phase() != null && !game.currentHalf().isUnlocked(card.phase())) {
             throw new MissingRequirementException("Necesitas haber desbloqueado la fase previa en la Kill Chain");
         }
@@ -189,7 +189,6 @@ public final class DefaultRuleEngine implements RuleEngine {
             String counteredBy = anticipado
                     ? half.blockedBy(card.id())
                     : (ignoresCounters ? null : counterAgainst(half, card.id()));
-            boolean phaseLocked = card.phase() != null && !half.isUnlocked(card.phase());
             double chance = successChance(half, card, ignoresCounters);
             boolean success = !anticipado && randomizer.chance(chance);
             if (anticipado) {
@@ -220,7 +219,7 @@ public final class DefaultRuleEngine implements RuleEngine {
                     detected,
                     EventDetail.attack(
                             success,
-                            success ? null : failureReason(anticipado, phaseLocked, counteredBy),
+                            success ? null : failureReason(anticipado, counteredBy),
                             impact,
                             mitigated,
                             unlocked,
@@ -300,9 +299,6 @@ public final class DefaultRuleEngine implements RuleEngine {
      */
     private double successChance(Half half, ActionCard card, boolean ignoresCounters) {
         double chance = card.successRate();
-        if (card.phase() != null && !half.isUnlocked(card.phase())) {
-            chance *= KILL_CHAIN_PENALTY;
-        }
         chance += bonusFor(half, card.id());
         if (!ignoresCounters && card.phase() != KillChainPhase.IMPACT) {
             chance *= counterFactor(half, card.id());
@@ -514,16 +510,10 @@ public final class DefaultRuleEngine implements RuleEngine {
                 EventDetail.defence(repaired));
     }
 
-    /**
-     * Un ataque anticipado ni siquiera llega a tirar, asi que ese es el motivo
-     * aunque ademas le faltara la fase previa.
-     */
-    private static FailureReason failureReason(boolean anticipado, boolean phaseLocked, String counteredBy) {
+    /** Un ataque anticipado ni siquiera llega a tirar. */
+    private static FailureReason failureReason(boolean anticipado, String counteredBy) {
         if (anticipado) {
             return FailureReason.COUNTERED;
-        }
-        if (phaseLocked) {
-            return FailureReason.KILL_CHAIN;
         }
         return counteredBy == null ? FailureReason.BAD_LUCK : FailureReason.COUNTERED;
     }

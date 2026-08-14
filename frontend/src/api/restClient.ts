@@ -91,7 +91,7 @@ export interface CardDto {
 
 export interface EventDetailDto {
   success: boolean | null;
-  failureReason: "KILL_CHAIN" | "COUNTERED" | "BAD_LUCK" | null;
+  failureReason: "COUNTERED" | "BAD_LUCK" | null;
   impact: Record<string, number>;
   mitigated: number;
   unlocked: string[];

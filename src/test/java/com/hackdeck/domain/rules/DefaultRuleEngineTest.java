@@ -7,6 +7,7 @@ import com.hackdeck.domain.catalog.ActionCatalog;
 import com.hackdeck.domain.catalog.CardDuration;
 import com.hackdeck.domain.catalog.KillChainPhase;
 import com.hackdeck.domain.catalog.NoiseLevel;
+import com.hackdeck.domain.exception.MissingRequirementException;
 import com.hackdeck.domain.exception.UnknownCardException;
 import com.hackdeck.domain.model.ActiveCard;
 import com.hackdeck.domain.model.CiaPillar;
@@ -39,16 +40,32 @@ class DefaultRuleEngineTest {
     }
 
     @Test
-    void atacar_sin_haber_abierto_la_fase_previa_cuesta_la_penalizacion_de_kill_chain() {
+    void sin_la_fase_previa_abierta_la_carta_no_se_puede_ni_encolar() {
         ActionCatalog catalogo = Partidas.catalogo(
                 Cartas.ataque(ATAQUE).fase(KillChainPhase.IMPACT).acierto(0.8).build());
+        DefaultRuleEngine motor = new DefaultRuleEngine(catalogo, AzarControlado.siempre());
         Game partida = Partidas.enCurso();
-        Partidas.encola(partida, Role.ATTACKER, ATAQUE);
-        AzarControlado azar = AzarControlado.nunca();
 
-        resolver(partida, catalogo, azar);
+        assertThatThrownBy(() -> motor.playableCard(partida, Role.ATTACKER, ATAQUE))
+                .isInstanceOf(MissingRequirementException.class);
+    }
 
-        assertThat(azar.primeraPreguntada()).isEqualTo(0.8 * DefaultRuleEngine.KILL_CHAIN_PENALTY, within(0.0001));
+    @Test
+    void abrir_una_fase_no_deja_encadenar_la_siguiente_en_la_misma_ronda() {
+        ActionCatalog catalogo = Partidas.catalogo(
+                Cartas.ataque("recon").fase(KillChainPhase.RECON).desbloquea(KillChainPhase.ACCESS).build(),
+                Cartas.ataque(ATAQUE).fase(KillChainPhase.ACCESS).build());
+        DefaultRuleEngine motor = new DefaultRuleEngine(catalogo, AzarControlado.siempre());
+        Game partida = Partidas.enCurso();
+        Partidas.encola(partida, Role.ATTACKER, "recon");
+
+        // La fase se abre al resolver, no al encolar: hay que ganarsela antes.
+        assertThatThrownBy(() -> motor.playableCard(partida, Role.ATTACKER, ATAQUE))
+                .isInstanceOf(MissingRequirementException.class);
+
+        motor.resolveRound(partida, partida.currentRound());
+
+        assertThat(partida.currentHalf().isUnlocked(KillChainPhase.ACCESS)).isTrue();
     }
 
     @Test
