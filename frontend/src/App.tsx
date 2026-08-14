@@ -12,6 +12,7 @@ import {
 } from "./api/session";
 import { useGameState } from "./api/useGameState";
 import { useLanguage } from "./i18n/LanguageContext";
+import { Loading } from "./components/Loading";
 import { EntryView } from "./views/EntryView";
 import { LandingView } from "./views/LandingView";
 import { TournamentView } from "./views/TournamentView";
@@ -165,7 +166,7 @@ function GameRouter({
   if (state === null) {
     return (
       <main>
-        <p className="tenue">{t("app.loading")}</p>
+        <Loading />
       </main>
     );
   }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { RestClient, TournamentDto } from "../api/restClient";
 import type { GameSession, TournamentSession } from "../api/session";
+import { Loading } from "../components/Loading";
 import { useLanguage } from "../i18n/LanguageContext";
 
 /**
@@ -37,7 +38,7 @@ export function TournamentProjectionView({
   if (torneo === null) {
     return (
       <main className="proyeccion">
-        <p className="tenue">{t("app.loading")}</p>
+        <Loading big />
       </main>
     );
   }

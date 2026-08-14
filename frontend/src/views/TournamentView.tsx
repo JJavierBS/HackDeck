@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { RestClient, TournamentDto } from "../api/restClient";
 import type { GameSession, TournamentSession } from "../api/session";
+import { Loading } from "../components/Loading";
 import { useLanguage } from "../i18n/LanguageContext";
 import type { TranslationKey } from "../i18n/dictionary";
 
@@ -37,7 +38,7 @@ export function TournamentView({ client, session }: TournamentViewProps) {
   if (torneo === null) {
     return (
       <main>
-        <p className="tenue">{t("app.loading")}</p>
+        <Loading />
       </main>
     );
   }
