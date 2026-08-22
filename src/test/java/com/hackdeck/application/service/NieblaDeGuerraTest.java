@@ -65,6 +65,20 @@ class NieblaDeGuerraTest {
     }
 
     @Test
+    void el_registro_de_la_mitad_anterior_se_conserva_con_el_bando_de_entonces() {
+        Game partida = partidaConAtaque(false);
+        partida.closeHalf();
+
+        // En la mitad 2 los bandos estan cambiados: quien defendia ahora ataca.
+        GameView exDefensor = vista(partida, TeamId.B);
+        GameView exAtacante = vista(partida, TeamId.A);
+
+        assertThat(exDefensor.yourSide()).isEqualTo("ATTACKER");
+        assertThat(exDefensor.events()).noneMatch(evento -> "ataque-secreto".equals(evento.cardId()));
+        assertThat(exAtacante.events()).anyMatch(evento -> "ataque-secreto".equals(evento.cardId()));
+    }
+
+    @Test
     void el_defensor_no_ve_los_ataques_que_no_ha_detectado() {
         GameView defensor = vista(partidaConAtaque(false), TeamId.B);
 

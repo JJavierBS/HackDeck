@@ -113,6 +113,15 @@ public final class Game {
         return team == currentHalf().attackingTeam() ? Role.ATTACKER : Role.DEFENDER;
     }
 
+    /** El bando que tuvo ese equipo en una mitad ya jugada, que no es el de ahora. */
+    public Role sideOf(TeamId team, int halfNumber) {
+        return halves.stream()
+                .filter(half -> half.number() == halfNumber)
+                .findFirst()
+                .map(half -> team == half.attackingTeam() ? Role.ATTACKER : Role.DEFENDER)
+                .orElse(null);
+    }
+
     public Optional<Participant> playerOf(TeamId team) {
         return Optional.ofNullable(players.get(team));
     }

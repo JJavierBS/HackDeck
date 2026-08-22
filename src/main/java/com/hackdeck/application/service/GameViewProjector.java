@@ -26,6 +26,7 @@ import com.hackdeck.domain.model.TeamId;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -74,7 +75,7 @@ public final class GameViewProjector {
                 half == null ? List.of() : activeCardsFor(half, viewerSide),
                 defensasDescubiertas(half, viewerSide),
                 half == null || viewerSide == null ? List.of() : queuedActionsOf(half, viewerSide),
-                eventsFor(game, half, viewerSide),
+                eventsFor(game, viewerTeam),
                 resultOf(game.result()));
     }
 
@@ -179,12 +180,22 @@ public final class GameViewProjector {
                 .toList();
     }
 
-    private List<EventView> eventsFor(Game game, Half half, Role viewerSide) {
-        return game.history().stream()
-                .filter(event -> half == null || event.halfNumber() == half.number())
-                .filter(event -> viewerSide == null || event.isVisibleTo(viewerSide))
-                .map(event -> toEventView(adjustDetail(event, viewerSide)))
-                .toList();
+    /**
+     * El match entero, no solo la mitad en curso: al cambiar de bando se
+     * perdia de vista como se resolvio la ultima ronda de la anterior.
+     * Cada evento se filtra con el bando que tenia el equipo en SU mitad, que
+     * es el contrario del que tiene ahora.
+     */
+    private List<EventView> eventsFor(Game game, TeamId viewerTeam) {
+        List<EventView> registro = new ArrayList<>();
+        for (GameEvent event : game.history()) {
+            Role bandoDeEntonces = viewerTeam == null ? null : game.sideOf(viewerTeam, event.halfNumber());
+            if (viewerTeam != null && (bandoDeEntonces == null || !event.isVisibleTo(bandoDeEntonces))) {
+                continue;
+            }
+            registro.add(toEventView(adjustDetail(event, bandoDeEntonces)));
+        }
+        return List.copyOf(registro);
     }
 
     /**
