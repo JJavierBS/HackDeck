@@ -52,6 +52,28 @@ public final class Dobles {
         }
     }
 
+    public static final class RepositorioTorneos implements com.hackdeck.application.port.out.TournamentRepository {
+
+        private final Map<com.hackdeck.domain.model.TournamentId, com.hackdeck.domain.model.Tournament> torneos =
+                new HashMap<>();
+
+        @Override
+        public com.hackdeck.domain.model.Tournament save(com.hackdeck.domain.model.Tournament tournament) {
+            torneos.put(tournament.id(), tournament);
+            return tournament;
+        }
+
+        @Override
+        public Optional<com.hackdeck.domain.model.Tournament> findById(com.hackdeck.domain.model.TournamentId id) {
+            return Optional.ofNullable(torneos.get(id));
+        }
+
+        @Override
+        public Optional<com.hackdeck.domain.model.Tournament> findByJoinCode(JoinCode joinCode) {
+            return torneos.values().stream().filter(torneo -> torneo.joinCode().equals(joinCode)).findFirst();
+        }
+    }
+
     /** Apunta cuantas veces se ha difundido, para comprobar quien no difunde. */
     public static final class Difusor implements GameStateBroadcaster {
 

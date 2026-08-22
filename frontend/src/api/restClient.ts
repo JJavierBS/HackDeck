@@ -190,7 +190,7 @@ export interface TournamentAccessDto {
 
 /** Donde juega ahora el equipo; el cliente lo consulta y entra sin mas. */
 export interface PlacementDto {
-  status: "WAITING" | "PLAYING" | "ELIMINATED" | "CHAMPION";
+  status: "WAITING" | "PLAYING" | "BYE" | "ELIMINATED" | "CHAMPION";
   gameId: string | null;
   gameToken: string | null;
   team: "A" | "B" | null;

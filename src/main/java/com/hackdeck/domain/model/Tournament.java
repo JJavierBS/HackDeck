@@ -102,7 +102,6 @@ public final class Tournament {
         }
         List<PlayerId> ganadores = actual.winners();
         if (ganadores.size() < 2) {
-            phase = TournamentPhase.FINISHED;
             throw new IllegalStateException("El torneo ya tiene ganador");
         }
         return addRound(ganadores);

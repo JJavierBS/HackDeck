@@ -55,6 +55,9 @@ export function TournamentPlayerView({ client, session, onTable }: Props) {
     if (sitio.status === "CHAMPION") {
       return t("tournament.champion");
     }
+    if (sitio.status === "BYE") {
+      return t("tournament.bye");
+    }
     return t("tournament.waiting");
   };
 

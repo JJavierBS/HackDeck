@@ -124,13 +124,18 @@ public final class TournamentApplicationService implements TournamentUseCase {
             }
             Pairing emparejamiento = cruce.get();
             if (emparejamiento.isBye()) {
-                return TeamPlacement.waiting(ronda);
+                return TeamPlacement.out("BYE", ronda);
             }
             Optional<Game> mesa = emparejamiento.gameId().flatMap(games::findById);
             if (mesa.isEmpty()) {
                 return TeamPlacement.waiting(ronda);
             }
             Game partida = mesa.get();
+            if (partida.isOver()) {
+                // Devolverlo a una mesa terminada lo deja rebotando entre el
+                // resultado y la espera, y sin enterarse de si sigue vivo.
+                return TeamPlacement.out(trasLaMesa(torneo, emparejamiento, session.teamId()), ronda);
+            }
             Participant participante = partida.players().values().stream()
                     .filter(jugador -> jugador.id().equals(session.teamId()))
                     .findFirst()
@@ -165,6 +170,13 @@ public final class TournamentApplicationService implements TournamentUseCase {
                     clasificacion(torneo),
                     mesas);
         }
+    }
+
+    private String trasLaMesa(Tournament torneo, Pairing cruce, PlayerId equipo) {
+        if (torneo.champion().map(campeon -> campeon.id().equals(equipo)).orElse(false)) {
+            return "CHAMPION";
+        }
+        return cruce.winner().map(equipo::equals).orElse(false) ? "WAITING" : "ELIMINATED";
     }
 
     private TournamentView.TableView mesaDe(Tournament torneo, Pairing cruce) {
@@ -256,6 +268,9 @@ public final class TournamentApplicationService implements TournamentUseCase {
                         .flatMap(games::findById)
                         .filter(Game::isOver)
                         .ifPresent(partida -> pairing.resolvedBy(ganadorDe(partida, pairing)))));
+        if (torneo.isOver()) {
+            torneo.finish();
+        }
         tournaments.save(torneo);
     }
 
