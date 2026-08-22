@@ -15,6 +15,12 @@ import java.time.Duration;
  */
 public record GameSettings(int roundsPerHalf, Duration roundTimeout, int initialBudget, int incomePerRound) {
 
+    /**
+     * Abrir la fase de impacto cuesta tres rondas de kill chain saliendo todo
+     * a la primera, y cada carta puede fallar: por debajo de seis rondas el
+     * atacante no llega a tocar la triada y la mitad se decide sola.
+     */
+    private static final int MIN_ROUNDS_PER_HALF = 6;
     private static final int MAX_ROUNDS_PER_HALF = 20;
     private static final Duration MIN_ROUND_TIMEOUT = Duration.ofSeconds(15);
     private static final Duration MAX_ROUND_TIMEOUT = Duration.ofMinutes(10);
@@ -25,8 +31,9 @@ public record GameSettings(int roundsPerHalf, Duration roundTimeout, int initial
             new GameSettings(8, Duration.ofSeconds(180), 20, 10);
 
     public GameSettings {
-        if (roundsPerHalf < 1 || roundsPerHalf > MAX_ROUNDS_PER_HALF) {
-            throw new IllegalArgumentException("Las rondas por mitad deben estar entre 1 y " + MAX_ROUNDS_PER_HALF);
+        if (roundsPerHalf < MIN_ROUNDS_PER_HALF || roundsPerHalf > MAX_ROUNDS_PER_HALF) {
+            throw new IllegalArgumentException(
+                    "Las rondas por mitad deben estar entre " + MIN_ROUNDS_PER_HALF + " y " + MAX_ROUNDS_PER_HALF);
         }
         if (roundTimeout == null || roundTimeout.compareTo(MIN_ROUND_TIMEOUT) < 0
                 || roundTimeout.compareTo(MAX_ROUND_TIMEOUT) > 0) {

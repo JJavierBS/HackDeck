@@ -17,7 +17,7 @@ import java.util.UUID;
 
 public final class Partidas {
 
-    public static final GameSettings AJUSTES = new GameSettings(3, Duration.ofSeconds(60), 100, 20);
+    public static final GameSettings AJUSTES = new GameSettings(6, Duration.ofSeconds(60), 100, 20);
 
     private Partidas() {
     }

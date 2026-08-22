@@ -143,7 +143,7 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
               <NumericStepper
                 value={settings.roundsPerHalf}
                 onChange={(val) => updateSetting("roundsPerHalf", val)}
-                min={1}
+                min={6}
                 max={20}
                 disabled={loading !== null}
               />
@@ -153,7 +153,7 @@ export function EntryView({ client, onSession, onTournament }: EntryViewProps) {
               <NumericStepper
                 value={settings.roundTimeoutSeconds}
                 onChange={(val) => updateSetting("roundTimeoutSeconds", val)}
-                min={10}
+                min={15}
                 max={600}
                 step={5}
                 disabled={loading !== null}

@@ -49,7 +49,7 @@ class PartidaPorHttpTest {
 
     @Test
     void se_juega_una_ronda_entera_por_http() throws Exception {
-        HttpResponse<String> creada = peticion("POST", "/api/v1/games", "{\"roundsPerHalf\":2}", null);
+        HttpResponse<String> creada = peticion("POST", "/api/v1/games", "{\"roundsPerHalf\":6}", null);
         assertThat(creada.statusCode()).isEqualTo(201);
         JsonNode instructor = cuerpoDe(creada);
         String partida = instructor.get("gameId").asString();
