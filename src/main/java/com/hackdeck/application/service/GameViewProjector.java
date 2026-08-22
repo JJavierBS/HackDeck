@@ -26,6 +26,7 @@ import com.hackdeck.domain.model.TeamId;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +113,12 @@ public final class GameViewProjector {
     }
 
     private static List<String> killChainOf(Half half) {
-        return half.unlockedPhases().stream().map(KillChainPhase::name).sorted().toList();
+        // En orden de la cadena, no alfabetico: la lista se lee como el camino
+        // que lleva recorrido el atacante.
+        return half.unlockedPhases().stream()
+                .sorted(Comparator.comparingInt(KillChainPhase::ordinal))
+                .map(KillChainPhase::name)
+                .toList();
     }
 
     private List<ActiveCardView> activeCardsFor(Half half, Role viewerSide) {
