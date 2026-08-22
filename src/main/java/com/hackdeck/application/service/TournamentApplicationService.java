@@ -35,6 +35,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Igual que en una partida suelta, los comandos de un mismo torneo se
+ * serializan sobre el agregado: en el lobby los equipos se apuntan todos a la
+ * vez en cuanto el codigo aparece proyectado.
+ */
 @Service
 public final class TournamentApplicationService implements TournamentUseCase {
 
@@ -71,8 +76,11 @@ public final class TournamentApplicationService implements TournamentUseCase {
     @Override
     public Optional<TournamentAccess> joinTournament(JoinCode joinCode, String displayName) {
         return tournaments.findByJoinCode(joinCode).map(torneo -> {
-            TournamentTeam equipo = torneo.join(displayName);
-            tournaments.save(torneo);
+            TournamentTeam equipo;
+            synchronized (torneo) {
+                equipo = torneo.join(displayName);
+                tournaments.save(torneo);
+            }
             return new TournamentAccess(
                     torneo.id(),
                     torneo.joinCode(),
@@ -85,70 +93,78 @@ public final class TournamentApplicationService implements TournamentUseCase {
     @Override
     public void startTournament(TournamentId id, ParticipantSession session) {
         Tournament torneo = requireTournament(id);
-        requireInstructor(torneo, session);
-        sembrarMesas(torneo, torneo.startFirstRound());
-        tournaments.save(torneo);
+        synchronized (torneo) {
+            requireInstructor(torneo, session);
+            sembrarMesas(torneo, torneo.startFirstRound());
+            tournaments.save(torneo);
+        }
     }
 
     @Override
     public void startNextRound(TournamentId id, ParticipantSession session) {
         Tournament torneo = requireTournament(id);
-        requireInstructor(torneo, session);
-        cerrarRondaEnCurso(torneo);
-        sembrarMesas(torneo, torneo.startNextRound());
-        tournaments.save(torneo);
+        synchronized (torneo) {
+            requireInstructor(torneo, session);
+            cerrarRondaEnCurso(torneo);
+            sembrarMesas(torneo, torneo.startNextRound());
+            tournaments.save(torneo);
+        }
     }
 
     @Override
     public TeamPlacement placementOf(TournamentSession session) {
         Tournament torneo = requireTournament(session.tournamentId());
-        int ronda = torneo.currentRound().map(BracketRound::number).orElse(0);
-        cerrarRondaEnCurso(torneo);
+        synchronized (torneo) {
+            cerrarRondaEnCurso(torneo);
+            int ronda = torneo.currentRound().map(BracketRound::number).orElse(0);
 
-        Optional<Pairing> cruce = torneo.pairingOf(session.teamId());
-        if (cruce.isEmpty()) {
-            return TeamPlacement.out(torneo.phase().name().equals("LOBBY") ? "WAITING" : "ELIMINATED", ronda);
+            Optional<Pairing> cruce = torneo.pairingOf(session.teamId());
+            if (cruce.isEmpty()) {
+                return TeamPlacement.out(torneo.phase().name().equals("LOBBY") ? "WAITING" : "ELIMINATED", ronda);
+            }
+            Pairing emparejamiento = cruce.get();
+            if (emparejamiento.isBye()) {
+                return TeamPlacement.waiting(ronda);
+            }
+            Optional<Game> mesa = emparejamiento.gameId().flatMap(games::findById);
+            if (mesa.isEmpty()) {
+                return TeamPlacement.waiting(ronda);
+            }
+            Game partida = mesa.get();
+            Participant participante = partida.players().values().stream()
+                    .filter(jugador -> jugador.id().equals(session.teamId()))
+                    .findFirst()
+                    .orElseThrow(() -> new AccessDeniedException("Ese equipo no esta sentado en la mesa"));
+            return TeamPlacement.playing(
+                    partida.id().toString(),
+                    tokens.issue(new ParticipantSession(partida.id(), participante)),
+                    participante.team().name(),
+                    ronda);
         }
-        Pairing emparejamiento = cruce.get();
-        if (emparejamiento.isBye()) {
-            return TeamPlacement.waiting(ronda);
-        }
-        Optional<Game> mesa = emparejamiento.gameId().flatMap(games::findById);
-        if (mesa.isEmpty()) {
-            return TeamPlacement.waiting(ronda);
-        }
-        Game partida = mesa.get();
-        Participant participante = partida.players().values().stream()
-                .filter(jugador -> jugador.id().equals(session.teamId()))
-                .findFirst()
-                .orElseThrow(() -> new AccessDeniedException("Ese equipo no esta sentado en la mesa"));
-        return TeamPlacement.playing(
-                partida.id().toString(),
-                tokens.issue(new ParticipantSession(partida.id(), participante)),
-                participante.team().name(),
-                ronda);
     }
 
     @Override
     public TournamentView view(TournamentId id, ParticipantSession session) {
         Tournament torneo = requireTournament(id);
         requireInstructor(torneo, session);
-        cerrarRondaEnCurso(torneo);
+        synchronized (torneo) {
+            cerrarRondaEnCurso(torneo);
 
-        BracketRound ronda = torneo.currentRound().orElse(null);
-        List<TournamentView.TableView> mesas = ronda == null
-                ? List.of()
-                : ronda.pairings().stream().map(cruce -> mesaDe(torneo, cruce)).toList();
+            BracketRound ronda = torneo.currentRound().orElse(null);
+            List<TournamentView.TableView> mesas = ronda == null
+                    ? List.of()
+                    : ronda.pairings().stream().map(cruce -> mesaDe(torneo, cruce)).toList();
 
-        return new TournamentView(
-                torneo.id().toString(),
-                torneo.joinCode().toString(),
-                torneo.phase().name(),
-                ronda == null ? 0 : ronda.number(),
-                ronda != null && ronda.isComplete(),
-                torneo.champion().map(TournamentTeam::displayName).orElse(null),
-                clasificacion(torneo),
-                mesas);
+            return new TournamentView(
+                    torneo.id().toString(),
+                    torneo.joinCode().toString(),
+                    torneo.phase().name(),
+                    ronda == null ? 0 : ronda.number(),
+                    ronda != null && ronda.isComplete(),
+                    torneo.champion().map(TournamentTeam::displayName).orElse(null),
+                    clasificacion(torneo),
+                    mesas);
+        }
     }
 
     private TournamentView.TableView mesaDe(Tournament torneo, Pairing cruce) {
