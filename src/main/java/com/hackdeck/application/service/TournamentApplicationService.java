@@ -251,6 +251,11 @@ public final class TournamentApplicationService implements TournamentUseCase {
         if (torneo.champion().map(campeon -> campeon.id().equals(equipo.id())).orElse(false)) {
             return "CHAMPION";
         }
+        // Acabado el torneo solo queda un equipo en pie: el finalista derrotado
+        // seguia figurando como vivo porque su cruce sigue siendo el ultimo.
+        if (torneo.isOver()) {
+            return "ELIMINATED";
+        }
         return torneo.pairingOf(equipo.id()).isPresent() || torneo.phase().name().equals("LOBBY")
                 ? "IN"
                 : "ELIMINATED";

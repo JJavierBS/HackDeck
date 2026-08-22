@@ -71,6 +71,9 @@ class TorneoTest {
         assertThat(sitios(torneo)).extracting(TeamPlacement::status)
                 .containsExactlyInAnyOrder("CHAMPION", "ELIMINATED");
         assertThat(servicio.view(torneo.tournamentId(), instructor(torneo)).phase()).isEqualTo("FINISHED");
+        assertThat(servicio.view(torneo.tournamentId(), instructor(torneo)).standings())
+                .extracting(fila -> fila.status())
+                .containsExactlyInAnyOrder("CHAMPION", "ELIMINATED");
     }
 
     private TournamentAccess conEquipos(int cuantos) {
