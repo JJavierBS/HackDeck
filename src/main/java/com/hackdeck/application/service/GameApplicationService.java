@@ -36,6 +36,12 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Los comandos de una misma partida se serializan sobre el propio agregado:
+ * dos equipos pulsan «Listos» a la vez y el reloj puede caer en ese mismo
+ * instante, y sin cerrojo la ronda se resolvia dos veces o se perdia una de
+ * las confirmaciones y la mesa se quedaba colgada.
+ */
 @Service
 public final class GameApplicationService implements
         CreateGameUseCase, JoinGameUseCase, StartGameUseCase, LaunchTwistUseCase,
@@ -72,140 +78,162 @@ public final class GameApplicationService implements
     public GameAccess joinGame(JoinCode joinCode, String displayName) {
         Game game = gameRepository.findByJoinCode(joinCode)
                 .orElseThrow(() -> new GameNotFoundException(joinCode.toString()));
-        TeamId team = game.firstFreeTeam()
-                .orElseThrow(() -> new GameNotJoinableException("La partida ya tiene los dos equipos"));
-        Participant player = Participant.player(team, displayName);
-        game.join(player);
-        gameRepository.save(game);
-        broadcaster.broadcastState(game.id(), game);
-        return accessFor(game, player);
+        synchronized (game) {
+            TeamId team = game.firstFreeTeam()
+                    .orElseThrow(() -> new GameNotJoinableException("La partida ya tiene los dos equipos"));
+            Participant player = Participant.player(team, displayName);
+            game.join(player);
+            gameRepository.save(game);
+            broadcaster.broadcastState(game.id(), game);
+            return accessFor(game, player);
+        }
     }
 
     @Override
     public void startGame(GameId gameId, ParticipantSession session) {
         Game game = requireGame(gameId);
-        requireInstructor(game, session);
-        game.startMatch();
-        gameRepository.save(game);
-        broadcaster.broadcastState(game.id(), game);
+        synchronized (game) {
+            requireInstructor(game, session);
+            game.startMatch();
+            gameRepository.save(game);
+            broadcaster.broadcastState(game.id(), game);
+        }
     }
 
     @Override
     public void enqueueAction(GameId gameId, ParticipantSession session, EnqueueActionCommand command) {
         Game game = requireGame(gameId);
-        Participant participant = requireParticipant(game, session);
-        if (participant.isInstructor()) {
-            throw new AccessDeniedException("El instructor arbitra, no encola acciones");
+        synchronized (game) {
+            Participant participant = requireParticipant(game, session);
+            if (participant.isInstructor()) {
+                throw new AccessDeniedException("El instructor arbitra, no encola acciones");
+            }
+            Role side = game.sideOf(participant.team());
+            ActionCard card = ruleEngine.playableCard(game, side, command.cardId());
+            ActionIntent action = new ActionIntent(UUID.randomUUID(), side, card.id(), command.parameters());
+            game.enqueue(action, ruleEngine.costOf(game, card));
+            gameRepository.save(game);
+            // Los turnos son simultaneos a ciegas: encolar no difunde nada, o el
+            // rival veria lo que le viene encima antes de resolver la ronda.
         }
-        Role side = game.sideOf(participant.team());
-        ActionCard card = ruleEngine.playableCard(game, side, command.cardId());
-        ActionIntent action = new ActionIntent(UUID.randomUUID(), side, card.id(), command.parameters());
-        game.enqueue(action, ruleEngine.costOf(game, card));
-        gameRepository.save(game);
-        // Los turnos son simultaneos a ciegas: encolar no difunde nada, o el
-        // rival veria lo que le viene encima antes de resolver la ronda.
     }
 
     @Override
     public void dequeueAction(GameId gameId, ParticipantSession session, UUID intentId) {
         Game game = requireGame(gameId);
-        Participant participant = requireParticipant(game, session);
-        if (participant.isInstructor()) {
-            throw new AccessDeniedException("El instructor arbitra, no retira acciones");
-        }
-        Role side = game.sideOf(participant.team());
-        ActionIntent intent = game.dequeue(intentId, side);
-        if (intent != null) {
-            // Para devolver el dinero basta con saber lo que costo: revalidar si
-            // la carta sigue siendo jugable dejaria acciones imposibles de retirar.
-            ActionCard card = ruleEngine.cardFor(side, intent.cardId());
-            int cost = ruleEngine.costOf(game, card);
-            game.refund(participant.team(), cost);
-            gameRepository.save(game);
+        synchronized (game) {
+            Participant participant = requireParticipant(game, session);
+            if (participant.isInstructor()) {
+                throw new AccessDeniedException("El instructor arbitra, no retira acciones");
+            }
+            Role side = game.sideOf(participant.team());
+            ActionIntent intent = game.dequeue(intentId, side);
+            if (intent != null) {
+                // Para devolver el dinero basta con saber lo que costo: revalidar si
+                // la carta sigue siendo jugable dejaria acciones imposibles de retirar.
+                ActionCard card = ruleEngine.cardFor(side, intent.cardId());
+                int cost = ruleEngine.costOf(game, card);
+                game.refund(participant.team(), cost);
+                gameRepository.save(game);
+            }
         }
     }
 
     @Override
     public void reorderQueue(GameId gameId, ParticipantSession session, java.util.List<UUID> intentIds) {
         Game game = requireGame(gameId);
-        Participant participant = requireParticipant(game, session);
-        if (participant.isInstructor()) {
-            throw new AccessDeniedException("El instructor arbitra, no reordena acciones");
+        synchronized (game) {
+            Participant participant = requireParticipant(game, session);
+            if (participant.isInstructor()) {
+                throw new AccessDeniedException("El instructor arbitra, no reordena acciones");
+            }
+            Role side = game.sideOf(participant.team());
+            game.reorderQueue(side, intentIds);
+            gameRepository.save(game);
         }
-        Role side = game.sideOf(participant.team());
-        game.reorderQueue(side, intentIds);
-        gameRepository.save(game);
     }
 
     @Override
     public void launchTwist(GameId gameId, ParticipantSession session, String cardId) {
         Game game = requireGame(gameId);
-        requireInstructor(game, session);
-        game.requireInProgress();
-        ActionCard twist = ruleEngine.twistFor(cardId);
-        game.launchTwist(twist.id(), twist.rounds(), ruleEngine.twistBudgetChange(game, twist));
-        gameRepository.save(game);
-        broadcaster.broadcastState(game.id(), game);
+        synchronized (game) {
+            requireInstructor(game, session);
+            game.requireInProgress();
+            ActionCard twist = ruleEngine.twistFor(cardId);
+            game.launchTwist(twist.id(), twist.rounds(), ruleEngine.twistBudgetChange(game, twist));
+            gameRepository.save(game);
+            broadcaster.broadcastState(game.id(), game);
+        }
     }
 
     @Override
     public Game resolveCurrentRound(GameId gameId, ParticipantSession session) {
         Game game = requireGame(gameId);
-        requireInstructor(game, session);
-        return resolveRound(game);
+        synchronized (game) {
+            requireInstructor(game, session);
+            return resolveRound(game);
+        }
     }
 
     @Override
     public void markReady(GameId gameId, ParticipantSession session) {
         Game game = requireGame(gameId);
-        Participant participant = requireParticipant(game, session);
-        if (participant.isInstructor()) {
-            throw new AccessDeniedException("El instructor arbitra, no declara listo a nadie");
+        synchronized (game) {
+            Participant participant = requireParticipant(game, session);
+            if (participant.isInstructor()) {
+                throw new AccessDeniedException("El instructor arbitra, no declara listo a nadie");
+            }
+            game.markReady(participant.team());
+            // Con el modo automatico apagado esto solo avisa al instructor: es el
+            // quien decide cuando se cierra la ronda.
+            if (game.isAutoResolve() && game.currentRound().everyoneReady()) {
+                resolveRound(game);
+                return;
+            }
+            gameRepository.save(game);
+            broadcaster.broadcastState(game.id(), game);
         }
-        game.markReady(participant.team());
-        // Con el modo automatico apagado esto solo avisa al instructor: es el
-        // quien decide cuando se cierra la ronda.
-        if (game.isAutoResolve() && game.currentRound().everyoneReady()) {
-            resolveRound(game);
-            return;
-        }
-        gameRepository.save(game);
-        broadcaster.broadcastState(game.id(), game);
     }
 
     @Override
     public void setAutoResolve(GameId gameId, ParticipantSession session, boolean enabled) {
         Game game = requireGame(gameId);
-        requireInstructor(game, session);
-        game.setAutoResolve(enabled);
-        // Si los dos ya habian confirmado, encender el modo automatico cierra
-        // la ronda en ese momento: es lo que el instructor espera al pulsarlo.
-        if (enabled && game.currentRound().everyoneReady()) {
-            resolveRound(game);
-            return;
+        synchronized (game) {
+            requireInstructor(game, session);
+            game.setAutoResolve(enabled);
+            // Si los dos ya habian confirmado, encender el modo automatico cierra
+            // la ronda en ese momento: es lo que el instructor espera al pulsarlo.
+            if (enabled && game.currentRound().everyoneReady()) {
+                resolveRound(game);
+                return;
+            }
+            gameRepository.save(game);
+            broadcaster.broadcastState(game.id(), game);
         }
-        gameRepository.save(game);
-        broadcaster.broadcastState(game.id(), game);
     }
 
     @Override
     public void closeHalf(GameId gameId, ParticipantSession session) {
         Game game = requireGame(gameId);
-        requireInstructor(game, session);
-        game.closeHalf();
-        finishIfOver(game);
-        gameRepository.save(game);
-        broadcaster.broadcastState(game.id(), game);
+        synchronized (game) {
+            requireInstructor(game, session);
+            game.closeHalf();
+            finishIfOver(game);
+            gameRepository.save(game);
+            broadcaster.broadcastState(game.id(), game);
+        }
     }
 
     @Override
     public void closeMatch(GameId gameId, ParticipantSession session) {
         Game game = requireGame(gameId);
-        requireInstructor(game, session);
-        game.closeMatch();
-        finishIfOver(game);
-        gameRepository.save(game);
-        broadcaster.broadcastState(game.id(), game);
+        synchronized (game) {
+            requireInstructor(game, session);
+            game.closeMatch();
+            finishIfOver(game);
+            gameRepository.save(game);
+            broadcaster.broadcastState(game.id(), game);
+        }
     }
 
     @Override
@@ -213,9 +241,11 @@ public final class GameApplicationService implements
         Instant now = Instant.now();
         int resolved = 0;
         for (Game game : gameRepository.findInProgress()) {
-            if (game.isAutoResolve() && game.isRoundExpired(now)) {
-                resolveRound(game);
-                resolved++;
+            synchronized (game) {
+                if (game.isAutoResolve() && game.isRoundExpired(now)) {
+                    resolveRound(game);
+                    resolved++;
+                }
             }
         }
         return resolved;
