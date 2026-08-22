@@ -63,6 +63,9 @@ public final class DefaultRuleEngine implements RuleEngine {
     static final double CATCH_UP_RATE = 0.2;
     static final int CATCH_UP_MAX = 10;
 
+    /** Lo que da la carta de presupuesto extra; no tiene que ver con el catch-up. */
+    static final int EXTRA_BUDGET_AMOUNT = 10;
+
     private static final String PILLAR_PARAMETER = "pillar";
     private static final String BLOCKED_PARAMETER = "blocks";
 
@@ -249,7 +252,7 @@ public final class DefaultRuleEngine implements RuleEngine {
                     .forEach(active -> half.deactivate(active.cardId()));
         }
         if (card.hasEffect(CardEffect.EXTRA_BUDGET)) {
-            half.addBudget(half.defendingTeam(), CATCH_UP_MAX);
+            half.addBudget(half.defendingTeam(), EXTRA_BUDGET_AMOUNT);
         }
         if (card.hasEffect(CardEffect.BLOCKS_CHOSEN_ATTACK)) {
             String elegido = intent.parameters().get(BLOCKED_PARAMETER);
