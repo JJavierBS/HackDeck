@@ -31,4 +31,11 @@ public interface RuleEngine {
     RoundResolution resolveRound(Game game, Round round);
 
     MatchResult scoreMatch(Game game);
+
+    /**
+     * Quien pasa de ronda en un bracket, donde el empate no vale porque
+     * alguien tiene que seguir. Solo para el torneo: en una partida suelta
+     * un empate es un empate.
+     */
+    TeamId bracketWinner(Game game);
 }

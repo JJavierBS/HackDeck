@@ -368,6 +368,29 @@ public final class DefaultRuleEngine implements RuleEngine {
         return byDefendedCia(defendedCia, takedownRound);
     }
 
+    @Override
+    public TeamId bracketWinner(Game game) {
+        MatchResult resultado = game.result() == null ? scoreMatch(game) : game.result();
+        if (resultado.winner() != null) {
+            return resultado.winner();
+        }
+        int defendidoPorA = resultado.defendedCia().getOrDefault(TeamId.A, 0);
+        int defendidoPorB = resultado.defendedCia().getOrDefault(TeamId.B, 0);
+        if (defendidoPorA != defendidoPorB) {
+            return defendidoPorA > defendidoPorB ? TeamId.A : TeamId.B;
+        }
+        // Misma triada defendida: pasa quien la defendio gastando menos, que
+        // es la unica diferencia de juego que queda entre los dos.
+        int gastoA = game.spentBy(TeamId.A);
+        int gastoB = game.spentBy(TeamId.B);
+        if (gastoA != gastoB) {
+            return gastoA < gastoB ? TeamId.A : TeamId.B;
+        }
+        // Ni eso los separa: a suertes, que es mas honesto que premiar al
+        // que se sento en el asiento de la izquierda.
+        return randomizer.chance(0.5) ? TeamId.A : TeamId.B;
+    }
+
     private static MatchResult byDefendedCia(Map<TeamId, Integer> defendedCia, Map<TeamId, Integer> takedownRound) {
         int defendedByA = defendedCia.getOrDefault(TeamId.A, 0);
         int defendedByB = defendedCia.getOrDefault(TeamId.B, 0);

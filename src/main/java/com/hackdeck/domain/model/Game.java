@@ -178,7 +178,12 @@ public final class Game {
     }
 
     public void refund(TeamId team, int cost) {
-        currentHalf().addBudget(team, cost);
+        currentHalf().refund(team, cost);
+    }
+
+    /** Lo gastado en todo el match, sumando las dos mitades. */
+    public int spentBy(TeamId team) {
+        return halves.stream().mapToInt(half -> half.spentBy(team)).sum();
     }
 
     public void reorderQueue(Role side, List<java.util.UUID> intentIds) {

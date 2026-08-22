@@ -1,5 +1,6 @@
 package com.hackdeck.application.service;
 
+import com.hackdeck.apoyo.AzarControlado;
 import com.hackdeck.apoyo.Dobles;
 import com.hackdeck.apoyo.Partidas;
 import com.hackdeck.application.port.in.TeamPlacement;
@@ -9,6 +10,7 @@ import com.hackdeck.domain.model.GameId;
 import com.hackdeck.domain.model.ParticipantSession;
 import com.hackdeck.domain.model.Tournament;
 import com.hackdeck.domain.model.TournamentSession;
+import com.hackdeck.domain.rules.DefaultRuleEngine;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +32,11 @@ class TorneoTest {
         partidas = new Dobles.Repositorio();
         torneos = new Dobles.RepositorioTorneos();
         servicio = new TournamentApplicationService(
-                torneos, partidas, new Dobles.Difusor(), new Dobles.Tokens());
+                torneos,
+                partidas,
+                new Dobles.Difusor(),
+                new Dobles.Tokens(),
+                new DefaultRuleEngine(Partidas.catalogoVacio(), AzarControlado.siempre()));
     }
 
     @Test

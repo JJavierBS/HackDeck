@@ -2,16 +2,19 @@ package com.hackdeck.domain.rules;
 
 import com.hackdeck.apoyo.AzarControlado;
 import com.hackdeck.apoyo.Partidas;
+import com.hackdeck.domain.model.ActionIntent;
 import com.hackdeck.domain.model.CiaPillar;
 import com.hackdeck.domain.model.CiaState;
 import com.hackdeck.domain.model.Game;
 import com.hackdeck.domain.model.MatchOutcome;
 import com.hackdeck.domain.model.MatchResult;
+import com.hackdeck.domain.model.Role;
 import com.hackdeck.domain.model.TeamId;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -85,6 +88,30 @@ class MarcadorTest {
 
         assertThat(resultado.outcome()).isEqualTo(MatchOutcome.DRAW);
         assertThat(resultado.winner()).isNull();
+    }
+
+    @Test
+    void en_un_bracket_el_empate_lo_gana_quien_defendio_gastando_menos() {
+        Game partida = Partidas.enCurso();
+        partida.enqueue(new ActionIntent(UUID.randomUUID(), Role.ATTACKER, "carta", Map.of()), 30);
+        partida.enqueue(new ActionIntent(UUID.randomUUID(), Role.DEFENDER, "carta", Map.of()), 10);
+        agotarMitad(partida, CiaState.intact());
+        agotarMitad(partida, CiaState.intact());
+
+        assertThat(motor.scoreMatch(partida).outcome()).isEqualTo(MatchOutcome.DRAW);
+        assertThat(motor.bracketWinner(partida)).isEqualTo(TeamId.B);
+    }
+
+    @Test
+    void si_gastaron_lo_mismo_el_bracket_lo_decide_la_suerte() {
+        AzarControlado azar = AzarControlado.siempre().responde(false);
+        DefaultRuleEngine conAzar = new DefaultRuleEngine(Partidas.catalogo(), azar);
+        Game partida = Partidas.enCurso();
+        agotarMitad(partida, CiaState.intact());
+        agotarMitad(partida, CiaState.intact());
+
+        assertThat(conAzar.bracketWinner(partida)).isEqualTo(TeamId.B);
+        assertThat(azar.preguntadas()).containsExactly(0.5);
     }
 
     private static void derribar(Game partida) {

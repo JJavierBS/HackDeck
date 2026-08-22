@@ -29,6 +29,8 @@ public final class Half {
     private final GameSettings settings;
     private final List<Round> rounds = new ArrayList<>();
     private final Map<TeamId, Integer> budgets = new EnumMap<>(TeamId.class);
+    /** Lo gastado en total, que es lo que mide si una defensa salio barata. */
+    private final Map<TeamId, Integer> spent = new EnumMap<>(TeamId.class);
     private final List<ActiveCard> activeCards = new CopyOnWriteArrayList<>();
     /** El atacante empieza pudiendo hacer reconocimiento y nada mas. */
     private final EnumSet<KillChainPhase> unlockedPhases = EnumSet.of(KillChainPhase.RECON);
@@ -174,6 +176,16 @@ public final class Half {
             throw new InsufficientBudgetException(available, cost);
         }
         budgets.put(team, available - cost);
+        spent.merge(team, cost, Integer::sum);
+    }
+
+    public void refund(TeamId team, int cost) {
+        addBudget(team, cost);
+        spent.merge(team, -cost, Integer::sum);
+    }
+
+    public int spentBy(TeamId team) {
+        return spent.getOrDefault(team, 0);
     }
 
     public void applyResolvedState(CiaState resolvedState) {

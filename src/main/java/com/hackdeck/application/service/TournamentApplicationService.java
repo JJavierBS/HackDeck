@@ -22,6 +22,7 @@ import com.hackdeck.domain.model.Tournament;
 import com.hackdeck.domain.model.TournamentId;
 import com.hackdeck.domain.model.TournamentSession;
 import com.hackdeck.domain.model.TournamentTeam;
+import com.hackdeck.domain.rules.RuleEngine;
 import org.springframework.stereotype.Service;
 
 import com.hackdeck.application.view.TournamentView;
@@ -49,16 +50,19 @@ public final class TournamentApplicationService implements TournamentUseCase {
     private final GameRepository games;
     private final GameStateBroadcaster broadcaster;
     private final AccessTokenPort tokens;
+    private final RuleEngine reglas;
 
     public TournamentApplicationService(
             TournamentRepository tournaments,
             GameRepository games,
             GameStateBroadcaster broadcaster,
-            AccessTokenPort tokens) {
+            AccessTokenPort tokens,
+            RuleEngine reglas) {
         this.tournaments = Objects.requireNonNull(tournaments, "tournaments");
         this.games = Objects.requireNonNull(games, "games");
         this.broadcaster = Objects.requireNonNull(broadcaster, "broadcaster");
         this.tokens = Objects.requireNonNull(tokens, "tokens");
+        this.reglas = Objects.requireNonNull(reglas, "reglas");
     }
 
     @Override
@@ -274,18 +278,8 @@ public final class TournamentApplicationService implements TournamentUseCase {
         tournaments.save(torneo);
     }
 
-    /**
-     * En un bracket alguien tiene que pasar: si el match acaba en empate lo
-     * hace quien mejor defendio, y si tampoco eso los separa, el local.
-     */
     private PlayerId ganadorDe(Game partida, Pairing cruce) {
-        TeamId ganador = partida.result() == null ? null : partida.result().winner();
-        if (ganador == null) {
-            int defendidoPorA = partida.result() == null ? 0 : partida.result().defendedCia().getOrDefault(TeamId.A, 0);
-            int defendidoPorB = partida.result() == null ? 0 : partida.result().defendedCia().getOrDefault(TeamId.B, 0);
-            ganador = defendidoPorB > defendidoPorA ? TeamId.B : TeamId.A;
-        }
-        return partida.playerOf(ganador).map(Participant::id).orElse(cruce.home());
+        return partida.playerOf(reglas.bracketWinner(partida)).map(Participant::id).orElse(cruce.home());
     }
 
     private void sembrarMesas(Tournament torneo, BracketRound ronda) {
