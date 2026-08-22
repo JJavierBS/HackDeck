@@ -108,6 +108,9 @@ public final class GameApplicationService implements
             if (participant.isInstructor()) {
                 throw new AccessDeniedException("El instructor arbitra, no encola acciones");
             }
+            // Antes que nada: en una mesa terminada el motor respondia por la
+            // carta ("ya la tienes desplegada") en vez de por la partida.
+            game.requireInProgress();
             Role side = game.sideOf(participant.team());
             ActionCard card = ruleEngine.playableCard(game, side, command.cardId());
             ActionIntent action = new ActionIntent(UUID.randomUUID(), side, card.id(), command.parameters());
