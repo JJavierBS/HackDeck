@@ -106,6 +106,7 @@ export const DICTIONARY = {
     "log.empty": "Sin novedades",
     "log.attacker": "Ataque",
     "log.defender": "Defensa",
+    "log.match": "Partida",
     "log.hint": "Solo aparece lo que has llegado a detectar",
 
     "result.title": "Fin del match",
@@ -355,6 +356,7 @@ export const DICTIONARY = {
     "log.empty": "Nothing yet",
     "log.attacker": "Attack",
     "log.defender": "Defence",
+    "log.match": "Match",
     "log.hint": "Only what you managed to detect shows up here",
 
     "result.title": "Match over",

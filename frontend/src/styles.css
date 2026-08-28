@@ -542,6 +542,10 @@ ul {
   border-left-color: var(--azul);
 }
 
+.evento.de-partida {
+  border-left-style: dashed;
+}
+
 .tenue {
   color: var(--texto-meta);
   font-size: 0.85rem;
