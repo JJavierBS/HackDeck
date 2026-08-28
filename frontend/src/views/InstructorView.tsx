@@ -44,7 +44,7 @@ export function InstructorView({ client, session, state, onChange }: InstructorV
       <header className="barra-superior">
         <div>
           <div className="marca-etiqueta">{t("game.code")}</div>
-          <div className="codigo">{session.joinCode}</div>
+          <div className="codigo">{state.joinCode}</div>
         </div>
         <div className="marcas">
           <div>
