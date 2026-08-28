@@ -52,6 +52,16 @@ export function App() {
         {session === null && tournament === null && showEntryScreen && (
           <button onClick={() => setShowEntryScreen(false)}>{t("landing.back")}</button>
         )}
+        {tournament !== null && tournament.instructor && session !== null && (
+          <button
+            onClick={() => {
+              clearSession();
+              setSession(null);
+            }}
+          >
+            {t("tournament.back")}
+          </button>
+        )}
         {(session !== null || tournament !== null) && (
           <button
             onClick={() => {
@@ -80,8 +90,19 @@ export function App() {
             />
           );
         }
-        if (tournament !== null && tournament.instructor) {
-          return <TournamentView client={client} session={tournament} />;
+        // El instructor tiene dos alturas: el bracket entero y la mesa en la
+        // que se ha metido a arbitrar.
+        if (tournament !== null && tournament.instructor && session === null) {
+          return (
+            <TournamentView
+              client={client}
+              session={tournament}
+              onTable={(mesa) => {
+                saveSession(mesa);
+                setSession(mesa);
+              }}
+            />
+          );
         }
         if (session === null) {
           if (!showEntryScreen) {
@@ -106,7 +127,7 @@ export function App() {
             client={client}
             session={session}
             onLeaveTable={
-              tournament === null
+              tournament === null || tournament.instructor
                 ? undefined
                 : () => {
                     clearSession();

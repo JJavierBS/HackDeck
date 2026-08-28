@@ -194,6 +194,8 @@ export const DICTIONARY = {
     "tournament.defended": "triada defendida",
     "tournament.teams": "equipos",
     "tournament.hint": "Todos los equipos entran con el mismo codigo",
+    "tournament.enter": "Entrar en la mesa",
+    "tournament.back": "Volver al torneo",
 
     "landing.nav.try": "Jugar ahora",
     "landing.nav.features": "Cómo funciona",
@@ -441,6 +443,8 @@ export const DICTIONARY = {
     "tournament.defended": "triad defended",
     "tournament.teams": "teams",
     "tournament.hint": "Every team joins with the same code",
+    "tournament.enter": "Open table",
+    "tournament.back": "Back to tournament",
 
     "landing.nav.try": "Play now",
     "landing.nav.features": "How it works",

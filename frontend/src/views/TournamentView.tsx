@@ -8,13 +8,15 @@ import type { TranslationKey } from "../i18n/dictionary";
 interface TournamentViewProps {
   client: RestClient;
   session: TournamentSession;
+  /** Entrar en una mesa concreta: seis mesas no se arbitran desde una lista. */
+  onTable: (mesa: GameSession) => void;
 }
 
 /**
  * El panel del instructor: todas las mesas de la ronda a la vez. Sin esto no
  * puede llevar seis mesas una sola persona.
  */
-export function TournamentView({ client, session }: TournamentViewProps) {
+export function TournamentView({ client, session, onTable }: TournamentViewProps) {
   const { t } = useLanguage();
   const [torneo, setTorneo] = useState<TournamentDto | null>(null);
   const comoPartida: GameSession = {
@@ -102,36 +104,46 @@ export function TournamentView({ client, session }: TournamentViewProps) {
       <div className="columnas">
         <div>
           <h2>{t("tournament.tables")}</h2>
-          {torneo.tables.map((mesa, indice) => (
-            <section key={indice} className="carta">
-              <div className="carta-cabecera">
-                <span className="carta-nombre">
-                  {mesa.homeName} {mesa.awayName === null ? "" : `vs ${mesa.awayName}`}
-                </span>
-                <span className="etiqueta">
-                  {mesa.phase === "BYE" ? t("tournament.bye") : `${t("game.round")} ${mesa.roundNumber}`}
-                </span>
-              </div>
-              {mesa.winnerName !== null ? (
-                <p>
-                  {t("result.winner")} <strong>{mesa.winnerName}</strong>
-                </p>
-              ) : (
-                <ul>
-                  {Object.entries(mesa.ciaLevels).map(([pilar, nivel]) => (
-                    <li key={pilar}>
-                      {t(`cia.${pilar}` as TranslationKey)}: {nivel}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {mesa.readyTeams.length > 0 && (
-                <p className="tenue">
-                  {t("ready.teams")}: {mesa.readyTeams.join(" · ")}
-                </p>
-              )}
-            </section>
-          ))}
+          {torneo.tables.map((mesa, indice) => {
+            // Un pase directo no tiene partida detras: no hay donde entrar.
+            const mesaDelInstructor: GameSession | null =
+              mesa.gameId === null || mesa.instructorToken === null
+                ? null
+                : { gameId: mesa.gameId, joinCode: "", team: null, token: mesa.instructorToken };
+            return (
+              <section key={indice} className="carta">
+                <div className="carta-cabecera">
+                  <span className="carta-nombre">
+                    {mesa.homeName} {mesa.awayName === null ? "" : `vs ${mesa.awayName}`}
+                  </span>
+                  <span className="etiqueta">
+                    {mesa.phase === "BYE" ? t("tournament.bye") : `${t("game.round")} ${mesa.roundNumber}`}
+                  </span>
+                </div>
+                {mesa.winnerName !== null ? (
+                  <p>
+                    {t("result.winner")} <strong>{mesa.winnerName}</strong>
+                  </p>
+                ) : (
+                  <ul>
+                    {Object.entries(mesa.ciaLevels).map(([pilar, nivel]) => (
+                      <li key={pilar}>
+                        {t(`cia.${pilar}` as TranslationKey)}: {nivel}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {mesa.readyTeams.length > 0 && (
+                  <p className="tenue">
+                    {t("ready.teams")}: {mesa.readyTeams.join(" · ")}
+                  </p>
+                )}
+                {mesaDelInstructor !== null && (
+                  <button onClick={() => onTable(mesaDelInstructor)}>{t("tournament.enter")}</button>
+                )}
+              </section>
+            );
+          })}
         </div>
         <div>
           <section>
