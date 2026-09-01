@@ -5,10 +5,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import tools.jackson.databind.ObjectMapper;
 
+import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,12 +35,22 @@ class LimitesDeAbusoTest {
     private final ObjectMapper json = new ObjectMapper();
 
     private HttpResponse<String> post(String ruta, String cuerpo) throws Exception {
+        return post(ruta, cuerpo == null
+                ? HttpRequest.BodyPublishers.noBody()
+                : HttpRequest.BodyPublishers.ofString(cuerpo));
+    }
+
+    private HttpResponse<String> post(String ruta, HttpRequest.BodyPublisher cuerpo) throws Exception {
         HttpRequest peticion = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + puerto + ruta))
                 .header("Content-Type", "application/json")
-                .POST(cuerpo == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(cuerpo))
+                .POST(cuerpo)
                 .build();
         return cliente.send(peticion, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private static String cuerpoDe(int bytes) {
+        return "{\"code\":\"ZZZZZZ\",\"displayName\":\"" + "A".repeat(bytes) + "\"}";
     }
 
     @Test
@@ -53,6 +65,32 @@ class LimitesDeAbusoTest {
         assertThat(cortada.statusCode()).isEqualTo(429);
         assertThat(cortada.headers().firstValue("Retry-After")).isPresent();
         assertThat(json.readTree(cortada.body()).get("error").asString()).isEqualTo("demasiadas_peticiones");
+    }
+
+    @Test
+    void un_cuerpo_desmesurado_se_rechaza_por_su_tamano_anunciado() throws Exception {
+        HttpResponse<String> rechazada = post("/api/v1/games", cuerpoDe(2_000_000));
+
+        assertThat(rechazada.statusCode()).isEqualTo(413);
+        assertThat(json.readTree(rechazada.body()).get("error").asString())
+                .isEqualTo("cuerpo_demasiado_grande");
+    }
+
+    /**
+     * Mirar solo Content-Length no vale: troceando el envio no se anuncia
+     * tamano ninguno y la comprobacion facil se saltaria sola.
+     */
+    @Test
+    void un_cuerpo_desmesurado_troceado_tampoco_pasa() throws Exception {
+        String gordo = cuerpoDe(2_000_000);
+        HttpRequest.BodyPublisher troceado = HttpRequest.BodyPublishers.ofInputStream(
+                () -> new ByteArrayInputStream(gordo.getBytes(StandardCharsets.UTF_8)));
+
+        HttpResponse<String> rechazada = post("/api/v1/games", troceado);
+
+        assertThat(rechazada.statusCode()).isEqualTo(413);
+        assertThat(json.readTree(rechazada.body()).get("error").asString())
+                .isEqualTo("cuerpo_demasiado_grande");
     }
 
     @Test

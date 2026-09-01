@@ -1,6 +1,7 @@
 package com.hackdeck.adapter.rest;
 
 import com.hackdeck.adapter.rest.dto.ApiErrorResponse;
+import com.hackdeck.adapter.rest.security.PayloadTooLargeException;
 import com.hackdeck.adapter.rest.security.UnauthenticatedException;
 import com.hackdeck.application.exception.AccessDeniedException;
 import com.hackdeck.application.exception.CapacityExceededException;
@@ -11,6 +12,7 @@ import com.hackdeck.domain.exception.InsufficientBudgetException;
 import com.hackdeck.domain.exception.MissingRequirementException;
 import com.hackdeck.domain.exception.UnknownCardException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -26,6 +28,25 @@ public class ApiExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException e) {
         return build(HttpStatus.FORBIDDEN, "acceso_denegado", e.getMessage());
+    }
+
+    @ExceptionHandler(PayloadTooLargeException.class)
+    public ResponseEntity<ApiErrorResponse> handlePayloadTooLarge(PayloadTooLargeException e) {
+        return build(HttpStatus.PAYLOAD_TOO_LARGE, "cuerpo_demasiado_grande", e.getMessage());
+    }
+
+    /**
+     * El cuerpo cortado por el tope salta a mitad del parseo, asi que puede
+     * llegar envuelto en el error de JSON ilegible.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnreadableBody(HttpMessageNotReadableException e) {
+        for (Throwable causa = e.getCause(); causa != null; causa = causa.getCause()) {
+            if (causa instanceof PayloadTooLargeException demasiado) {
+                return handlePayloadTooLarge(demasiado);
+            }
+        }
+        return build(HttpStatus.BAD_REQUEST, "peticion_invalida", "El cuerpo de la peticion no se puede leer");
     }
 
     @ExceptionHandler(CapacityExceededException.class)

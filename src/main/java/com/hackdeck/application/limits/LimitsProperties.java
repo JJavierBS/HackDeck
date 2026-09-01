@@ -2,6 +2,7 @@ package com.hackdeck.application.limits;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.util.unit.DataSize;
 
 import java.time.Duration;
 
@@ -24,6 +25,10 @@ import java.time.Duration;
  *                             alcance.
  * @param createAttemptsPerIp  partidas o torneos creados por IP y ventana.
  * @param rateLimitWindow      ventana de ambos cupos.
+ * @param maxRequestBody       tope al cuerpo de las peticiones de la API. La
+ *                             peticion mas gorda que existe es reordenar la
+ *                             cola, unos pocos kilobytes, asi que 32 KB ya es
+ *                             holgado.
  */
 @ConfigurationProperties(prefix = "hackdeck.limits")
 public record LimitsProperties(
@@ -35,7 +40,8 @@ public record LimitsProperties(
         @DefaultValue("1m") Duration purgeInterval,
         @DefaultValue("60") int joinAttemptsPerIp,
         @DefaultValue("10") int createAttemptsPerIp,
-        @DefaultValue("1m") Duration rateLimitWindow) {
+        @DefaultValue("1m") Duration rateLimitWindow,
+        @DefaultValue("32KB") DataSize maxRequestBody) {
 
     public LimitsProperties {
         requirePositive(maxLiveGames, "max-live-games");
@@ -47,6 +53,9 @@ public record LimitsProperties(
         requirePositive(finishedTtl, "finished-ttl");
         requirePositive(purgeInterval, "purge-interval");
         requirePositive(rateLimitWindow, "rate-limit-window");
+        if (maxRequestBody == null || maxRequestBody.toBytes() <= 0) {
+            throw new IllegalArgumentException("hackdeck.limits.max-request-body debe ser un tamano positivo");
+        }
     }
 
     public RetentionPolicy retentionPolicy() {

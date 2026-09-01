@@ -6,6 +6,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,6 +31,7 @@ import java.time.Instant;
  * delante NO se debe mirar X-Forwarded-For: lo pone quien quiera.
  */
 @Component
+@Order(10)
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final String JOIN_PATH = "/api/v1/games/join";
