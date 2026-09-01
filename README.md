@@ -82,6 +82,26 @@ O sin Docker, con `java -jar hack-deck-backend.jar --spring.profiles.active=clou
 > local y **cualquiera podría crear partidas**. El perfil `cloud` ya lo desactiva y activa
 > `forward-headers-strategy`; asegúrate de usarlo.
 
+### Abierto a internet
+
+Si el servidor va a estar accesible desde fuera de un aula, además de lo anterior:
+
+- **Pon un proxy delante** (Cloudflare, nginx). Un servidor de Java no debería recibir
+  tráfico crudo de internet: ahí es donde se absorbe un DDoS volumétrico, no en la
+  aplicación.
+- **Cierra el cortafuegos al origen.** Con Cloudflare, si el puerto 8080 sigue accesible
+  por IP el proxy se lo salta yendo directo. Acepta solo las redes del proxy.
+- **Comprueba que el proxy reenvía la IP real** (`X-Forwarded-For`). El cupo por IP y la
+  exención de clave dependen de ella: si el proxy no la reenvía, todo el tráfico parece
+  venir de una sola dirección.
+- **Deja pasar el WebSocket** (`/ws`), o los equipos no verán el estado en tiempo real.
+- **Limita memoria y CPU del contenedor**, como hace el `docker-compose.yml`. Que un abuso
+  mate el contenedor y se reinicie es mucho mejor que quedarse sin máquina.
+
+El servidor ya se defiende solo de lo básico: cupo de peticiones por IP en los tres
+endpoints anónimos, tope de partidas y torneos vivos, y borrado automático de las mesas
+abandonadas (ver la tabla de configuración).
+
 ## Cambiar las cartas sin recompilar
 
 El catálogo está en [`src/main/resources/catalog/cartas.yaml`](src/main/resources/catalog/cartas.yaml),
@@ -105,6 +125,29 @@ de fallar a mitad de una clase.
 | `HACKDECK_ALLOW_LOOPBACK` | `true` | Exime de la clave a las peticiones locales. **Ponlo a `false` detrás de un proxy.** |
 | `HACKDECK_CORS_ORIGINS` | `http://localhost:5173` | Solo hace falta en desarrollo. |
 | `HACKDECK_CATALOG_PATH` | catálogo empaquetado | Catálogo de cartas externo. |
+
+### Límites de un despliegue público
+
+En el aula no se rozan; están para que una sola IP no pueda llenar la memoria del servidor
+ni probar códigos de partida a ciegas.
+
+| Variable | Por defecto | Para qué |
+|---|---|---|
+| `HACKDECK_MAX_LIVE_GAMES` | `500` | Partidas vivas a la vez. Pasado el tope, crear devuelve `503`. |
+| `HACKDECK_MAX_LIVE_TOURNAMENTS` | `100` | Lo mismo para torneos. |
+| `HACKDECK_LOBBY_TTL` | `30m` | Se borra un lobby que nunca empezó. |
+| `HACKDECK_IDLE_TTL` | `2h` | Se borra una partida empezada y abandonada. |
+| `HACKDECK_FINISHED_TTL` | `2h` | Margen para hacer el debriefing antes de borrar. |
+| `HACKDECK_JOIN_ATTEMPTS` | `60` | Intentos de unión por IP y minuto. |
+| `HACKDECK_CREATE_ATTEMPTS` | `10` | Partidas o torneos creados por IP y minuto. |
+| `HACKDECK_MAX_CONNECTIONS` | `2000` | Conexiones simultáneas que acepta Tomcat. |
+
+Un torneo admite como máximo **64 equipos**, que son cinco rondas de bracket.
+
+> **Ojo con el NAT.** Una clase entera suele salir a internet por **una sola IP pública**, y
+> todos se unen a la vez. Por eso el cupo de unión es holgado; si aun así una clase grande
+> se queda fuera, sube `HACKDECK_JOIN_ATTEMPTS`. Sigue haciendo inviable probar códigos a
+> ciegas: son 32⁶ combinaciones.
 
 Las partidas viven **en memoria**: al reiniciar el servidor se pierden, igual que los
 tokens. Es lo previsto para el uso en el aula.
