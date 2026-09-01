@@ -17,6 +17,14 @@ import java.util.Optional;
  */
 public final class Tournament {
 
+    /**
+     * Tope de equipos por torneo. Con el codigo proyectado en la pared se une
+     * quien quiera, asi que sin limite una sola persona podia apuntar miles de
+     * equipos y, al empezar, obligar al servidor a crear miles de mesas.
+     * Sesenta y cuatro son cinco rondas de bracket: mas no cabe en una clase.
+     */
+    public static final int MAX_TEAMS = 64;
+
     private final TournamentId id;
     private final JoinCode joinCode;
     private final Participant instructor;
@@ -76,6 +84,9 @@ public final class Tournament {
     public TournamentTeam join(String displayName) {
         if (phase != TournamentPhase.LOBBY) {
             throw new GameNotJoinableException("El torneo ya ha empezado");
+        }
+        if (teams.size() >= MAX_TEAMS) {
+            throw new GameNotJoinableException("El torneo ya tiene el maximo de " + MAX_TEAMS + " equipos");
         }
         TournamentTeam equipo = new TournamentTeam(PlayerId.newId(), Participant.player(TeamId.A, displayName).displayName());
         teams.put(equipo.id(), equipo);

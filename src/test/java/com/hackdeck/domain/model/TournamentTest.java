@@ -1,6 +1,7 @@
 package com.hackdeck.domain.model;
 
 import com.hackdeck.apoyo.Partidas;
+import com.hackdeck.domain.exception.GameNotJoinableException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -17,6 +18,18 @@ class TournamentTest {
             torneo.join(nombre);
         }
         return torneo;
+    }
+
+    @Test
+    void no_admite_mas_equipos_que_el_tope() {
+        Tournament torneo = Tournament.create(JoinCode.generate(), Participant.instructor(), Partidas.AJUSTES);
+        for (int equipo = 0; equipo < Tournament.MAX_TEAMS; equipo++) {
+            torneo.join("Equipo " + equipo);
+        }
+
+        assertThatThrownBy(() -> torneo.join("El que sobra"))
+                .isInstanceOf(GameNotJoinableException.class);
+        assertThat(torneo.teams()).hasSize(Tournament.MAX_TEAMS);
     }
 
     @Test
