@@ -15,10 +15,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class InMemoryTournamentRepository implements TournamentRepository {
 
     private final Map<TournamentId, Tournament> torneos = new ConcurrentHashMap<>();
+    // Indice propio: buscar el codigo recorriendo todos los torneos convertia
+    // cada intento de union anonimo en un barrido del mapa entero.
+    private final Map<JoinCode, TournamentId> torneosPorCodigo = new ConcurrentHashMap<>();
 
     @Override
     public Tournament save(Tournament tournament) {
         torneos.put(tournament.id(), tournament);
+        torneosPorCodigo.put(tournament.joinCode(), tournament.id());
         return tournament;
     }
 
@@ -29,7 +33,7 @@ public final class InMemoryTournamentRepository implements TournamentRepository 
 
     @Override
     public Optional<Tournament> findByJoinCode(JoinCode joinCode) {
-        return torneos.values().stream().filter(t -> t.joinCode().equals(joinCode)).findFirst();
+        return Optional.ofNullable(torneosPorCodigo.get(joinCode)).flatMap(this::findById);
     }
 
     @Override
@@ -44,6 +48,9 @@ public final class InMemoryTournamentRepository implements TournamentRepository 
 
     @Override
     public void delete(TournamentId id) {
-        torneos.remove(id);
+        Tournament borrado = torneos.remove(id);
+        if (borrado != null) {
+            torneosPorCodigo.remove(borrado.joinCode(), id);
+        }
     }
 }
