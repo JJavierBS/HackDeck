@@ -7,8 +7,14 @@ services:
       # Sin clave fija, los tokens mueren en cada reinicio y echa a los equipos.
       HACKDECK_JWT_SECRET: ${HACKDECK_JWT_SECRET:?pon una clave de al menos 32 caracteres}
       HACKDECK_INSTRUCTOR_KEY: ${HACKDECK_INSTRUCTOR_KEY:?pon la clave con la que crearas partidas}
+      # Que la JVM respete el limite del contenedor en vez del de la maquina.
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75
       # Para usar tu propio catalogo, montalo y apunta aqui.
       # HACKDECK_CATALOG_PATH: /catalogo/cartas.yaml
     # volumes:
     #   - ./mi-catalogo.yaml:/catalogo/cartas.yaml:ro
+    # Un abuso que agote la memoria debe matar al contenedor y que se
+    # reinicie, no llevarse por delante la maquina entera.
+    mem_limit: 1g
+    cpus: 1.5
     restart: unless-stopped

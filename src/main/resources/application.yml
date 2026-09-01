@@ -1,5 +1,15 @@
 server:
   port: ${PORT:8080}
+  # Cerrar sin cortar las rondas que se estan resolviendo.
+  shutdown: graceful
+  max-http-request-header-size: 8KB
+  tomcat:
+    # Contra conexiones que se abren y no terminan de hablar (slowloris).
+    connection-timeout: 5s
+    keep-alive-timeout: 30s
+    max-connections: ${HACKDECK_MAX_CONNECTIONS:2000}
+    max-swallow-size: 256KB
+    max-http-form-post-size: 256KB
 
 spring:
   application:
