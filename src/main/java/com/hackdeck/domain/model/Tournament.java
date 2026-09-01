@@ -2,6 +2,7 @@ package com.hackdeck.domain.model;
 
 import com.hackdeck.domain.exception.GameNotJoinableException;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ public final class Tournament {
     private final Map<PlayerId, TournamentTeam> teams = new LinkedHashMap<>();
     private final List<BracketRound> rounds = new ArrayList<>();
     private TournamentPhase phase = TournamentPhase.LOBBY;
+    private Instant lastActivityAt = Instant.now();
 
     public Tournament(TournamentId id, JoinCode joinCode, Participant instructor, GameSettings settings) {
         this.id = Objects.requireNonNull(id, "id");
@@ -77,7 +79,16 @@ public final class Tournament {
         }
         TournamentTeam equipo = new TournamentTeam(PlayerId.newId(), Participant.player(TeamId.A, displayName).displayName());
         teams.put(equipo.id(), equipo);
+        touch();
         return equipo;
+    }
+
+    public Instant lastActivityAt() {
+        return lastActivityAt;
+    }
+
+    private void touch() {
+        lastActivityAt = Instant.now();
     }
 
     /**
@@ -121,6 +132,7 @@ public final class Tournament {
 
     public void finish() {
         phase = TournamentPhase.FINISHED;
+        touch();
     }
 
     public Optional<Pairing> pairingOf(PlayerId team) {
@@ -157,6 +169,7 @@ public final class Tournament {
         }
         BracketRound ronda = new BracketRound(rounds.size() + 1, cruces);
         rounds.add(ronda);
+        touch();
         return ronda;
     }
 

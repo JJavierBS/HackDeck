@@ -4,6 +4,7 @@ import com.hackdeck.domain.model.JoinCode;
 import com.hackdeck.domain.model.Tournament;
 import com.hackdeck.domain.model.TournamentId;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface TournamentRepository {
@@ -13,4 +14,10 @@ public interface TournamentRepository {
     Optional<Tournament> findById(TournamentId id);
 
     Optional<Tournament> findByJoinCode(JoinCode joinCode);
+
+    List<Tournament> findAll();
+
+    int count();
+
+    void delete(TournamentId id);
 }

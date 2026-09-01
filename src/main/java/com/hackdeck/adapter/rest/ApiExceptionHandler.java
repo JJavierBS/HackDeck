@@ -3,6 +3,7 @@ package com.hackdeck.adapter.rest;
 import com.hackdeck.adapter.rest.dto.ApiErrorResponse;
 import com.hackdeck.adapter.rest.security.UnauthenticatedException;
 import com.hackdeck.application.exception.AccessDeniedException;
+import com.hackdeck.application.exception.CapacityExceededException;
 import com.hackdeck.domain.exception.AlreadyDeployedException;
 import com.hackdeck.domain.exception.GameNotFoundException;
 import com.hackdeck.domain.exception.GameNotJoinableException;
@@ -25,6 +26,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException e) {
         return build(HttpStatus.FORBIDDEN, "acceso_denegado", e.getMessage());
+    }
+
+    @ExceptionHandler(CapacityExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleCapacityExceeded(CapacityExceededException e) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, "servidor_lleno", e.getMessage());
     }
 
     @ExceptionHandler(GameNotFoundException.class)

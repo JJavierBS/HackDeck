@@ -44,4 +44,26 @@ public final class InMemoryGameRepository implements GameRepository {
     public List<Game> findInProgress() {
         return games.values().stream().filter(game -> game.phase() == GamePhase.IN_PROGRESS).toList();
     }
+
+    @Override
+    public List<Game> findAll() {
+        return List.copyOf(games.values());
+    }
+
+    @Override
+    public int count() {
+        return games.size();
+    }
+
+    /**
+     * Se limpia tambien el indice de codigos: si solo se borrase la partida,
+     * el mapa de codigos seguiria creciendo y el codigo quedaria quemado.
+     */
+    @Override
+    public void delete(GameId gameId) {
+        Game removed = games.remove(gameId);
+        if (removed != null) {
+            gamesByJoinCode.remove(removed.joinCode(), gameId);
+        }
+    }
 }

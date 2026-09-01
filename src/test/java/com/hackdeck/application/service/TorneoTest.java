@@ -36,7 +36,8 @@ class TorneoTest {
                 partidas,
                 new Dobles.Difusor(),
                 new Dobles.Tokens(),
-                new DefaultRuleEngine(Partidas.catalogoVacio(), AzarControlado.siempre()));
+                new DefaultRuleEngine(Partidas.catalogoVacio(), AzarControlado.siempre()),
+                Partidas.RETENCION);
     }
 
     @Test

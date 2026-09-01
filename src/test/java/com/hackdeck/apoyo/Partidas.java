@@ -1,5 +1,6 @@
 package com.hackdeck.apoyo;
 
+import com.hackdeck.application.limits.RetentionPolicy;
 import com.hackdeck.domain.catalog.ActionCard;
 import com.hackdeck.domain.catalog.ActionCatalog;
 import com.hackdeck.domain.model.ActionIntent;
@@ -18,6 +19,10 @@ import java.util.UUID;
 public final class Partidas {
 
     public static final GameSettings AJUSTES = new GameSettings(6, Duration.ofSeconds(60), 100, 20);
+
+    /** Retencion holgada: los tests de juego no deben pelearse con el barrendero. */
+    public static final RetentionPolicy RETENCION = new RetentionPolicy(
+            Duration.ofHours(1), Duration.ofHours(1), Duration.ofHours(1), 1_000, 1_000);
 
     private Partidas() {
     }

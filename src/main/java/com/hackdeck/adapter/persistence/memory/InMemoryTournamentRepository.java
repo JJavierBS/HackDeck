@@ -6,6 +6,7 @@ import com.hackdeck.domain.model.Tournament;
 import com.hackdeck.domain.model.TournamentId;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,5 +30,20 @@ public final class InMemoryTournamentRepository implements TournamentRepository 
     @Override
     public Optional<Tournament> findByJoinCode(JoinCode joinCode) {
         return torneos.values().stream().filter(t -> t.joinCode().equals(joinCode)).findFirst();
+    }
+
+    @Override
+    public List<Tournament> findAll() {
+        return List.copyOf(torneos.values());
+    }
+
+    @Override
+    public int count() {
+        return torneos.size();
+    }
+
+    @Override
+    public void delete(TournamentId id) {
+        torneos.remove(id);
     }
 }

@@ -29,6 +29,12 @@ public final class Game {
      * los dos equipos se declaran listos.
      */
     private boolean autoResolve;
+    /**
+     * Ultima vez que alguien movio la partida. Es lo que permite distinguir
+     * una mesa viva de una abandonada y borrar la segunda: sin esto, en un
+     * servidor publico el mapa de partidas solo crece.
+     */
+    private Instant lastActivityAt = Instant.now();
 
     public Game(GameId id, JoinCode joinCode, Participant instructor, GameSettings settings, GamePhase phase) {
         this.id = Objects.requireNonNull(id, "id");
@@ -78,8 +84,22 @@ public final class Game {
         return List.copyOf(history);
     }
 
+    public Instant lastActivityAt() {
+        return lastActivityAt;
+    }
+
     public void record(GameEvent event) {
         history.add(event);
+        touch();
+    }
+
+    /**
+     * Todo lo que cambia la partida pasa por aqui o por record(): con eso
+     * basta para saber si sigue viva. Consultar el estado no cuenta, o un
+     * navegador olvidado abierto mantendria la mesa viva para siempre.
+     */
+    private void touch() {
+        lastActivityAt = Instant.now();
     }
 
     private void recordAtCurrentRound(GameEventType type, String description) {
@@ -164,6 +184,7 @@ public final class Game {
         Half half = currentHalf();
         half.spend(teamPlaying(action.team()), cost);
         half.currentRound().enqueue(action);
+        touch();
     }
 
     public ActionIntent dequeue(java.util.UUID intentId, Role side) {
@@ -174,11 +195,13 @@ public final class Game {
             return null;
         }
         round.removeAction(intentId, side);
+        touch();
         return intent;
     }
 
     public void refund(TeamId team, int cost) {
         currentHalf().refund(team, cost);
+        touch();
     }
 
     /** Lo gastado en todo el match, sumando las dos mitades. */
@@ -189,6 +212,7 @@ public final class Game {
     public void reorderQueue(Role side, List<java.util.UUID> intentIds) {
         requireInProgress();
         currentRound().reorderQueue(side, intentIds);
+        touch();
     }
 
     /**
@@ -276,6 +300,7 @@ public final class Game {
 
     public void setAutoResolve(boolean enabled) {
         this.autoResolve = enabled;
+        touch();
     }
 
     public Optional<Instant> roundDeadline() {
@@ -292,6 +317,7 @@ public final class Game {
     public void markReady(TeamId team) {
         requireInProgress();
         currentRound().markReady(team);
+        touch();
     }
 
     /**
@@ -312,6 +338,7 @@ public final class Game {
         requireInProgress();
         currentHalf().finish();
         phase = GamePhase.FINISHED;
+        touch();
     }
 
     private void endHalf() {

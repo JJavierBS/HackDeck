@@ -1,6 +1,9 @@
 package com.hackdeck.application.service;
 
 import com.hackdeck.application.exception.AccessDeniedException;
+import com.hackdeck.application.exception.CapacityExceededException;
+import com.hackdeck.application.limits.RetentionPolicy;
+import com.hackdeck.application.port.in.PurgeStaleTournamentsUseCase;
 import com.hackdeck.application.port.in.TeamPlacement;
 import com.hackdeck.application.port.in.TournamentAccess;
 import com.hackdeck.application.port.in.TournamentUseCase;
@@ -42,7 +45,7 @@ import java.util.Optional;
  * vez en cuanto el codigo aparece proyectado.
  */
 @Service
-public final class TournamentApplicationService implements TournamentUseCase {
+public final class TournamentApplicationService implements TournamentUseCase, PurgeStaleTournamentsUseCase {
 
     private static final int MAX_JOIN_CODE_ATTEMPTS = 100;
 
@@ -51,22 +54,29 @@ public final class TournamentApplicationService implements TournamentUseCase {
     private final GameStateBroadcaster broadcaster;
     private final AccessTokenPort tokens;
     private final RuleEngine reglas;
+    private final RetentionPolicy retencion;
 
     public TournamentApplicationService(
             TournamentRepository tournaments,
             GameRepository games,
             GameStateBroadcaster broadcaster,
             AccessTokenPort tokens,
-            RuleEngine reglas) {
+            RuleEngine reglas,
+            RetentionPolicy retencion) {
         this.tournaments = Objects.requireNonNull(tournaments, "tournaments");
         this.games = Objects.requireNonNull(games, "games");
         this.broadcaster = Objects.requireNonNull(broadcaster, "broadcaster");
         this.tokens = Objects.requireNonNull(tokens, "tokens");
         this.reglas = Objects.requireNonNull(reglas, "reglas");
+        this.retencion = Objects.requireNonNull(retencion, "retencion");
     }
 
     @Override
     public TournamentAccess createTournament(GameSettings settings) {
+        if (retencion.tournamentsAreFull(tournaments.count())) {
+            throw new CapacityExceededException(
+                    "El servidor ya tiene " + retencion.maxLiveTournaments() + " torneos vivos");
+        }
         Participant instructor = Participant.instructor();
         Tournament torneo = Tournament.create(uniqueJoinCode(), instructor, settings);
         tournaments.save(torneo);
@@ -308,6 +318,27 @@ public final class TournamentApplicationService implements TournamentUseCase {
     private Participant jugador(Tournament torneo, PlayerId equipo, TeamId bando) {
         TournamentTeam datos = torneo.team(equipo).orElseThrow();
         return new Participant(datos.id(), com.hackdeck.domain.model.ParticipantKind.PLAYER, bando, datos.displayName());
+    }
+
+    /**
+     * Las mesas del torneo caducan por su cuenta en el barrido de partidas;
+     * aqui solo se tira el torneo en si.
+     */
+    @Override
+    public int purgeStaleTournaments() {
+        java.time.Instant ahora = java.time.Instant.now();
+        int borrados = 0;
+        for (Tournament torneo : tournaments.findAll()) {
+            boolean caducado;
+            synchronized (torneo) {
+                caducado = retencion.isPurgeable(torneo.phase(), torneo.lastActivityAt(), ahora);
+            }
+            if (caducado) {
+                tournaments.delete(torneo.id());
+                borrados++;
+            }
+        }
+        return borrados;
     }
 
     private Tournament requireTournament(TournamentId id) {

@@ -18,4 +18,16 @@ hackdeck:
     allow-loopback-without-key: ${HACKDECK_ALLOW_LOOPBACK:true}
     cors-allowed-origins: ${HACKDECK_CORS_ORIGINS:http://localhost:5173}
   public-url: ${HACKDECK_PUBLIC_URL:}
+  # Cupos de un despliegue publico. En el aula no se rozan; estan para que
+  # una sola IP no pueda llenar la memoria ni probar codigos a ciegas.
+  limits:
+    max-live-games: ${HACKDECK_MAX_LIVE_GAMES:500}
+    max-live-tournaments: ${HACKDECK_MAX_LIVE_TOURNAMENTS:100}
+    lobby-ttl: ${HACKDECK_LOBBY_TTL:30m}
+    idle-ttl: ${HACKDECK_IDLE_TTL:2h}
+    finished-ttl: ${HACKDECK_FINISHED_TTL:2h}
+    purge-interval: 1m
+    join-attempts-per-ip: ${HACKDECK_JOIN_ATTEMPTS:60}
+    create-attempts-per-ip: ${HACKDECK_CREATE_ATTEMPTS:10}
+    rate-limit-window: 1m
 

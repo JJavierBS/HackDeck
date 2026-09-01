@@ -50,6 +50,21 @@ public final class Dobles {
         public List<Game> findInProgress() {
             return partidas.values().stream().filter(game -> game.phase() == GamePhase.IN_PROGRESS).toList();
         }
+
+        @Override
+        public List<Game> findAll() {
+            return List.copyOf(partidas.values());
+        }
+
+        @Override
+        public int count() {
+            return partidas.size();
+        }
+
+        @Override
+        public void delete(GameId gameId) {
+            partidas.remove(gameId);
+        }
     }
 
     public static final class RepositorioTorneos implements com.hackdeck.application.port.out.TournamentRepository {
@@ -71,6 +86,21 @@ public final class Dobles {
         @Override
         public Optional<com.hackdeck.domain.model.Tournament> findByJoinCode(JoinCode joinCode) {
             return torneos.values().stream().filter(torneo -> torneo.joinCode().equals(joinCode)).findFirst();
+        }
+
+        @Override
+        public List<com.hackdeck.domain.model.Tournament> findAll() {
+            return List.copyOf(torneos.values());
+        }
+
+        @Override
+        public int count() {
+            return torneos.size();
+        }
+
+        @Override
+        public void delete(com.hackdeck.domain.model.TournamentId id) {
+            torneos.remove(id);
         }
     }
 

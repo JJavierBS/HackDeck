@@ -1,6 +1,8 @@
 package com.hackdeck.application.service;
 
 import com.hackdeck.application.exception.AccessDeniedException;
+import com.hackdeck.application.exception.CapacityExceededException;
+import com.hackdeck.application.limits.RetentionPolicy;
 import com.hackdeck.application.port.in.CreateGameUseCase;
 import com.hackdeck.application.port.in.EnqueueActionCommand;
 import com.hackdeck.application.port.in.EnqueueActionUseCase;
@@ -9,6 +11,7 @@ import com.hackdeck.application.port.in.GetGameStateUseCase;
 import com.hackdeck.application.port.in.JoinGameUseCase;
 import com.hackdeck.application.port.in.LaunchTwistUseCase;
 import com.hackdeck.application.port.in.MarkReadyUseCase;
+import com.hackdeck.application.port.in.PurgeStaleGamesUseCase;
 import com.hackdeck.application.port.in.ResolveExpiredRoundsUseCase;
 import com.hackdeck.application.port.in.RoundControlUseCase;
 import com.hackdeck.application.port.in.ResolveRoundUseCase;
@@ -46,7 +49,8 @@ import java.util.UUID;
 public final class GameApplicationService implements
         CreateGameUseCase, JoinGameUseCase, StartGameUseCase, LaunchTwistUseCase,
         EnqueueActionUseCase, ResolveRoundUseCase, GetGameStateUseCase,
-        MarkReadyUseCase, RoundControlUseCase, ResolveExpiredRoundsUseCase {
+        MarkReadyUseCase, RoundControlUseCase, ResolveExpiredRoundsUseCase,
+        PurgeStaleGamesUseCase {
 
     private static final int MAX_JOIN_CODE_ATTEMPTS = 100;
 
@@ -54,20 +58,27 @@ public final class GameApplicationService implements
     private final GameStateBroadcaster broadcaster;
     private final RuleEngine ruleEngine;
     private final AccessTokenPort accessTokenPort;
+    private final RetentionPolicy retentionPolicy;
 
     public GameApplicationService(
             GameRepository gameRepository,
             GameStateBroadcaster broadcaster,
             RuleEngine ruleEngine,
-            AccessTokenPort accessTokenPort) {
+            AccessTokenPort accessTokenPort,
+            RetentionPolicy retentionPolicy) {
         this.gameRepository = Objects.requireNonNull(gameRepository, "gameRepository");
         this.broadcaster = Objects.requireNonNull(broadcaster, "broadcaster");
         this.ruleEngine = Objects.requireNonNull(ruleEngine, "ruleEngine");
         this.accessTokenPort = Objects.requireNonNull(accessTokenPort, "accessTokenPort");
+        this.retentionPolicy = Objects.requireNonNull(retentionPolicy, "retentionPolicy");
     }
 
     @Override
     public GameAccess createGame(GameSettings settings) {
+        if (retentionPolicy.gamesAreFull(gameRepository.count())) {
+            throw new CapacityExceededException(
+                    "El servidor ya tiene " + retentionPolicy.maxLiveGames() + " partidas vivas");
+        }
         Participant instructor = Participant.instructor();
         Game game = Game.create(uniqueJoinCode(), instructor, settings);
         gameRepository.save(game);
@@ -252,6 +263,27 @@ public final class GameApplicationService implements
             }
         }
         return resolved;
+    }
+
+    /**
+     * Sin esto el mapa de partidas solo crece: nada las borraba nunca y cada
+     * match terminado se quedaba en memoria con su historial entero.
+     */
+    @Override
+    public int purgeStaleGames() {
+        Instant now = Instant.now();
+        int purged = 0;
+        for (Game game : gameRepository.findAll()) {
+            boolean caducada;
+            synchronized (game) {
+                caducada = retentionPolicy.isPurgeable(game.phase(), game.lastActivityAt(), now);
+            }
+            if (caducada) {
+                gameRepository.delete(game.id());
+                purged++;
+            }
+        }
+        return purged;
     }
 
     private Game resolveRound(Game game) {

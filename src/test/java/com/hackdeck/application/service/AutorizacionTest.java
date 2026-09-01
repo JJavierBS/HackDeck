@@ -50,7 +50,8 @@ class AutorizacionTest {
                                 Cartas.ataque(ATAQUE).fase(KillChainPhase.RECON).cuesta(10).build(),
                                 Cartas.defensa(DEFENSA).cuesta(10).build()),
                         AzarControlado.siempre()),
-                new Dobles.Tokens());
+                new Dobles.Tokens(),
+                Partidas.RETENCION);
     }
 
     private Game partidaEnCurso() {

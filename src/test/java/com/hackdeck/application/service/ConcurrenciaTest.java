@@ -42,7 +42,8 @@ class ConcurrenciaTest {
                                 Cartas.ataque("ataque").fase(KillChainPhase.RECON).cuesta(10).build(),
                                 Cartas.defensa("defensa").cuesta(10).build()),
                         AzarControlado.siempre()),
-                new Dobles.Tokens());
+                new Dobles.Tokens(),
+                Partidas.RETENCION);
     }
 
     @Test

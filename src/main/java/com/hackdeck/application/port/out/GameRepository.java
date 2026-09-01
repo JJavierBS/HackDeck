@@ -18,4 +18,10 @@ public interface GameRepository {
     boolean existsByJoinCode(JoinCode joinCode);
 
     List<Game> findInProgress();
+
+    List<Game> findAll();
+
+    int count();
+
+    void delete(GameId gameId);
 }
