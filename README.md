@@ -135,6 +135,8 @@ ni probar códigos de partida a ciegas.
 |---|---|---|
 | `HACKDECK_MAX_LIVE_GAMES` | `500` | Partidas vivas a la vez. Pasado el tope, crear devuelve `503`. |
 | `HACKDECK_MAX_LIVE_TOURNAMENTS` | `100` | Lo mismo para torneos. |
+| `HACKDECK_MAX_GAMES_PER_IP` | `10` | Partidas vivas a la vez de una misma dirección. |
+| `HACKDECK_MAX_TOURNAMENTS_PER_IP` | `3` | Torneos vivos a la vez de una misma dirección. |
 | `HACKDECK_LOBBY_TTL` | `30m` | Se borra un lobby que nunca empezó. |
 | `HACKDECK_IDLE_TTL` | `2h` | Se borra una partida empezada y abandonada. |
 | `HACKDECK_FINISHED_TTL` | `2h` | Margen para hacer el debriefing antes de borrar. |
@@ -149,6 +151,10 @@ Un torneo admite como máximo **64 equipos**, que son cinco rondas de bracket.
 > todos se unen a la vez. Por eso el cupo de unión es holgado; si aun así una clase grande
 > se queda fuera, sube `HACKDECK_JOIN_ATTEMPTS`. Sigue haciendo inviable probar códigos a
 > ciegas: son 32⁶ combinaciones.
+>
+> Lo mismo vale para los cupos por dirección: si **varios instructores** crean partidas
+> desde la misma red, comparten cupo. Un torneo cuenta como **una sola** creación por muchas
+> mesas que genere, así que suele ser la forma de no rozarlo.
 
 Las partidas viven **en memoria**: al reiniciar el servidor se pierden, igual que los
 tokens. Es lo previsto para el uso en el aula.
