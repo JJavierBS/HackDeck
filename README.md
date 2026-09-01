@@ -141,6 +141,7 @@ ni probar códigos de partida a ciegas.
 | `HACKDECK_JOIN_ATTEMPTS` | `60` | Intentos de unión por IP y minuto. |
 | `HACKDECK_CREATE_ATTEMPTS` | `10` | Partidas o torneos creados por IP y minuto. |
 | `HACKDECK_MAX_CONNECTIONS` | `2000` | Conexiones simultáneas que acepta Tomcat. |
+| `HACKDECK_MAX_REQUEST_BODY` | `32KB` | Tope al cuerpo de las peticiones de la API. |
 
 Un torneo admite como máximo **64 equipos**, que son cinco rondas de bracket.
 
