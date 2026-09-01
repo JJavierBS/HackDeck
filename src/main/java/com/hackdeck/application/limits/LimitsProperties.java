@@ -14,6 +14,11 @@ import java.time.Duration;
  * @param maxLiveGames         partidas vivas a la vez; pasado el tope, crear
  *                             devuelve 503 en vez de agotar la memoria.
  * @param maxLiveTournaments   lo mismo para torneos.
+ * @param maxLiveGamesPerIp    partidas vivas a la vez de un mismo creador. El
+ *                             cupo por minuto limita el ritmo, no el
+ *                             acumulado; sin esto, dos direcciones bastan para
+ *                             ocupar el servidor entero.
+ * @param maxLiveTournamentsPerIp  lo mismo para torneos.
  * @param lobbyTtl             sin empezar y sin actividad, se borra.
  * @param idleTtl              empezada pero abandonada a media partida.
  * @param finishedTtl          terminada; el margen es para el debriefing.
@@ -34,6 +39,8 @@ import java.time.Duration;
 public record LimitsProperties(
         @DefaultValue("500") int maxLiveGames,
         @DefaultValue("100") int maxLiveTournaments,
+        @DefaultValue("10") int maxLiveGamesPerIp,
+        @DefaultValue("3") int maxLiveTournamentsPerIp,
         @DefaultValue("30m") Duration lobbyTtl,
         @DefaultValue("2h") Duration idleTtl,
         @DefaultValue("2h") Duration finishedTtl,
@@ -46,6 +53,8 @@ public record LimitsProperties(
     public LimitsProperties {
         requirePositive(maxLiveGames, "max-live-games");
         requirePositive(maxLiveTournaments, "max-live-tournaments");
+        requirePositive(maxLiveGamesPerIp, "max-live-games-per-ip");
+        requirePositive(maxLiveTournamentsPerIp, "max-live-tournaments-per-ip");
         requirePositive(joinAttemptsPerIp, "join-attempts-per-ip");
         requirePositive(createAttemptsPerIp, "create-attempts-per-ip");
         requirePositive(lobbyTtl, "lobby-ttl");

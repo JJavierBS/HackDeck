@@ -2,6 +2,8 @@ package com.hackdeck.application.service;
 
 import com.hackdeck.application.exception.AccessDeniedException;
 import com.hackdeck.application.exception.CapacityExceededException;
+import com.hackdeck.application.exception.QuotaExceededException;
+import com.hackdeck.application.limits.CreationQuota;
 import com.hackdeck.application.limits.RetentionPolicy;
 import com.hackdeck.application.port.in.PurgeStaleTournamentsUseCase;
 import com.hackdeck.application.port.in.TeamPlacement;
@@ -55,6 +57,7 @@ public final class TournamentApplicationService implements TournamentUseCase, Pu
     private final AccessTokenPort tokens;
     private final RuleEngine reglas;
     private final RetentionPolicy retencion;
+    private final CreationQuota<TournamentId> cupoPorCreador;
 
     public TournamentApplicationService(
             TournamentRepository tournaments,
@@ -62,17 +65,23 @@ public final class TournamentApplicationService implements TournamentUseCase, Pu
             GameStateBroadcaster broadcaster,
             AccessTokenPort tokens,
             RuleEngine reglas,
-            RetentionPolicy retencion) {
+            RetentionPolicy retencion,
+            CreationQuota<TournamentId> cupoPorCreador) {
         this.tournaments = Objects.requireNonNull(tournaments, "tournaments");
         this.games = Objects.requireNonNull(games, "games");
         this.broadcaster = Objects.requireNonNull(broadcaster, "broadcaster");
         this.tokens = Objects.requireNonNull(tokens, "tokens");
         this.reglas = Objects.requireNonNull(reglas, "reglas");
         this.retencion = Objects.requireNonNull(retencion, "retencion");
+        this.cupoPorCreador = Objects.requireNonNull(cupoPorCreador, "cupoPorCreador");
     }
 
     @Override
-    public TournamentAccess createTournament(GameSettings settings) {
+    public TournamentAccess createTournament(GameSettings settings, String creator) {
+        if (!cupoPorCreador.hasRoom(creator, id -> tournaments.findById(id).isPresent())) {
+            throw new QuotaExceededException(
+                    "Ya tienes " + cupoPorCreador.max() + " torneos abiertos; cierra alguno o espera a que caduque");
+        }
         if (retencion.tournamentsAreFull(tournaments.count())) {
             throw new CapacityExceededException(
                     "El servidor ya tiene " + retencion.maxLiveTournaments() + " torneos vivos");
@@ -80,6 +89,7 @@ public final class TournamentApplicationService implements TournamentUseCase, Pu
         Participant instructor = Participant.instructor();
         Tournament torneo = Tournament.create(uniqueJoinCode(), instructor, settings);
         tournaments.save(torneo);
+        cupoPorCreador.register(creator, torneo.id());
         return new TournamentAccess(
                 torneo.id(),
                 torneo.joinCode(),

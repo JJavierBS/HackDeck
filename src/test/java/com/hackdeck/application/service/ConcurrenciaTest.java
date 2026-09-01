@@ -43,13 +43,14 @@ class ConcurrenciaTest {
                                 Cartas.defensa("defensa").cuesta(10).build()),
                         AzarControlado.siempre()),
                 new Dobles.Tokens(),
-                Partidas.RETENCION);
+                Partidas.RETENCION,
+                Partidas.cupoDePartidas());
     }
 
     @Test
     void dos_equipos_confirmando_a_la_vez_cierran_la_ronda_una_sola_vez() throws Exception {
         GameSettings ajustes = new GameSettings(RONDAS + 1, Duration.ofMinutes(10), 100, 20);
-        GameAccess acceso = servicio.createGame(ajustes);
+        GameAccess acceso = servicio.createGame(ajustes, "test");
         servicio.joinGame(acceso.joinCode(), "Rojos");
         servicio.joinGame(acceso.joinCode(), "Azules");
         Game partida = repositorio.findById(acceso.gameId()).orElseThrow();

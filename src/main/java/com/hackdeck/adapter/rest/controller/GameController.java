@@ -89,7 +89,8 @@ public class GameController {
         CreateGameRequest settings = settingsRequest == null
                 ? new CreateGameRequest(null, null, null, null)
                 : settingsRequest;
-        return CreateGameResponse.from(createGameUseCase.createGame(settings.toSettings()));
+        return CreateGameResponse.from(
+                createGameUseCase.createGame(settings.toSettings(), request.getRemoteAddr()));
     }
 
     /**

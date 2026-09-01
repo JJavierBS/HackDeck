@@ -5,6 +5,7 @@ import com.hackdeck.adapter.rest.security.PayloadTooLargeException;
 import com.hackdeck.adapter.rest.security.UnauthenticatedException;
 import com.hackdeck.application.exception.AccessDeniedException;
 import com.hackdeck.application.exception.CapacityExceededException;
+import com.hackdeck.application.exception.QuotaExceededException;
 import com.hackdeck.domain.exception.AlreadyDeployedException;
 import com.hackdeck.domain.exception.GameNotFoundException;
 import com.hackdeck.domain.exception.GameNotJoinableException;
@@ -47,6 +48,11 @@ public class ApiExceptionHandler {
             }
         }
         return build(HttpStatus.BAD_REQUEST, "peticion_invalida", "El cuerpo de la peticion no se puede leer");
+    }
+
+    @ExceptionHandler(QuotaExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleQuotaExceeded(QuotaExceededException e) {
+        return build(HttpStatus.TOO_MANY_REQUESTS, "cuota_agotada", e.getMessage());
     }
 
     @ExceptionHandler(CapacityExceededException.class)

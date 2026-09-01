@@ -51,11 +51,12 @@ class AutorizacionTest {
                                 Cartas.defensa(DEFENSA).cuesta(10).build()),
                         AzarControlado.siempre()),
                 new Dobles.Tokens(),
-                Partidas.RETENCION);
+                Partidas.RETENCION,
+                Partidas.cupoDePartidas());
     }
 
     private Game partidaEnCurso() {
-        GameAccess acceso = servicio.createGame(Partidas.AJUSTES);
+        GameAccess acceso = servicio.createGame(Partidas.AJUSTES, "test");
         servicio.joinGame(acceso.joinCode(), "Rojos");
         servicio.joinGame(acceso.joinCode(), "Azules");
         Game partida = repositorio.findById(acceso.gameId()).orElseThrow();
@@ -72,7 +73,7 @@ class AutorizacionTest {
 
     @Test
     void crear_partida_devuelve_codigo_y_token() {
-        GameAccess acceso = servicio.createGame(Partidas.AJUSTES);
+        GameAccess acceso = servicio.createGame(Partidas.AJUSTES, "test");
 
         assertThat(acceso.token()).isNotBlank();
         assertThat(acceso.joinCode().value()).hasSize(6);
@@ -212,7 +213,7 @@ class AutorizacionTest {
 
     @Test
     void unirse_a_una_partida_llena_no_cuela() {
-        GameAccess acceso = servicio.createGame(Partidas.AJUSTES);
+        GameAccess acceso = servicio.createGame(Partidas.AJUSTES, "test");
         servicio.joinGame(acceso.joinCode(), "Rojos");
         servicio.joinGame(acceso.joinCode(), "Azules");
 
@@ -222,8 +223,8 @@ class AutorizacionTest {
 
     @Test
     void los_codigos_de_dos_partidas_no_se_repiten() {
-        JoinCode primera = servicio.createGame(Partidas.AJUSTES).joinCode();
-        JoinCode segunda = servicio.createGame(Partidas.AJUSTES).joinCode();
+        JoinCode primera = servicio.createGame(Partidas.AJUSTES, "test").joinCode();
+        JoinCode segunda = servicio.createGame(Partidas.AJUSTES, "test").joinCode();
 
         assertThat(primera).isNotEqualTo(segunda);
     }

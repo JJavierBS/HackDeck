@@ -2,6 +2,8 @@ package com.hackdeck.application.service;
 
 import com.hackdeck.application.exception.AccessDeniedException;
 import com.hackdeck.application.exception.CapacityExceededException;
+import com.hackdeck.application.exception.QuotaExceededException;
+import com.hackdeck.application.limits.CreationQuota;
 import com.hackdeck.application.limits.RetentionPolicy;
 import com.hackdeck.application.port.in.CreateGameUseCase;
 import com.hackdeck.application.port.in.EnqueueActionCommand;
@@ -59,22 +61,31 @@ public final class GameApplicationService implements
     private final RuleEngine ruleEngine;
     private final AccessTokenPort accessTokenPort;
     private final RetentionPolicy retentionPolicy;
+    private final CreationQuota<GameId> creationQuota;
 
     public GameApplicationService(
             GameRepository gameRepository,
             GameStateBroadcaster broadcaster,
             RuleEngine ruleEngine,
             AccessTokenPort accessTokenPort,
-            RetentionPolicy retentionPolicy) {
+            RetentionPolicy retentionPolicy,
+            CreationQuota<GameId> creationQuota) {
         this.gameRepository = Objects.requireNonNull(gameRepository, "gameRepository");
         this.broadcaster = Objects.requireNonNull(broadcaster, "broadcaster");
         this.ruleEngine = Objects.requireNonNull(ruleEngine, "ruleEngine");
         this.accessTokenPort = Objects.requireNonNull(accessTokenPort, "accessTokenPort");
         this.retentionPolicy = Objects.requireNonNull(retentionPolicy, "retentionPolicy");
+        this.creationQuota = Objects.requireNonNull(creationQuota, "creationQuota");
     }
 
     @Override
-    public GameAccess createGame(GameSettings settings) {
+    public GameAccess createGame(GameSettings settings, String creator) {
+        // Primero el cupo propio: si el que llama se ha pasado, decirle que el
+        // servidor esta lleno seria mentirle sobre a quien le toca arreglarlo.
+        if (!creationQuota.hasRoom(creator, id -> gameRepository.findById(id).isPresent())) {
+            throw new QuotaExceededException(
+                    "Ya tienes " + creationQuota.max() + " partidas abiertas; cierra alguna o espera a que caduque");
+        }
         if (retentionPolicy.gamesAreFull(gameRepository.count())) {
             throw new CapacityExceededException(
                     "El servidor ya tiene " + retentionPolicy.maxLiveGames() + " partidas vivas");
@@ -82,6 +93,7 @@ public final class GameApplicationService implements
         Participant instructor = Participant.instructor();
         Game game = Game.create(uniqueJoinCode(), instructor, settings);
         gameRepository.save(game);
+        creationQuota.register(creator, game.id());
         return accessFor(game, instructor);
     }
 

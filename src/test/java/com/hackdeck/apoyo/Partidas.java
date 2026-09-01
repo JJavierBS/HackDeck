@@ -1,14 +1,17 @@
 package com.hackdeck.apoyo;
 
+import com.hackdeck.application.limits.CreationQuota;
 import com.hackdeck.application.limits.RetentionPolicy;
 import com.hackdeck.domain.catalog.ActionCard;
 import com.hackdeck.domain.catalog.ActionCatalog;
 import com.hackdeck.domain.model.ActionIntent;
 import com.hackdeck.domain.model.Game;
+import com.hackdeck.domain.model.GameId;
 import com.hackdeck.domain.model.GameSettings;
 import com.hackdeck.domain.model.JoinCode;
 import com.hackdeck.domain.model.Participant;
 import com.hackdeck.domain.model.Role;
+import com.hackdeck.domain.model.TournamentId;
 import com.hackdeck.domain.model.TeamId;
 
 import java.time.Duration;
@@ -25,6 +28,15 @@ public final class Partidas {
             Duration.ofHours(1), Duration.ofHours(1), Duration.ofHours(1), 1_000, 1_000);
 
     private Partidas() {
+    }
+
+    /** Cupos amplios: los tests de juego no deben pelearse con los limites. */
+    public static CreationQuota<GameId> cupoDePartidas() {
+        return new CreationQuota<>(1_000);
+    }
+
+    public static CreationQuota<TournamentId> cupoDeTorneos() {
+        return new CreationQuota<>(1_000);
     }
 
     public static Game enCurso() {

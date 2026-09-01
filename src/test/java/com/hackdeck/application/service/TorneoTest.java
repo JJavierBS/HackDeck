@@ -37,7 +37,8 @@ class TorneoTest {
                 new Dobles.Difusor(),
                 new Dobles.Tokens(),
                 new DefaultRuleEngine(Partidas.catalogoVacio(), AzarControlado.siempre()),
-                Partidas.RETENCION);
+                Partidas.RETENCION,
+                Partidas.cupoDeTorneos());
     }
 
     @Test
@@ -78,7 +79,7 @@ class TorneoTest {
     }
 
     private TournamentAccess conEquipos(int cuantos) {
-        TournamentAccess torneo = servicio.createTournament(Partidas.AJUSTES);
+        TournamentAccess torneo = servicio.createTournament(Partidas.AJUSTES, "test");
         for (int equipo = 1; equipo <= cuantos; equipo++) {
             servicio.joinTournament(torneo.joinCode(), "Equipo " + equipo);
         }

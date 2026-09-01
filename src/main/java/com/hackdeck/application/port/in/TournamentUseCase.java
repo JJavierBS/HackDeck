@@ -8,7 +8,7 @@ import com.hackdeck.domain.model.TournamentSession;
 
 public interface TournamentUseCase {
 
-    TournamentAccess createTournament(GameSettings settings);
+    TournamentAccess createTournament(GameSettings settings, String creator);
 
     /** Devuelve vacio si ese codigo no es de un torneo. */
     java.util.Optional<TournamentAccess> joinTournament(JoinCode joinCode, String displayName);

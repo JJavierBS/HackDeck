@@ -33,6 +33,10 @@ hackdeck:
   limits:
     max-live-games: ${HACKDECK_MAX_LIVE_GAMES:500}
     max-live-tournaments: ${HACKDECK_MAX_LIVE_TOURNAMENTS:100}
+    # El cupo por minuto limita el ritmo, no el acumulado: sin esto una sola
+    # direccion sostiene cientos de partidas vivas y ocupa el servidor.
+    max-live-games-per-ip: ${HACKDECK_MAX_GAMES_PER_IP:10}
+    max-live-tournaments-per-ip: ${HACKDECK_MAX_TOURNAMENTS_PER_IP:3}
     lobby-ttl: ${HACKDECK_LOBBY_TTL:30m}
     idle-ttl: ${HACKDECK_IDLE_TTL:2h}
     finished-ttl: ${HACKDECK_FINISHED_TTL:2h}

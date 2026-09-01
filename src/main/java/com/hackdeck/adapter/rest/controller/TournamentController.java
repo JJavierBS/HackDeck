@@ -37,7 +37,8 @@ public class TournamentController {
             HttpServletRequest request, @RequestBody(required = false) CreateGameRequest ajustes) {
         instructorAccessGuard.requireInstructorAccess(request);
         CreateGameRequest peticion = ajustes == null ? new CreateGameRequest(null, null, null, null) : ajustes;
-        return TournamentAccessResponse.from(tournaments.createTournament(peticion.toSettings()));
+        return TournamentAccessResponse.from(
+                tournaments.createTournament(peticion.toSettings(), request.getRemoteAddr()));
     }
 
     @GetMapping("/{tournamentId}")
