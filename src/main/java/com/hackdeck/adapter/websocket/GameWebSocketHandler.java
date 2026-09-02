@@ -30,7 +30,7 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession socket) {
         ParticipantSession session = participantSession(socket);
-        sessionRegistry.register(session, socket);
+        cerrar(sessionRegistry.register(session, socket));
         // Al conectar se le manda su estado, para que un cliente que se
         // reconecta no tenga que esperar a la siguiente ronda para saber
         // como esta la partida.
@@ -46,6 +46,17 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession socket, TextMessage message) {
+    }
+
+    /** Las que sobran del mismo participante, ya dadas de baja del registro. */
+    private static void cerrar(java.util.List<ConnectedParticipant> sobrantes) {
+        for (ConnectedParticipant sobrante : sobrantes) {
+            try {
+                sobrante.socket().close(CloseStatus.POLICY_VIOLATION);
+            } catch (java.io.IOException | IllegalStateException e) {
+                // Si ya estaba caida, con haberla quitado del registro basta.
+            }
+        }
     }
 
     private static ParticipantSession participantSession(WebSocketSession socket) {

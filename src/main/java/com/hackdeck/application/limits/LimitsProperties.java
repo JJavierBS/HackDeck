@@ -30,6 +30,10 @@ import java.time.Duration;
  *                             alcance.
  * @param createAttemptsPerIp  partidas o torneos creados por IP y ventana.
  * @param rateLimitWindow      ventana de ambos cupos.
+ * @param maxSocketsPerParticipant  conexiones de tiempo real a la vez del
+ *                             mismo participante. El difusor proyecta el
+ *                             estado una vez por conexion, asi que abrirlas
+ *                             sale mas caro al servidor que a quien las abre.
  * @param maxRequestBody       tope al cuerpo de las peticiones de la API. La
  *                             peticion mas gorda que existe es reordenar la
  *                             cola, unos pocos kilobytes, asi que 32 KB ya es
@@ -48,6 +52,7 @@ public record LimitsProperties(
         @DefaultValue("60") int joinAttemptsPerIp,
         @DefaultValue("10") int createAttemptsPerIp,
         @DefaultValue("1m") Duration rateLimitWindow,
+        @DefaultValue("4") int maxSocketsPerParticipant,
         @DefaultValue("32KB") DataSize maxRequestBody) {
 
     public LimitsProperties {
@@ -62,6 +67,7 @@ public record LimitsProperties(
         requirePositive(finishedTtl, "finished-ttl");
         requirePositive(purgeInterval, "purge-interval");
         requirePositive(rateLimitWindow, "rate-limit-window");
+        requirePositive(maxSocketsPerParticipant, "max-sockets-per-participant");
         if (maxRequestBody == null || maxRequestBody.toBytes() <= 0) {
             throw new IllegalArgumentException("hackdeck.limits.max-request-body debe ser un tamano positivo");
         }

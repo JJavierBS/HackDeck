@@ -46,5 +46,6 @@ hackdeck:
     rate-limit-window: 1m
     # Ni Tomcat ni Spring topan el JSON por su cuenta. La peticion mas gorda
     # que existe es reordenar la cola, unos pocos kilobytes.
+    max-sockets-per-participant: ${HACKDECK_MAX_SOCKETS:4}
     max-request-body: ${HACKDECK_MAX_REQUEST_BODY:32KB}
 

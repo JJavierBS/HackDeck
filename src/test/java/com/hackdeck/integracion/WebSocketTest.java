@@ -3,6 +3,7 @@ package com.hackdeck.integracion;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.web.socket.CloseStatus;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -11,6 +12,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
@@ -25,6 +28,9 @@ class WebSocketTest {
     @Value("${local.server.port}")
     private int puerto;
 
+    @Value("${hackdeck.limits.max-sockets-per-participant}")
+    private int maxConexiones;
+
     private final HttpClient cliente = HttpClient.newHttpClient();
     private final ObjectMapper json = new ObjectMapper();
 
@@ -38,6 +44,14 @@ class WebSocketTest {
     }
 
     private WebSocket conectar(String partida, String token, CompletableFuture<String> primerMensaje) {
+        return conectar(partida, token, primerMensaje, new CompletableFuture<>());
+    }
+
+    private WebSocket conectar(
+            String partida,
+            String token,
+            CompletableFuture<String> primerMensaje,
+            CompletableFuture<Integer> alCerrarse) {
         return cliente.newWebSocketBuilder()
                 .buildAsync(
                         URI.create("ws://localhost:" + puerto + "/ws/games/" + partida + "?token=" + token),
@@ -46,6 +60,12 @@ class WebSocketTest {
                             public CompletionStage<?> onText(WebSocket socket, CharSequence datos, boolean ultimo) {
                                 primerMensaje.complete(datos.toString());
                                 socket.request(1);
+                                return null;
+                            }
+
+                            @Override
+                            public CompletionStage<?> onClose(WebSocket socket, int codigo, String motivo) {
+                                alCerrarse.complete(codigo);
                                 return null;
                             }
                         })
@@ -65,6 +85,30 @@ class WebSocketTest {
         assertThat(json.readTree(recibido).get("state").get("joinCode").asString())
                 .isEqualTo(instructor.get("joinCode").asString());
         socket.sendClose(WebSocket.NORMAL_CLOSURE, "fin");
+    }
+
+    /**
+     * Un token valido abria conexiones sin limite, y el difusor proyecta el
+     * estado una vez por cada una: el coste era del servidor, no de quien las
+     * abria.
+     */
+    @Test
+    void pasado_el_tope_de_conexiones_se_cierra_la_mas_antigua() throws Exception {
+        JsonNode instructor = crearPartida();
+        String partida = instructor.get("gameId").asString();
+        String token = instructor.get("token").asString();
+
+        CompletableFuture<Integer> primeraCerrada = new CompletableFuture<>();
+        List<WebSocket> abiertas = new ArrayList<>();
+        abiertas.add(conectar(partida, token, new CompletableFuture<>(), primeraCerrada));
+        for (int extra = 0; extra < maxConexiones; extra++) {
+            abiertas.add(conectar(partida, token, new CompletableFuture<>()));
+        }
+
+        // La ultima en llegar es la que el usuario esta mirando, asi que la
+        // que se va es la primera.
+        assertThat(primeraCerrada.get(5, TimeUnit.SECONDS)).isEqualTo(CloseStatus.POLICY_VIOLATION.getCode());
+        abiertas.forEach(socket -> socket.sendClose(WebSocket.NORMAL_CLOSURE, "fin"));
     }
 
     @Test
