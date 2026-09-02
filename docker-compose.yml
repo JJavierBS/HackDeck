@@ -6,7 +6,9 @@ services:
     environment:
       # Sin clave fija, los tokens mueren en cada reinicio y echa a los equipos.
       HACKDECK_JWT_SECRET: ${HACKDECK_JWT_SECRET:?pon una clave de al menos 32 caracteres}
-      HACKDECK_INSTRUCTOR_KEY: ${HACKDECK_INSTRUCTOR_KEY:?pon la clave con la que crearas partidas}
+      # Sin clave, crear partidas queda abierto a cualquiera; los cupos de
+      # hackdeck.limits son entonces lo unico que frena los abusos.
+      HACKDECK_INSTRUCTOR_KEY: ${HACKDECK_INSTRUCTOR_KEY:-}
       # Que la JVM respete el limite del contenedor en vez del de la maquina.
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75
       # Para usar tu propio catalogo, montalo y apunta aqui.

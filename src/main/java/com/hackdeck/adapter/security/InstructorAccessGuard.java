@@ -10,9 +10,16 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 /**
- * Controla quien puede crear partidas. Desde el propio equipo (el portatil
- * del instructor en el aula) no se pide nada; desde fuera hace falta la
- * clave configurada, para que un despliegue publico no se llene de partidas.
+ * Controla quien puede crear partidas.
+ *
+ * La clave es opcional: si no se configura, crear queda abierto a cualquiera,
+ * que es lo que se quiere en un despliegue publico. Lo que impide entonces
+ * que el servidor se llene no es una clave, sino los cupos por direccion y
+ * los topes de §4.1: cuantas partidas vivas puede tener cada uno y cuantas
+ * caben en total.
+ *
+ * Con la clave configurada se vuelve al modo cerrado, y desde el propio
+ * equipo (el portatil del instructor en el aula) sigue sin pedirse nada.
  */
 @Component
 public final class InstructorAccessGuard {
@@ -30,8 +37,7 @@ public final class InstructorAccessGuard {
             return;
         }
         if (!properties.hasInstructorKey()) {
-            throw new AccessDeniedException(
-                    "Crear partidas desde fuera del servidor exige configurar hackdeck.security.instructor-key");
+            return;
         }
         if (!matchesInstructorKey(request.getHeader(INSTRUCTOR_KEY_HEADER))) {
             throw new AccessDeniedException("Clave de instructor incorrecta");

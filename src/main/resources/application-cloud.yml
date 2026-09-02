@@ -10,4 +10,6 @@ hackdeck:
   security:
     allow-loopback-without-key: false
     jwt-secret: ${HACKDECK_JWT_SECRET}
-    instructor-key: ${HACKDECK_INSTRUCTOR_KEY}
+    # Vacia = crear partidas queda abierto a cualquiera, que es lo previsto
+    # en un despliegue publico. Ponla para volver al modo cerrado.
+    instructor-key: ${HACKDECK_INSTRUCTOR_KEY:}
