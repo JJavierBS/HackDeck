@@ -145,7 +145,9 @@ ni probar códigos de partida a ciegas.
 | `HACKDECK_MAX_CONNECTIONS` | `2000` | Conexiones simultáneas que acepta Tomcat. |
 | `HACKDECK_MAX_REQUEST_BODY` | `32KB` | Tope al cuerpo de las peticiones de la API. |
 
-Un torneo admite como máximo **64 equipos**, que son cinco rondas de bracket.
+Un torneo admite como máximo **64 equipos**, que son cinco rondas de bracket. Al arrancar
+cada ronda comprueba que caben **todas** sus mesas: o entran todas o no arranca ninguna, para
+no dejar el bracket a medias.
 
 > **Ojo con el NAT.** Una clase entera suele salir a internet por **una sola IP pública**, y
 > todos se unen a la vez. Por eso el cupo de unión es holgado; si aun así una clase grande
