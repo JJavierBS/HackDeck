@@ -99,8 +99,15 @@ Si el servidor va a estar accesible desde fuera de un aula, además de lo anteri
   mate el contenedor y se reinicie es mucho mejor que quedarse sin máquina.
 
 El servidor ya se defiende solo de lo básico: cupo de peticiones por IP en los tres
-endpoints anónimos, tope de partidas y torneos vivos, y borrado automático de las mesas
-abandonadas (ver la tabla de configuración).
+endpoints anónimos, tope de partidas y torneos vivos, tope al tamaño de las peticiones y
+borrado automático de las mesas abandonadas (ver la tabla de configuración).
+
+**Para saber si te están dando caña**, mira el log: si hay rechazos, cada minuto aparece una
+línea como esta, y si no hay, no aparece nada.
+
+```
+WARN  RejectionMonitor : Peticiones rechazadas: cupo_por_direccion=842 (3 direcciones)
+```
 
 ## Cambiar las cartas sin recompilar
 
