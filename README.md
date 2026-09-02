@@ -144,6 +144,7 @@ ni probar códigos de partida a ciegas.
 | `HACKDECK_CREATE_ATTEMPTS` | `10` | Partidas o torneos creados por IP y minuto. |
 | `HACKDECK_MAX_CONNECTIONS` | `2000` | Conexiones simultáneas que acepta Tomcat. |
 | `HACKDECK_MAX_REQUEST_BODY` | `32KB` | Tope al cuerpo de las peticiones de la API. |
+| `HACKDECK_MAX_SOCKETS` | `4` | Conexiones en tiempo real a la vez del mismo participante. |
 
 Un torneo admite como máximo **64 equipos**, que son cinco rondas de bracket. Al arrancar
 cada ronda comprueba que caben **todas** sus mesas: o entran todas o no arranca ninguna, para
