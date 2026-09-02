@@ -57,6 +57,14 @@ public final class RetentionPolicy {
         return liveGames >= maxLiveGames;
     }
 
+    /**
+     * Un torneo siembra todas las mesas de la ronda de una vez: o caben todas
+     * o no arranca ninguna.
+     */
+    public boolean hasRoomForGames(int liveGames, int extraGames) {
+        return liveGames + extraGames <= maxLiveGames;
+    }
+
     public boolean tournamentsAreFull(int liveTournaments) {
         return liveTournaments >= maxLiveTournaments;
     }

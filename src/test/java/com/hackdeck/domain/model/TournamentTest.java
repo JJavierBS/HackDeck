@@ -33,6 +33,15 @@ class TournamentTest {
     }
 
     @Test
+    void cuenta_las_mesas_que_hara_falta_sembrar_sin_tocar_el_bracket() {
+        Tournament torneo = conEquipos("Rojos", "Azules", "Verdes", "Grises", "Morados");
+
+        assertThat(torneo.tablesForNextRound()).isEqualTo(2);
+        // Preguntar no arranca nada: el que pasa directo no ocupa mesa.
+        assertThat(torneo.phase()).isEqualTo(TournamentPhase.LOBBY);
+    }
+
+    @Test
     void empareja_por_orden_de_llegada() {
         Tournament torneo = conEquipos("Rojos", "Azules", "Verdes", "Grises");
 

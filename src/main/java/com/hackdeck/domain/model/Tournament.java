@@ -106,6 +106,19 @@ public final class Tournament {
      * Empareja por orden de llegada. Con un numero impar de equipos, el
      * ultimo pasa directo a la ronda siguiente.
      */
+    /**
+     * Mesas que hara falta sembrar en la proxima ronda. Es consulta pura: se
+     * pregunta antes de arrancar, porque quedarse sin sitio a mitad del
+     * sembrado dejaria el bracket con unos cruces jugandose y otros no.
+     * Quien pasa directo no ocupa mesa.
+     */
+    public int tablesForNextRound() {
+        if (phase == TournamentPhase.LOBBY) {
+            return teams.size() / 2;
+        }
+        return currentRound().map(ronda -> ronda.winners().size() / 2).orElse(0);
+    }
+
     public BracketRound startFirstRound() {
         if (phase != TournamentPhase.LOBBY) {
             throw new IllegalStateException("El torneo ya ha empezado");

@@ -30,6 +30,11 @@ public final class Partidas {
     private Partidas() {
     }
 
+    public static RetentionPolicy retencionCon(int maxPartidas) {
+        return new RetentionPolicy(
+                Duration.ofHours(1), Duration.ofHours(1), Duration.ofHours(1), maxPartidas, 1_000);
+    }
+
     /** Cupos amplios: los tests de juego no deben pelearse con los limites. */
     public static CreationQuota<GameId> cupoDePartidas() {
         return new CreationQuota<>(1_000);

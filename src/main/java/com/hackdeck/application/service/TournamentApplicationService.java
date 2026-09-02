@@ -119,6 +119,7 @@ public final class TournamentApplicationService implements TournamentUseCase, Pu
         Tournament torneo = requireTournament(id);
         synchronized (torneo) {
             requireInstructor(torneo, session);
+            requireRoomForTables(torneo);
             sembrarMesas(torneo, torneo.startFirstRound());
             tournaments.save(torneo);
         }
@@ -130,6 +131,7 @@ public final class TournamentApplicationService implements TournamentUseCase, Pu
         synchronized (torneo) {
             requireInstructor(torneo, session);
             cerrarRondaEnCurso(torneo);
+            requireRoomForTables(torneo);
             sembrarMesas(torneo, torneo.startNextRound());
             tournaments.save(torneo);
         }
@@ -305,6 +307,21 @@ public final class TournamentApplicationService implements TournamentUseCase, Pu
 
     private PlayerId ganadorDe(Game partida, Pairing cruce) {
         return partida.playerOf(reglas.bracketWinner(partida)).map(Participant::id).orElse(cruce.home());
+    }
+
+    /**
+     * Las mesas de un torneo nacen por dentro y no pasan por createGame, asi
+     * que se les escapaba el tope de partidas del servidor: un torneo de
+     * sesenta y cuatro equipos sembraba treinta y dos mesas sin que nadie
+     * mirase si cabian. Se comprueba antes de tocar el bracket para que la
+     * ronda no arranque a medias.
+     */
+    private void requireRoomForTables(Tournament torneo) {
+        int mesas = torneo.tablesForNextRound();
+        if (mesas > 0 && !retencion.hasRoomForGames(games.count(), mesas)) {
+            throw new CapacityExceededException(
+                    "El servidor no tiene sitio para las " + mesas + " mesas de esta ronda");
+        }
     }
 
     private void sembrarMesas(Tournament torneo, BracketRound ronda) {
