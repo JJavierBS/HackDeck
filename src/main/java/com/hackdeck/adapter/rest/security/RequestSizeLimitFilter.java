@@ -42,10 +42,13 @@ public class RequestSizeLimitFilter extends OncePerRequestFilter {
 
     private final long maxBytes;
     private final ObjectMapper objectMapper;
+    private final RejectionMonitor rejections;
 
-    public RequestSizeLimitFilter(LimitsProperties properties, ObjectMapper objectMapper) {
+    public RequestSizeLimitFilter(
+            LimitsProperties properties, ObjectMapper objectMapper, RejectionMonitor rejections) {
         this.maxBytes = properties.maxRequestBody().toBytes();
         this.objectMapper = objectMapper;
+        this.rejections = rejections;
     }
 
     @Override
@@ -59,6 +62,7 @@ public class RequestSizeLimitFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         // Con Content-Length se rechaza sin leer un solo byte del cuerpo.
         if (request.getContentLengthLong() > maxBytes) {
+            rejections.record("cuerpo_demasiado_grande", request.getRemoteAddr());
             reject(response);
             return;
         }
@@ -68,6 +72,7 @@ public class RequestSizeLimitFilter extends OncePerRequestFilter {
             // Solo llega aqui si alguien lee el cuerpo fuera del controlador;
             // lo normal es que lo traduzca el manejador de errores.
             if (!response.isCommitted()) {
+                rejections.record("cuerpo_demasiado_grande", request.getRemoteAddr());
                 reject(response);
             }
         }

@@ -41,12 +41,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final TokenBucketRateLimiter joins;
     private final TokenBucketRateLimiter creations;
     private final ObjectMapper objectMapper;
+    private final RejectionMonitor rejections;
     private final long retryAfterSeconds;
 
-    public RateLimitFilter(LimitsProperties properties, ObjectMapper objectMapper) {
+    public RateLimitFilter(
+            LimitsProperties properties, ObjectMapper objectMapper, RejectionMonitor rejections) {
         this.joins = new TokenBucketRateLimiter(properties.joinAttemptsPerIp(), properties.rateLimitWindow());
         this.creations = new TokenBucketRateLimiter(properties.createAttemptsPerIp(), properties.rateLimitWindow());
         this.objectMapper = objectMapper;
+        this.rejections = rejections;
         this.retryAfterSeconds = Math.max(1, properties.rateLimitWindow().toSeconds());
     }
 
@@ -61,6 +64,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         TokenBucketRateLimiter limiter = limiterFor(request);
         if (limiter != null && !limiter.tryAcquire(request.getRemoteAddr(), Instant.now())) {
+            rejections.record("cupo_por_direccion", request.getRemoteAddr());
             reject(response);
             return;
         }

@@ -2,6 +2,7 @@ package com.hackdeck.adapter.rest;
 
 import com.hackdeck.adapter.rest.dto.ApiErrorResponse;
 import com.hackdeck.adapter.rest.security.PayloadTooLargeException;
+import com.hackdeck.adapter.rest.security.RejectionMonitor;
 import com.hackdeck.adapter.rest.security.UnauthenticatedException;
 import com.hackdeck.application.exception.AccessDeniedException;
 import com.hackdeck.application.exception.CapacityExceededException;
@@ -18,8 +19,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    private final RejectionMonitor rejections;
+
+    public ApiExceptionHandler(RejectionMonitor rejections) {
+        this.rejections = rejections;
+    }
 
     @ExceptionHandler(UnauthenticatedException.class)
     public ResponseEntity<ApiErrorResponse> handleUnauthenticated(UnauthenticatedException e) {
@@ -32,7 +41,9 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(PayloadTooLargeException.class)
-    public ResponseEntity<ApiErrorResponse> handlePayloadTooLarge(PayloadTooLargeException e) {
+    public ResponseEntity<ApiErrorResponse> handlePayloadTooLarge(
+            PayloadTooLargeException e, HttpServletRequest request) {
+        rejections.record("cuerpo_demasiado_grande", request.getRemoteAddr());
         return build(HttpStatus.PAYLOAD_TOO_LARGE, "cuerpo_demasiado_grande", e.getMessage());
     }
 
@@ -41,22 +52,29 @@ public class ApiExceptionHandler {
      * llegar envuelto en el error de JSON ilegible.
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiErrorResponse> handleUnreadableBody(HttpMessageNotReadableException e) {
+    public ResponseEntity<ApiErrorResponse> handleUnreadableBody(
+            HttpMessageNotReadableException e, HttpServletRequest request) {
         for (Throwable causa = e.getCause(); causa != null; causa = causa.getCause()) {
             if (causa instanceof PayloadTooLargeException demasiado) {
-                return handlePayloadTooLarge(demasiado);
+                return handlePayloadTooLarge(demasiado, request);
             }
         }
         return build(HttpStatus.BAD_REQUEST, "peticion_invalida", "El cuerpo de la peticion no se puede leer");
     }
 
     @ExceptionHandler(QuotaExceededException.class)
-    public ResponseEntity<ApiErrorResponse> handleQuotaExceeded(QuotaExceededException e) {
+    public ResponseEntity<ApiErrorResponse> handleQuotaExceeded(
+            QuotaExceededException e, HttpServletRequest request) {
+        rejections.record("cuota_por_creador", request.getRemoteAddr());
         return build(HttpStatus.TOO_MANY_REQUESTS, "cuota_agotada", e.getMessage());
     }
 
     @ExceptionHandler(CapacityExceededException.class)
-    public ResponseEntity<ApiErrorResponse> handleCapacityExceeded(CapacityExceededException e) {
+    public ResponseEntity<ApiErrorResponse> handleCapacityExceeded(
+            CapacityExceededException e, HttpServletRequest request) {
+        // Este no es culpa de quien llama, pero es el que hay que ver primero:
+        // significa que el servidor se ha quedado sin sitio para todos.
+        rejections.record("servidor_lleno", request.getRemoteAddr());
         return build(HttpStatus.SERVICE_UNAVAILABLE, "servidor_lleno", e.getMessage());
     }
 
