@@ -71,16 +71,26 @@ cd frontend && npm run dev   # frontend en :5173
 
 ```bash
 export HACKDECK_JWT_SECRET='una-clave-larga-de-al-menos-32-caracteres'
-export HACKDECK_INSTRUCTOR_KEY='la-clave-para-crear-partidas'
 docker compose up --build
 ```
 
+**Crear partidas está abierto a cualquiera** salvo que configures una clave. Lo que impide
+que el servidor se llene no es una clave, sino los cupos por dirección y los topes de la
+tabla de límites. Si prefieres cerrarlo, exporta también:
+
+```bash
+export HACKDECK_INSTRUCTOR_KEY='la-clave-para-crear-partidas'
+```
+
+Al arrancar sin clave el log lo dice en voz alta, para que abrirlo por descuido no se
+confunda con abrirlo a propósito.
+
 O sin Docker, con `java -jar hack-deck-backend.jar --spring.profiles.active=cloud`.
 
-> **Importante detrás de un proxy inverso.** Crear partidas está abierto desde la propia
-> máquina y exige clave desde fuera. Si el proxy no reenvía la IP real, aparece como cliente
-> local y **cualquiera podría crear partidas**. El perfil `cloud` ya lo desactiva y activa
-> `forward-headers-strategy`; asegúrate de usarlo.
+> **Importante detrás de un proxy inverso.** Si el proxy no reenvía la IP real, todas las
+> peticiones parecen venir de la misma máquina: eso exime de la clave (si la has puesto) y
+> hace que **toda la gente comparta un solo cupo por dirección**. El perfil `cloud` desactiva
+> la exención y activa `forward-headers-strategy`; asegúrate de usarlo.
 
 ### Abierto a internet
 
@@ -128,7 +138,7 @@ de fallar a mitad de una clase.
 |---|---|---|
 | `PORT` | `8080` | Puerto del servidor. |
 | `HACKDECK_JWT_SECRET` | aleatoria | Clave de firma de los tokens. Si no se fija, los tokens mueren al reiniciar. |
-| `HACKDECK_INSTRUCTOR_KEY` | vacía | Clave para crear partidas desde fuera de la máquina. |
+| `HACKDECK_INSTRUCTOR_KEY` | vacía | Clave para crear partidas. **Vacía = abierto a cualquiera.** |
 | `HACKDECK_ALLOW_LOOPBACK` | `true` | Exime de la clave a las peticiones locales. **Ponlo a `false` detrás de un proxy.** |
 | `HACKDECK_CORS_ORIGINS` | `http://localhost:5173` | Solo hace falta en desarrollo. |
 | `HACKDECK_CATALOG_PATH` | catálogo empaquetado | Catálogo de cartas externo. |
