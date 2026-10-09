@@ -243,6 +243,10 @@ export function LandingView({ onEnterGame }: LandingViewProps) {
             ·{" "}
             <a href="https://github.com/JJavierBS/HackDeck" target="_blank" rel="noreferrer">
               {t("landing.footer.repo")}
+            </a>{" "}
+            ·{" "}
+            <a href="/HackDeck_Ciberseguridad_2Bachillerato.pptx" download>
+              {t("landing.footer.presentation")}
             </a>
           </span>
         </div>
