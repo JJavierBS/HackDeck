@@ -14,6 +14,11 @@ server:
 spring:
   application:
     name: hack-deck-backend
+  web:
+    # Sin esto, al servir "/" Spring anuncia el idioma de la JVM (en-US en el
+    # servidor) y contradice al lang del HTML.
+    locale: es
+    locale-resolver: fixed
 
 hackdeck:
   security:
