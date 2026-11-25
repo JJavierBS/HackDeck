@@ -3,7 +3,48 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HackDeck</title>
+    <title>HackDeck · Juego de ciberseguridad por equipos para el aula</title>
+    <meta
+      name="description"
+      content="Juego educativo gratuito de ciberseguridad para clase: un equipo ataca y otro defiende la tríada CIA con 44 cartas de técnicas reales. Se juega en el navegador."
+    />
+    <link rel="canonical" href="https://hackdeck.josejavierbravo.com/" />
+    <meta name="author" content="José Javier Bravo" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:site_name" content="HackDeck" />
+    <meta property="og:url" content="https://hackdeck.josejavierbravo.com/" />
+    <meta property="og:title" content="HackDeck · Juego de ciberseguridad por equipos para el aula" />
+    <meta
+      property="og:description"
+      content="Red Team contra Blue Team en el aula: ataca o defiende la tríada CIA con cartas de técnicas reales, desde el navegador y sin instalar nada."
+    />
+    <meta property="og:image" content="https://hackdeck.josejavierbravo.com/og.png" />
+    <meta property="og:image:width" content="1650" />
+    <meta property="og:image:height" content="930" />
+    <meta property="og:image:alt" content="Pantallas de HackDeck: jugador atacante, defensor e instructor" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "HackDeck",
+        "url": "https://hackdeck.josejavierbravo.com/",
+        "description": "Videojuego educativo de ciberseguridad por turnos para el aula: el equipo rojo ataca una infraestructura y el azul la defiende.",
+        "applicationCategory": "GameApplication",
+        "applicationSubCategory": "EducationalGame",
+        "operatingSystem": "Cualquiera con un navegador moderno",
+        "inLanguage": ["es", "en"],
+        "isAccessibleForFree": true,
+        "educationalUse": "Ciberseguridad en bachillerato",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "image": "https://hackdeck.josejavierbravo.com/og.png",
+        "author": { "@type": "Person", "name": "José Javier Bravo", "url": "https://josejavierbravo.com" },
+        "sameAs": ["https://github.com/JJavierBS/HackDeck"]
+      }
+    </script>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -16,7 +57,39 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="contenido-estatico">
+        <h1>HackDeck: juego de ciberseguridad por equipos para el aula</h1>
+        <p>
+          Un juego pensado para introducir al alumnado en los conceptos básicos de ciberseguridad.
+          Dos equipos compiten desde el navegador: el Red Team intenta derribar un pilar de la
+          tríada CIA (confidencialidad, integridad y disponibilidad) y el Blue Team despliega
+          defensas para proteger el sistema.
+        </p>
+        <h2>Cómo se juega</h2>
+        <p>
+          En cada ronda los dos bandos eligen sus cartas en secreto dentro de su presupuesto. Las
+          44 cartas son técnicas reales, como el phishing, el MFA, el ransomware o la segmentación
+          de red, explicadas en una frase. El atacante avanza por la kill chain (reconocimiento,
+          acceso, escalada e impacto) y el defensor solo ve los ataques que consigue detectar.
+        </p>
+        <p>
+          Un match tiene dos mitades: al terminar la primera se cambian los bandos y la tríada
+          vuelve a 100, así que se compara directamente quién defendió mejor. Al final, el
+          instructor puede rebobinar la partida ronda a ronda para comentarla en clase.
+        </p>
+        <h2>Pensado para el aula</h2>
+        <p>
+          Los equipos entran con un código de partida de seis letras. El instructor tiene un panel
+          para controlar las rondas y una pantalla de proyección con el marcador en grande, y puede
+          organizar torneos entre los grupos. Funciona en el navegador, sin instalar nada.
+        </p>
+        <p>
+          HackDeck se desarrolló como apoyo al Cyberbootcamp Málaga y es código abierto:
+          <a href="https://github.com/JJavierBS/HackDeck">github.com/JJavierBS/HackDeck</a>.
+        </p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

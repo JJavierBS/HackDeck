@@ -1574,3 +1574,11 @@ ul {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Contenido del HTML inicial para buscadores; React lo sustituye al montar. */
+.contenido-estatico {
+  max-width: 760px;
+  margin: 48px auto;
+  padding: 0 16px;
+  line-height: 1.6;
+}
